@@ -19,5 +19,10 @@ class MainActivity3 : AppCompatActivity() {
         """.trimIndent()
 
         txtConfig.text = configText
+
+
+
+
+
     }
 }
