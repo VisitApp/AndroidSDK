@@ -4,6 +4,10 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
+
 android {
     compileSdk 31
 
@@ -16,9 +20,16 @@ android {
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "APP_BASE_URL", localProperties['BASE_URL'])
+        buildConfigField("int", "APP_RETRY_ATTEMPTS", localProperties['RETRY_ATTEMPTS'])
+        buildConfigField("float", "APP_THRESHOLD_VALUE", localProperties['THRESHOLD_VALUE'])
     }
 
     buildTypes {
+        debug{
+            resValue("string", "maps_key", localProperties['MAP_KEY'])
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -56,4 +67,7 @@ dependencies {
 
     implementation 'io.reactivex:rxjava:1.3.3'
     implementation 'io.reactivex:rxandroid:1.2.1'
+
+    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
+
 }
