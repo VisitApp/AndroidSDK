@@ -17,7 +17,8 @@ import rx.Subscriber
 import rx.android.schedulers.AndroidSchedulers
 import java.util.*
 
-class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFitStatusListener {
+class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFitStatusListener,
+    GenericListener {
 
     var TAG = this.javaClass.simpleName
 
@@ -33,58 +34,68 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.setListener(this, this);
         mWebView.setMixedContentAllowed(false);
         mWebView.settings.javaScriptEnabled = true
-        mWebView.loadUrl("https://web.getvisitapp.xyz/");
-        var webAppInterface = WebAppInterface(this)
-        webAppInterface.listener = this
-        mWebView.addJavascriptInterface(webAppInterface, "Android")
 
-        WebView.setWebContentsDebuggingEnabled(true);
+        val baseUrl: String = "https://star-health.getvisitapp.xyz/star-health"
+        val authToken: String = "Bearer%20eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8"
+        val userId: String = "8158"
 
-        stepsCounter = StepsCounter.getInstance(this)
-
-        googleFitConnector = GoogleFitConnector(
-            this,
-            this.getString(R.string.default_web_client_id),
-            object : GoogleFitConnector.GoogleConnectorFitListener {
-                override fun onComplete() {
-                    Log.d(TAG, "onComplete() called")
-                }
-
-                override fun onError() {
-                    Log.d(TAG, "onError() called")
-
-                }
-
-                override fun onServerAuthCodeFound(p0: String?) {
-                    Log.d(TAG, "error Occured: $p0")
-                }
-
-            })
-
-        if(stepsCounter.hasAccess()){
-            googleFitConnector.getTotalStepsForToday()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : Subscriber<List<Int?>?>() {
-                    override fun onCompleted() {}
-                    override fun onError(e: Throwable) {
-                        e.printStackTrace()
-                    }
+        val magicLink = "$baseUrl?token=$authToken&id=$userId"
+        Log.d(TAG, "magicLink: $magicLink")
 
 
-
-                    override fun onNext(t: List<Int?>?) {
-                        Log.d("mytag","${t!![0]}")
-
-                        mWebView.evaluateJavascript("window.googleFitPermissionGranted(true, '2000', '320')", null)
-
-                    }
+        mWebView.loadUrl(magicLink);
 
 
-                })
-        }
-
-
-
+//        var webAppInterface = WebAppInterface(this)
+//
+//        mWebView.addJavascriptInterface(webAppInterface, "Android")
+//
+//        WebView.setWebContentsDebuggingEnabled(true);
+//
+//        stepsCounter = StepsCounter.getInstance(this)
+//
+//        googleFitConnector = GoogleFitConnector(
+//            this,
+//            this.getString(R.string.default_web_client_id),
+//            object : GoogleFitConnector.GoogleConnectorFitListener {
+//                override fun onComplete() {
+//                    Log.d(TAG, "onComplete() called")
+//                }
+//
+//                override fun onError() {
+//                    Log.d(TAG, "onError() called")
+//
+//                }
+//
+//                override fun onServerAuthCodeFound(p0: String?) {
+//                    Log.d(TAG, "error Occured: $p0")
+//                }
+//
+//            })
+//
+//        if (stepsCounter.hasAccess()) {
+//            googleFitConnector.getTotalStepsForToday()
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(object : Subscriber<List<Int?>?>() {
+//                    override fun onCompleted() {}
+//                    override fun onError(e: Throwable) {
+//                        e.printStackTrace()
+//                    }
+//
+//
+//                    override fun onNext(t: List<Int?>?) {
+//                        Log.d("mytag", "${t!![0]}")
+//
+//                        mWebView.evaluateJavascript(
+//                            "window.googleFitPermissionGranted(true, '2000', '320')",
+//                            null
+//                        )
+//
+//                    }
+//
+//
+//                })
+//        }
 
 
     }
@@ -104,10 +115,12 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         super.onDestroy()
     }
 
-    override fun onPageStarted(url: String?, favicon: Bitmap?) {}
+    override fun onPageStarted(url: String?, favicon: Bitmap?) {
+        Log.d(TAG, "onPageStarted: $url")
+    }
 
     override fun onPageFinished(url: String?) {
-        Log.d(TAG,"onPageFinished: $url")
+        Log.d(TAG, "onPageFinished: $url")
 
     }
 
@@ -131,7 +144,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
             googleFitConnector.onActivityResult(requestCode, resultCode, data)
         }
         if (stepsCounter != null) {
-            stepsCounter!!.onActivityResult(requestCode, resultCode, data)
+            stepsCounter!!.onActivityResult(requestCode, resultCode, data,this)
         }
         mWebView.onActivityResult(requestCode, resultCode, intent);
 
@@ -145,17 +158,23 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     }
 
 
-    class WebAppInterface(private val mContext: Context) {
-        var TAG = this.javaClass.simpleName
-        var listener: GoogleFitStatusListener? = null
-
+    class WebAppInterface(private var listener: GoogleFitStatusListener) {
 
         @JavascriptInterface
         fun connectToGoogleFit() {
-            Log.d(TAG, "connectToGoogleFit() called")
+            Log.d("mytag", "connectToGoogleFit() called")
 
             listener?.askForGoogleFitPermission()
 
+        }
+
+        @JavascriptInterface
+        fun getDataToGenerateGraph(type: String, frequency: String, timestamp: Long) {
+            Log.d(
+                "mytag",
+                "getDataToGenerateGraph() called. type:$type frequency: $frequency timestamp:$timestamp"
+            )
+            listener.setGraphData(type, frequency, timestamp)
         }
     }
 
@@ -168,10 +187,54 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
                 Log.d(TAG, "Job Done: $it");
 
                 runOnUiThread {
-                     mWebView.evaluateJavascript("window.googleFitPermissionGranted(true, '2000', '320')", null)
+                    mWebView.evaluateJavascript(
+                        "window.googleFitPermissionGranted(true, '2000', '320')",
+                        null
+                    )
                 }
 
             })
+    }
+
+    override fun setGraphData(type: String?, frequency: String?, timestamp: Long) {
+        Log.d("mytag", "updateData() called")
+        runOnUiThread {
+            frequency?.let {
+                when (frequency) {
+                    "day" -> {
+                        mWebView.evaluateJavascript(
+                            "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],[100,200,300], 'steps', 'day')",
+                            null
+                        )
+                    }
+                    "week" -> {
+                        mWebView.evaluateJavascript(
+                            "DetailedGraph.updateData([1,2,3,4,5,6,7],[100,200,300,10000], 'steps', 'week')",
+                            null
+                        )
+                    }
+                    "month" -> {
+                        mWebView.evaluateJavascript(
+                            "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],[100,200,300,1000,400,6000], 'steps', 'month')",
+                            null
+                        )
+                    }
+                    else -> {
+
+                    }
+                }
+            }
+
+
+        }
+    }
+
+    override fun onJobDone(email: String?) {
+        if(email!=null){
+            if(email=="UPDATE THE UI"){
+                println()
+            }
+        }
     }
 
 
@@ -179,4 +242,5 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
 interface GoogleFitStatusListener {
     fun askForGoogleFitPermission()
+    fun setGraphData(type: String?, frequency: String?, timestamp: Long)
 }

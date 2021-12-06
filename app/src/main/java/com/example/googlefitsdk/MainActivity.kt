@@ -14,12 +14,14 @@ import rx.Subscriber
 import rx.android.schedulers.AndroidSchedulers
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GenericListener {
     var TAG = this.javaClass.simpleName
-    private var stepsCounter: StepsCounter? = null
     lateinit var binding: MainActivityBinding
+    private var stepsCounter: StepsCounter? = null
     lateinit var googleFitConnector: GoogleFitConnector
     private lateinit var healthDataGraphValuesSubscriber: Subscriber<HealthDataGraphValues>
+    var default_web_client_id =
+        "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,15 +50,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
 
-
-
-
             }
         }
 
         googleFitConnector = GoogleFitConnector(
             this,
-            this.getString(R.string.default_web_client_id),
+            default_web_client_id,
             object : GoogleFitConnector.GoogleConnectorFitListener {
                 override fun onComplete() {
                     Log.d(TAG, "onComplete() called")
@@ -77,9 +76,9 @@ class MainActivity : AppCompatActivity() {
             stepsCounter = StepsCounter.getInstance(this)
 
             stepsCounter!!.run(
-                this.getString(R.string.default_web_client_id),
+                default_web_client_id,
                 GenericListener {
-                    Log.d(TAG, "Job Done");
+                    Log.d(TAG, "Job Done: $it");
 
                     var calendar = Calendar.getInstance()
                     calendar.time = Date()
@@ -105,12 +104,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (googleFitConnector != null) {
-            googleFitConnector.onActivityResult(requestCode, resultCode, data)
-        }
         if (stepsCounter != null) {
-            stepsCounter!!.onActivityResult(requestCode, resultCode, data)
+            stepsCounter!!.onActivityResult(requestCode, resultCode, data, this)
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onJobDone(email: String?) {
+        stepsCounter!!.run() { // Do Something here
+            Log.d("mytag", "Job Done setGoogleFitPermisson() called")
+
+        }
     }
 }

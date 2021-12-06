@@ -10,3 +10,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "GoogleFitSdk"
 include ':app'
+include ':google_fit'
+
