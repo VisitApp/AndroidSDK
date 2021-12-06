@@ -71,4 +71,8 @@ dependencies {
 
     implementation 'com.amitshekhar.android:android-networking:1.0.0'
     implementation 'com.amitshekhar.android:rx-android-networking:1.0.0'
+
+    //Chucker
+    debugApi "com.github.chuckerteam.chucker:library:3.3.0"
+    releaseApi "com.github.chuckerteam.chucker:library-no-op:3.3.0"
 }

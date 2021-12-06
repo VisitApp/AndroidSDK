@@ -26,9 +26,19 @@ public class HealthDataGraphValues {
 //    private ArrayList<Integer> yAxis;
 
     private ArrayList<Integer> values;
+    private ArrayList<String> appContributedToGoogleFitValues;
     private int activityType;
     public static final int ACTIVITY_TYPE_STEPS = 1;
     public static final int ACTIVITY_TYPE_DISTANCE = 2;
+
+    public ArrayList<String> getAppContributedToGoogleFitValues() {
+        return appContributedToGoogleFitValues;
+    }
+
+    public void setAppContributedToGoogleFitValues(ArrayList<String> appContributedToGoogleFitValues) {
+        this.appContributedToGoogleFitValues = appContributedToGoogleFitValues;
+    }
+
     public static final int ACTIVITY_TYPE_CALORIES_BURNT = 3;
     public static final int ACTIVITY_TYPE_SLEEP = 4;
     private int totalActivityTime;
@@ -36,6 +46,8 @@ public class HealthDataGraphValues {
     private Integer averageActivity;
     private ArrayList<SleepCard> sleepCards;
     private List<ActivitySession> activitySession = new ArrayList<>();
+
+
 
     public SleepCard getSleepCard() {
         return sleepCard;
@@ -139,7 +151,7 @@ public class HealthDataGraphValues {
 
     public String getValuesAsCSV() {
         if (values!=null && values.size()>0)
-        return android.text.TextUtils.join(",", values);
+            return android.text.TextUtils.join(",", values);
         else  return "";
     }
 

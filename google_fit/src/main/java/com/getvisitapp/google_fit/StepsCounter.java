@@ -39,6 +39,7 @@ public class StepsCounter {
     FitnessOptions fitnessOptions;
 
 
+
     private StepsCounter(Activity activity) {
         this.softContext = new SoftReference<>(activity);
     }
@@ -78,7 +79,6 @@ public class StepsCounter {
     }
 
     private void askFitnessPermissions(GoogleSignInAccount googleSignInAccount, boolean isLastSignedIn) {
-        Log.d("mytag", "askFitnessPermissions called");
         if (googleSignInAccount != null) {
             fitnessOptions = FitnessOptions.builder()
                     .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_WRITE)
@@ -122,24 +122,19 @@ public class StepsCounter {
 
 
     private void loginUsingGoogle() {
-        Log.d("mytag", "loginUsingGoogle() called");
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         (softContext.get()).startActivityForResult(signInIntent, GM_SIGN_IN);
     }
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent data, GenericListener genericListener1) {
-        Log.d("mytag", "StepCounter onActivityResult without generic listener called. requestCode: " + requestCode + " resultCode: " + resultCode);
-
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_OAUTH_REQUEST_CODE) {
-                Log.d("mytag", "onActivity result: google fit 1");
+                //Log.d(TAG, "onActivity result: google fit 1");
                 handleFitnessPermission();
-                genericListener1.onJobDone("UPDATE THE UI");
-
             }
             if (requestCode == GM_SIGN_IN) {
-                Log.d("mytag", "onActivity result: google fit 2");
+                //Log.d(TAG, "onActivity result: google fit 2");
                 askFitnessPermissions(handleGoogleSignIn(data), false);
                 genericListener1.onJobDone("");
             }
@@ -291,6 +286,8 @@ public class StepsCounter {
                         Log.d(TAG, "TYPE_STEP_COUNT_DELTA There was a problem subscribing.");
                     }
                 });
+
+
 
 
         Fitness.getRecordingClient(softContext.get(), GoogleSignIn.getAccountForExtension(softContext.get(), fitnessOptions))

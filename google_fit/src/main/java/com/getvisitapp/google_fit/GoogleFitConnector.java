@@ -29,18 +29,19 @@ import com.google.android.gms.fitness.result.DataReadResult;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -51,6 +52,10 @@ import rx.schedulers.Schedulers;
 
 /**
  * Created by shashvat on 09/05/18.
+ */
+
+/**
+ * dp.getOriginalDataSource().getAppPackageName() return null or com.google.android.gms, if the data is originally from google fit.
  */
 
 public class GoogleFitConnector {
@@ -69,6 +74,11 @@ public class GoogleFitConnector {
 
     private int SLEEP_START_HOUR = 22;
     private int SLEEP_END_HOUR = 7;
+
+    String authToken;
+    List<String> blacklistedApps= new ArrayList<>();
+
+
 
     public GoogleFitConnector(Context context, String webClientId, GoogleConnectorFitListener listener) {
         this.context = context;
@@ -138,7 +148,6 @@ public class GoogleFitConnector {
             }
             if (requestCode == REQUEST_GOOGLE_SIGNIN) {
                 Log.d(TAG, "onActivityResult: REQUEST_GOOGLE_SIGNIN");
-                sendIdTokenToServer(getLastSignedInGoogleAccount(context).getServerAuthCode());
             }
         } else {
             Log.d(TAG, "onActivityResult: RESULT CODE NOT OK PERMISSIONS DENIED");
@@ -203,6 +212,13 @@ public class GoogleFitConnector {
                 continue;
             }
 
+
+            //checking which app inserted data to google fit store.
+            String appContributedToGoogleFitPackageName = dp.getOriginalDataSource().getAppPackageName();
+            if (appContributedToGoogleFitPackageName != null && blacklistedApps.contains(appContributedToGoogleFitPackageName)) {
+                continue;
+            }
+
             for (Field field : dp.getDataType().getFields()) {
 //                Log.d(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                 return dp.getValue(field).asInt();
@@ -235,6 +251,16 @@ public class GoogleFitConnector {
 //            Log.d(TAG, "\tType: " + dp.getDataType().getName());
 //            Log.d(TAG, "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
 //            Log.d(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+
+
+
+            //checking which app inserted data to google fit store.
+            String appContributedToGoogleFitPackageName = dp.getOriginalDataSource().getAppPackageName();
+            if (appContributedToGoogleFitPackageName != null && blacklistedApps.contains(appContributedToGoogleFitPackageName)) {
+                continue;
+            }
+
+
             for (Field field : dp.getDataType().getFields()) {
 //                Log.d(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
                 return dp.getValue(field).asFloat();
@@ -243,18 +269,6 @@ public class GoogleFitConnector {
         return 0;
     }
 
-
-    private void sendIdTokenToServer(final String authCode) {
-//        Log.d(TAG, "sendIdTokenToServer: " + authCode);
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("authCode", authCode);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
-    }
 
     public Observable<HealthDataGraphValues> getWeeklySteps(final long startTime, final long endTime) {
 //        Log.d(TAG, "getWeeklySteps: " + readableFormat.format(startTime));
@@ -915,6 +929,11 @@ public class GoogleFitConnector {
     }
 
     public HealthDataGraphValues convertDataReadResultToHealthDataStepsAndActivity(DataReadResponse dataReadResponse, boolean isDataTypeInt, int healthDataGraphType, final long startTime, final long endTime) {
+        Log.d(TAG, "blacklistedApps: " + blacklistedApps.toString());
+
+        Set<String> fraudApps = new HashSet<>();
+
+
         if (dataReadResponse.getBuckets().size() > 0) {
             Log.i(
                     TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
@@ -928,6 +947,7 @@ public class GoogleFitConnector {
 
             // Number of items in the values array will NOT be decided by the number of buckets but by the different in days between startTime and endTime
             ArrayList<Integer> values = new ArrayList<>();
+            ArrayList<String> appContributedToGoogleFitValues = new ArrayList<>();
             long totalActivityTime = 0;
             List<Long> activityTime = new ArrayList<>();
 
@@ -936,18 +956,56 @@ public class GoogleFitConnector {
             // If the query has been made for Weekly, there will be 7 buckets
             // If the query has been made for Monthly, there will be 30/31/28/29 buckets depending on the number of days in that month
 
+
             for (Bucket bucket : dataReadResponse.getBuckets()) {
                 List<DataSet> dataSets = bucket.getDataSets();
+                fraudApps = new HashSet<>(); //for every bucket i want a new set.
+
+                //Log.d(TAG, "dataSet size: " + dataSets.size());
+
                 for (DataSet dataSet : dataSets) {
+
+                    //adding all the package name that contributed to this dataPoint
+                    for (DataPoint dp : dataSet.getDataPoints()) {
+                        if (dp.getOriginalDataSource().getAppPackageName() != null) { //skipping the null value
+                            fraudApps.add(dp.getOriginalDataSource().getAppPackageName());
+                        }
+                    }
+
+                    //converting into a comma separated String
+                    String appContributedToGoogleFitDateString = fraudApps.stream().map(String::valueOf)
+                            .collect(Collectors.joining(","));
+
+                    List<String> appsInstalled = new ArrayList<String>(fraudApps);
+
+                    boolean blackListedAppInstalled = Collections.disjoint(appsInstalled, blacklistedApps);
+                    //will return false, if the user has installed blacklisted apps
+
+                    if (blackListedAppInstalled == false) {
+                        //user have installed a fraud app to insert data to Google Fit
+                    }
+                    Log.d(TAG, "appContributedToGoogleFitDate: " + appContributedToGoogleFitDateString);
+
+
                     // values array fills the y-axis of the graphs
                     // x-axis items are buckets. So for 10 buckets, there are 10 labels on the x-axis
                     // each value in values corresponds to the y-value of the graph
                     if (fitDataTypeList.contains(dataSet.getDataType().getName())) {
                         //Log.d(TAG, "convertDataReadResultToHealthDataStepsAndActivity: ");
                         if (isDataTypeInt) {
-                            values.add(parseWeeklyData(dataSet));
+                            if (blackListedAppInstalled == false) { //in case of blacklisted app, send 0 instead of actual steps
+                                values.add(0);
+                            } else {
+                                values.add(parseWeeklyData(dataSet));
+                            }
+                            appContributedToGoogleFitValues.add(appContributedToGoogleFitDateString);
                         } else {
-                            values.add((int) parseWeeklyDataForFloat(dataSet));
+                            if (blackListedAppInstalled == false) { //in case of blacklisted app, send 0 instead of actual steps
+                                values.add(0);
+                            } else {
+                                values.add((int) parseWeeklyDataForFloat(dataSet));
+                            }
+                            appContributedToGoogleFitValues.add(appContributedToGoogleFitDateString);
                         }
 
                     }
@@ -962,6 +1020,7 @@ public class GoogleFitConnector {
             }
 //            Log.d(TAG, "convertDataReadResultToHealthDataStepsAndActivity: before: size of values array: " + values.size());
             healthDataGraphValues.setValues(values);
+            healthDataGraphValues.setAppContributedToGoogleFitValues(appContributedToGoogleFitValues);
             if (diffDays > 1) {
                 healthDataGraphValues.setValues(healthDataGraphValues.groupValuesInto(diffDays));
             }

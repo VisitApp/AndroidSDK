@@ -38,7 +38,7 @@ import static java.text.DateFormat.getTimeInstance;
 
 public class ActivityTimeHelper {
 
-    private static final String TAG = ActivityTimeHelper.class.getSimpleName();
+    private static final String TAG = "ActivityTimeHelper";
 
     public static Observable<List<ActivitySession>> getTotalActivityTime(final Context context, final long startTime, final long endTime) {
         return getActivitySegments(context, startTime, endTime)
@@ -148,6 +148,7 @@ public class ActivityTimeHelper {
                     TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
             for (Bucket bucket : dataReadResponse.getBuckets()) {
                 String activityType = bucket.getActivity();
+
 
 
                 Log.d(TAG, "getActivityType: " + bucket.getActivity());

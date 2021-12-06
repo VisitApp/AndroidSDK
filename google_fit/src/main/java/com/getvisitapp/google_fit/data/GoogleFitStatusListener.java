@@ -6,4 +6,5 @@ public interface GoogleFitStatusListener {
     void loadWebUrl(String urlString);
     void requestActivityData(String type, String frequency, long timestamp);
     void loadGraphDataUrl(String url);
+    void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
 }

@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.data;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
@@ -26,17 +27,19 @@ public class GoogleFitUtil implements GenericListener {
     private Activity context;
     WebAppInterface webAppInterface;
 
-    private String visitBaseUrl;
+    private String baseUrl;
     GoogleFitStatusListener listener;
     private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
+    private SyncStepHelper syncStepHelper;
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String visitBaseUrl) {
+
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String baseUrl) {
         this.context = context;
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
-        this.visitBaseUrl = visitBaseUrl;
+        this.baseUrl = baseUrl;
     }
 
     private StepsCounter stepsCounter;
@@ -87,7 +90,7 @@ public class GoogleFitUtil implements GenericListener {
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadWebUrl(visitBaseUrl + "home?fitnessPermission=true&steps=" + sleepStepsData.steps + "&sleep=" + TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                listener.loadWebUrl(baseUrl + "home?fitnessPermission=true&steps=" + sleepStepsData.steps + "&sleep=" + TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
@@ -348,4 +351,15 @@ public class GoogleFitUtil implements GenericListener {
             this.askForGoogleFitPermission();
         }
     }
+
+    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync, Context context) {
+        if (stepsCounter.hasAccess()) {
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, context);
+            syncStepHelper.dailySync(googleFitLastSync);
+            syncStepHelper.hourlySync(gfHourlyLastSync);
+
+        }
+
+    }
+
 }
