@@ -54,10 +54,10 @@ public class SyncStepHelper {
     private SimpleDateFormat readableFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 
 
-    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, Context context) {
+    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken) {
         this.googleFitConnector = connector;
         this.compositeSubscription = new CompositeSubscription();
-        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, context);
+        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken);
         this.context = context;
     }
 

@@ -16,10 +16,10 @@ public class MainActivityPresenter {
     private final String authToken;
     OkHttpRequests okHttpRequests;
 
-    public MainActivityPresenter(String baseUrl, String authToken, Context context) {
+    public MainActivityPresenter(String baseUrl, String authToken) {
         this.baseUrl = baseUrl;
         this.authToken = authToken;
-        this.okHttpRequests = new OkHttpRequests(authToken, context);
+        this.okHttpRequests = new OkHttpRequests(authToken);
     }
 
     public Observable<ApiResponse> sendData(JsonObject payload) {

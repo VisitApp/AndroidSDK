@@ -37,9 +37,9 @@ public class OkHttpRequests {
             .create();
 
 
-    public OkHttpRequests(String authToken, Context context) {
+    public OkHttpRequests(String authToken) {
         client = new OkHttpClient.Builder()
-                .addInterceptor(new ChuckerInterceptor(context))
+//                .addInterceptor(new ChuckerInterceptor(context))
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(40, TimeUnit.SECONDS)

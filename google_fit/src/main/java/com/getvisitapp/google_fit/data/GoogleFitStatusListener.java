@@ -7,4 +7,5 @@ public interface GoogleFitStatusListener {
     void requestActivityData(String type, String frequency, long timestamp);
     void loadGraphDataUrl(String url);
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
+    void askForLocationPermission();
 }

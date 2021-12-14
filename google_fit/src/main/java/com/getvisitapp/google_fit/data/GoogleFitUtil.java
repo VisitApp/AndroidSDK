@@ -352,9 +352,9 @@ public class GoogleFitUtil implements GenericListener {
         }
     }
 
-    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync, Context context) {
+    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
         if (stepsCounter.hasAccess()) {
-            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, context);
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken);
             syncStepHelper.dailySync(googleFitLastSync);
             syncStepHelper.hourlySync(gfHourlyLastSync);
 

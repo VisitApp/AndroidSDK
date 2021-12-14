@@ -46,9 +46,9 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.loadUrl(magicLink);
 
 
-//        var webAppInterface = WebAppInterface(this)
-//
-//        mWebView.addJavascriptInterface(webAppInterface, "Android")
+        val webAppInterface = WebAppInterface(this)
+
+        mWebView.addJavascriptInterface(webAppInterface, "Android")
 //
 //        WebView.setWebContentsDebuggingEnabled(true);
 //
