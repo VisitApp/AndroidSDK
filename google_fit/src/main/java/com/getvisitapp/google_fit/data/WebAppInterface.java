@@ -30,4 +30,11 @@ public class WebAppInterface {
         Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync);
         listener.syncDataWithServer(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync);
     }
+
+    @JavascriptInterface
+    public void getLocationPermissions(){
+        Log.d("mytag", "getLocationPermissions() called.");
+        listener.askForLocationPermission();
+
+    }
 }

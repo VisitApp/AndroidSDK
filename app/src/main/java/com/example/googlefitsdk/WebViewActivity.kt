@@ -1,30 +1,38 @@
 package com.example.googlefitsdk
 
-import android.content.Context
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import android.widget.Toast
-import com.getvisitapp.google_fit.GenericListener
+import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.GoogleFitConnector
 import com.getvisitapp.google_fit.StepsCounter
+import com.getvisitapp.google_fit.data.GoogleFitStatusListener
+import com.getvisitapp.google_fit.data.GoogleFitUtil
 import im.delight.android.webview.AdvancedWebView
-import rx.Subscriber
-import rx.android.schedulers.AndroidSchedulers
-import java.util.*
 
-class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFitStatusListener,
-    GenericListener {
+class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFitStatusListener {
 
-    var TAG = this.javaClass.simpleName
+    var TAG = "mytag"
 
     lateinit var mWebView: AdvancedWebView
-    lateinit var stepsCounter: StepsCounter
-    lateinit var googleFitConnector: GoogleFitConnector
+    val ACTIVITY_RECOGNITION_REQUEST_CODE = 490
+    val LOCATION_PERMISSION_REQUEST_CODE = 787
+    lateinit var googleFitUtil: GoogleFitUtil
+
+    var default_web_client_id =
+        "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
+    var baseUrl = "https://star-health.getvisitapp.xyz/"
+    var token =
+        "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8"
+    var userId = "8158"
+    var dailyDataSynced = false
+    var syncDataWithServer = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,67 +43,14 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.setMixedContentAllowed(false);
         mWebView.settings.javaScriptEnabled = true
 
-        val baseUrl: String = "https://star-health.getvisitapp.xyz/star-health"
-        val authToken: String = "Bearer%20eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8"
-        val userId: String = "8158"
+        val magicLink =
+            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158";
+        mWebView.loadUrl(magicLink)
 
-        val magicLink = "$baseUrl?token=$authToken&id=$userId"
-        Log.d(TAG, "magicLink: $magicLink")
-
-
-        mWebView.loadUrl(magicLink);
-
-
-        val webAppInterface = WebAppInterface(this)
-
-        mWebView.addJavascriptInterface(webAppInterface, "Android")
-//
-//        WebView.setWebContentsDebuggingEnabled(true);
-//
-//        stepsCounter = StepsCounter.getInstance(this)
-//
-//        googleFitConnector = GoogleFitConnector(
-//            this,
-//            this.getString(R.string.default_web_client_id),
-//            object : GoogleFitConnector.GoogleConnectorFitListener {
-//                override fun onComplete() {
-//                    Log.d(TAG, "onComplete() called")
-//                }
-//
-//                override fun onError() {
-//                    Log.d(TAG, "onError() called")
-//
-//                }
-//
-//                override fun onServerAuthCodeFound(p0: String?) {
-//                    Log.d(TAG, "error Occured: $p0")
-//                }
-//
-//            })
-//
-//        if (stepsCounter.hasAccess()) {
-//            googleFitConnector.getTotalStepsForToday()
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(object : Subscriber<List<Int?>?>() {
-//                    override fun onCompleted() {}
-//                    override fun onError(e: Throwable) {
-//                        e.printStackTrace()
-//                    }
-//
-//
-//                    override fun onNext(t: List<Int?>?) {
-//                        Log.d("mytag", "${t!![0]}")
-//
-//                        mWebView.evaluateJavascript(
-//                            "window.googleFitPermissionGranted(true, '2000', '320')",
-//                            null
-//                        )
-//
-//                    }
-//
-//
-//                })
-//        }
+        googleFitUtil =
+            GoogleFitUtil(this, this, default_web_client_id, baseUrl)
+        mWebView.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
+        googleFitUtil.init()
 
 
     }
@@ -139,12 +94,15 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     override fun onExternalPageRequest(url: String?) {}
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d(
+            TAG,
+            "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
+        )
+
         super.onActivityResult(requestCode, resultCode, data)
-        if (googleFitConnector != null) {
-            googleFitConnector.onActivityResult(requestCode, resultCode, data)
-        }
-        if (stepsCounter != null) {
-            stepsCounter!!.onActivityResult(requestCode, resultCode, data,this)
+
+        if (requestCode == 4097 || requestCode == 1900) {
+            googleFitUtil.onActivityResult(requestCode, resultCode, intent)
         }
         mWebView.onActivityResult(requestCode, resultCode, intent);
 
@@ -157,82 +115,85 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
     }
 
-
-    class WebAppInterface(private var listener: GoogleFitStatusListener) {
-
-        @JavascriptInterface
-        fun connectToGoogleFit() {
-            Log.d("mytag", "connectToGoogleFit() called")
-
-            listener?.askForGoogleFitPermission()
-
+    override fun askForPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                    ACTIVITY_RECOGNITION_REQUEST_CODE
+                )
+            } else {
+                googleFitUtil.askForGoogleFitPermission()
+            }
         }
+    }
 
-        @JavascriptInterface
-        fun getDataToGenerateGraph(type: String, frequency: String, timestamp: Long) {
-            Log.d(
-                "mytag",
-                "getDataToGenerateGraph() called. type:$type frequency: $frequency timestamp:$timestamp"
+    override fun onFitnessPermissionGranted() {
+        Log.d(TAG, "onFitnessPermissionGranted() called")
+        runOnUiThread(Runnable { googleFitUtil.fetchDataFromFit() })
+    }
+
+    override fun loadWebUrl(url: String?) {
+        Log.d("mytag", "daily Fitness Data url:$url")
+        if (url != null) {
+            mWebView.loadUrl(url)
+        }
+    }
+
+    override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
+        Log.d(TAG, "requestActivityData() called.")
+        runOnUiThread(Runnable {
+            if (type != null && frequency != null) {
+                googleFitUtil.getActivityData(type, frequency, timestamp)
+            }
+        })
+    }
+
+    override fun loadGraphDataUrl(url: String?) {
+        if (url != null) {
+            mWebView.evaluateJavascript(
+                url,
+                null
             )
-            listener.setGraphData(type, frequency, timestamp)
         }
+        dailyDataSynced = true
     }
 
-
-    override fun askForGoogleFitPermission() {
-
-        stepsCounter!!.run(
-            this.getString(R.string.default_web_client_id),
-            GenericListener {
-                Log.d(TAG, "Job Done: $it");
-
-                runOnUiThread {
-                    mWebView.evaluateJavascript(
-                        "window.googleFitPermissionGranted(true, '2000', '320')",
-                        null
-                    )
-                }
-
+    override fun syncDataWithServer(
+        baseUrl: String?,
+        authToken: String?,
+        googleFitLastSync: Long,
+        gfHourlyLastSync: Long
+    ) {
+        Log.d("mytag","baseUrl: $baseUrl")
+        if (!syncDataWithServer) {
+            Log.d(TAG, "syncDataWithServer() called")
+            runOnUiThread(Runnable {
+                googleFitUtil.sendDataToServer(
+                    baseUrl + "/",
+                    authToken,
+                    googleFitLastSync,
+                    gfHourlyLastSync
+                )
+                syncDataWithServer = true
             })
-    }
-
-    override fun setGraphData(type: String?, frequency: String?, timestamp: Long) {
-        Log.d("mytag", "updateData() called")
-        runOnUiThread {
-            frequency?.let {
-                when (frequency) {
-                    "day" -> {
-                        mWebView.evaluateJavascript(
-                            "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],[100,200,300], 'steps', 'day')",
-                            null
-                        )
-                    }
-                    "week" -> {
-                        mWebView.evaluateJavascript(
-                            "DetailedGraph.updateData([1,2,3,4,5,6,7],[100,200,300,10000], 'steps', 'week')",
-                            null
-                        )
-                    }
-                    "month" -> {
-                        mWebView.evaluateJavascript(
-                            "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],[100,200,300,1000,400,6000], 'steps', 'month')",
-                            null
-                        )
-                    }
-                    else -> {
-
-                    }
-                }
-            }
-
-
         }
     }
 
-    override fun onJobDone(email: String?) {
-        if(email!=null){
-            if(email=="UPDATE THE UI"){
-                println()
+    override fun askForLocationPermission() {
+        if (dailyDataSynced) {
+            return
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    LOCATION_PERMISSION_REQUEST_CODE
+                )
             }
         }
     }
@@ -240,7 +201,3 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
 }
 
-interface GoogleFitStatusListener {
-    fun askForGoogleFitPermission()
-    fun setGraphData(type: String?, frequency: String?, timestamp: Long)
-}
