@@ -27,9 +27,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     var default_web_client_id =
         "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
     var baseUrl = "https://star-health.getvisitapp.xyz/"
-    var token =
-        "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8"
-    var userId = "8158"
+
     var dailyDataSynced = false
     var syncDataWithServer = false
 
@@ -195,6 +193,21 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
                     LOCATION_PERMISSION_REQUEST_CODE
                 )
             }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+           ACTIVITY_RECOGNITION_REQUEST_CODE -> {
+                Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted")
+                googleFitUtil.askForGoogleFitPermission()
+            }
+            LOCATION_PERMISSION_REQUEST_CODE -> {}
         }
     }
 
