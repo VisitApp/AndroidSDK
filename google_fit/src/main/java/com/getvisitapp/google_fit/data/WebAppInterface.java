@@ -3,6 +3,10 @@ package com.getvisitapp.google_fit.data;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import org.json.JSONException;
+
+import kotlin.jvm.Throws;
+
 public class WebAppInterface {
     GoogleFitStatusListener listener;
 
@@ -32,9 +36,16 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void getLocationPermissions(){
+    public void getLocationPermissions() {
         Log.d("mytag", "getLocationPermissions() called.");
         listener.askForLocationPermission();
 
     }
+
+    @JavascriptInterface
+    public void initiateVideoCall(int sessionId, int consultationId, String authToken) {
+        Log.d("mytag", "initiateVideoCall() called.");
+        listener.startVideoCall(sessionId, consultationId, authToken);
+    }
+
 }
