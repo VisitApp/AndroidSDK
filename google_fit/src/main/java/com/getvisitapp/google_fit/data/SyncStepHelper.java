@@ -3,11 +3,9 @@ package com.getvisitapp.google_fit.data;
 import android.content.Context;
 import android.util.Log;
 
-import com.getvisitapp.google_fit.GoogleFitConnector;
-import com.getvisitapp.google_fit.GoogleFitExtension;
+import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
-import com.getvisitapp.google_fit.okhttp.OkHttpRequests;
 import com.getvisitapp.google_fit.okhttp.Transformers;
 import com.getvisitapp.google_fit.pojo.ActivitySummaryGoal;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
@@ -26,7 +24,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import rx.Emitter;

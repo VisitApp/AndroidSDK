@@ -3,9 +3,7 @@ package com.getvisitapp.google_fit.data;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
-import org.json.JSONException;
-
-import kotlin.jvm.Throws;
+import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
 public class WebAppInterface {
     GoogleFitStatusListener listener;

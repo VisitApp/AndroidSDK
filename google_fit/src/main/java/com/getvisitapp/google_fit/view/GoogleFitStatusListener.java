@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.data;
+package com.getvisitapp.google_fit.view;
 
 public interface GoogleFitStatusListener {
     void askForPermissions();

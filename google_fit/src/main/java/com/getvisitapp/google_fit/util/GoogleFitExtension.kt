@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit
+package com.getvisitapp.google_fit.util
 
 import android.content.Context
 
@@ -7,7 +7,7 @@ class GoogleFitExtension @JvmOverloads constructor(context: Context,weClientId:S
     GoogleFitConnector(context,weClientId) {
 
     companion object :
-        SingletonHolderForTwoVariable<GoogleFitExtension, Context,String>(::GoogleFitExtension)
+        SingletonHolderForTwoVariable<GoogleFitExtension, Context, String>(::GoogleFitExtension)
 
 }
 

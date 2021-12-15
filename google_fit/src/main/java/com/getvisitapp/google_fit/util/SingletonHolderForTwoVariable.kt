@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit
+package com.getvisitapp.google_fit.util
 
 open class SingletonHolderForTwoVariable<out T: Any, in A,in B>(creator: (A, B) -> T) {
     private var creator: ((A,B) -> T)? = creator

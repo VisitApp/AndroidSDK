@@ -1,14 +1,14 @@
 package com.getvisitapp.google_fit.data;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.getvisitapp.google_fit.GenericListener;
-import com.getvisitapp.google_fit.GoogleFitConnector;
-import com.getvisitapp.google_fit.StepsCounter;
+import com.getvisitapp.google_fit.view.GenericListener;
+import com.getvisitapp.google_fit.util.GoogleFitConnector;
+import com.getvisitapp.google_fit.util.StepsCounter;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
+import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

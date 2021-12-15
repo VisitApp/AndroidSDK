@@ -16,13 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
-import com.getvisitapp.google_fit.data.GoogleFitStatusListener
+import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
+import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,

@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit;
+package com.getvisitapp.google_fit.util;
 
 import static java.text.DateFormat.getTimeInstance;
 
@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import com.getvisitapp.google_fit.pojo.ActivitySession;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 import com.getvisitapp.google_fit.pojo.SleepCard;
-import com.getvisitapp.google_fit.util.ActivityTimeHelper;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.fitness.Fitness;
