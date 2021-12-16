@@ -1,8 +1,8 @@
 package com.example.googlefitsdk
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
 
 class MainActivity : AppCompatActivity() {
@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button).setOnClickListener {
             init()
         }
+
 
 
     }
