@@ -4,7 +4,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.androidnetworking.common.Priority;
-import com.chuckerteam.chucker.api.ChuckerInterceptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
