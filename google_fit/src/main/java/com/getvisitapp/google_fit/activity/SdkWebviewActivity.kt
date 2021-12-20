@@ -40,7 +40,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     var isDebug: Boolean = false
     lateinit var magicLink: String
-    lateinit var default_web_client_id:String
+    lateinit var default_web_client_id: String
     lateinit var baseUrl: String
 
 
@@ -133,6 +133,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         contentDisposition: String?,
         userAgent: String?
     ) {
+        Log.d("mytag", "url:$url");
 
         try {
             val uri = Uri.parse(url)
