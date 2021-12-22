@@ -1,14 +1,10 @@
 package com.getvisitapp.google_fit.okhttp;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.androidnetworking.common.Priority;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.rxandroidnetworking.RxANRequest;
-import com.rxandroidnetworking.RxAndroidNetworking;
 
 import org.json.JSONObject;
 
@@ -22,7 +18,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 
 public class OkHttpRequests {
@@ -99,22 +94,32 @@ public class OkHttpRequests {
 
     public Observable<JSONObject> postRequestHandler(final String url, final JSONObject payload, final String TAG, Map<String, String> bundle) {
         //Log.d(TAG, "postRequestHandler: " + authToken);
-        RxANRequest.PostRequestBuilder requestBuilder = RxAndroidNetworking.post(url).setOkHttpClient(client);
-        if (bundle != null) {
-            for (String key : bundle.keySet()) {
-                requestBuilder.addPathParameter(key, bundle.get(key));
+
+        return Observable.fromCallable(new Callable<JSONObject>() {
+            @Override
+            public JSONObject call() throws Exception {
+                MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+                RequestBody requestBody = RequestBody.create(mediaType, String.valueOf(payload));
+                Request request =
+                        addHeadersToBuilder(new Request.Builder().url(url).post(requestBody));
+
+                Response response = client.newCall(request).execute();
+
+                String responseString = response.body().string();
+
+                if (response.isSuccessful()) {
+                    return new JSONObject(responseString);
+                } else {
+                    BaseException baseException =
+                            new Gson().fromJson(responseString, BaseException.class);
+                    if (baseException.message != null) {
+                        throw baseException;
+                    } else {
+                        throw new Exception("Error occurred");
+                    }
+                }
             }
-        }
-        return requestBuilder.addJSONObjectBody(payload)
-                .addHeaders("Content-type", "application/json")
-                .addHeaders("Authorization", authToken)
-                .setTag(TAG)
-                .setPriority(Priority.HIGH)
-                .build()
-                .getJSONObjectObservable()
-                .subscribeOn(Schedulers.io());
-
-
+        });
     }
 
 
