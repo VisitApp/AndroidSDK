@@ -233,7 +233,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             Log.d(TAG, "syncDataWithServer() called")
             runOnUiThread(Runnable {
                 googleFitUtil.sendDataToServer(
-                    baseUrl + "/",
+                    apiBaseUrl + "/",
                     authtoken,
                     googleFitLastSync,
                     gfHourlyLastSync

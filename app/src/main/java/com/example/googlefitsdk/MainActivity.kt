@@ -15,7 +15,6 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
     }
 
     fun init() {
@@ -25,8 +24,12 @@ class MainActivity : AppCompatActivity() {
 
         val default_client_id =
             "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
+        val magicLink =
+            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158"
+        val baseUrlOfMagicLink =
+            "https://star-health.getvisitapp.xyz/" //the need of baseUrl if only for updating the google fit daily steps card after the webpage as loaded.
 
 
-        IntiateSdk.s(this, false, prodLinkMagicLink, prodBaseUrl, default_client_id)
+        IntiateSdk.s(this, false, magicLink, baseUrlOfMagicLink, default_client_id)
     }
 }
