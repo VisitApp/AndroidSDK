@@ -19,8 +19,8 @@ class MainActivity : AppCompatActivity() {
 
     fun init() {
         //        val prodMagicLink = "https://vsyt.me/m/1XFjA45h"
-        val prodLinkMagicLink = "https://web.getvisitapp.xyz"
-        val prodBaseUrl = "https://web.getvisitapp.xyz/"
+        val prodLinkMagicLink = "https://web.getvisitapp.com"
+        val prodBaseUrl = "https://web.getvisitapp.com/"
 
         val default_client_id =
             "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
