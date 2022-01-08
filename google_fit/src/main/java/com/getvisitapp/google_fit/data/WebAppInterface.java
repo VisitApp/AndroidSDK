@@ -37,4 +37,10 @@ public class WebAppInterface {
         listener.askForLocationPermission();
 
     }
+
+    @JavascriptInterface
+    public void closeView(){
+        Log.d("mytag", "closeView() called.");
+        listener.closeVisitPWA();
+    }
 }

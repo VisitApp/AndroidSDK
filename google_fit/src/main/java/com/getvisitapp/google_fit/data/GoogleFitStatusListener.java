@@ -8,4 +8,5 @@ public interface GoogleFitStatusListener {
     void loadGraphDataUrl(String url);
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
     void askForLocationPermission();
+    void closeVisitPWA();
 }
