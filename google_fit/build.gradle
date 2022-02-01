@@ -107,13 +107,13 @@ afterEvaluate {
     publishing {
         publications {
             // Creates a Maven publication called "release".
-            release(MavenPublication) {
+            debug(MavenPublication) {
                 // Applies the component for the release build variant.
                 from components.debug
 
                 // You can then customize attributes of the publication as shown below.
-                groupId = 'com.getvisitapp'
-                artifactId = 'google_fit'
+                groupId = 'com.getvisitapp.google_fit'
+                artifactId = 'final-debug'
                 version = '1.11'
             }
         }
