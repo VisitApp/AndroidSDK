@@ -114,7 +114,7 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.getvisitapp.google_fit'
                 artifactId = 'final-debug'
-                version = '1.11'
+                version = '1.12'
             }
         }
     }
