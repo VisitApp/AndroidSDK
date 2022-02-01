@@ -2,6 +2,7 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'maven-publish'
 }
 
 android {
@@ -50,7 +51,7 @@ android {
         jvmTarget = '1.8'
     }
 
-    buildFeatures{
+    buildFeatures {
         dataBinding true
     }
 }
@@ -85,7 +86,7 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.11.0'
 
 
-    def retrofit_version="2.9.0"
+    def retrofit_version = "2.9.0"
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation 'de.hdodenhof:circleimageview:3.1.0'
@@ -95,9 +96,23 @@ dependencies {
 
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.0.0'
 
-    implementation ('com.getkeepsafe.relinker:relinker:1.4.4'){
+    implementation('com.getkeepsafe.relinker:relinker:1.4.4') {
         version {
             strictly '1.4.4'
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            debug(MavenPublication) {
+                from components.debug
+
+                groupId = 'com.getvisitapp.google_fit'
+//                artifictId = 'google_fit'
+                version = '1.0'
+            }
         }
     }
 }
