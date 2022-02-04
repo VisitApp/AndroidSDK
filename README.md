@@ -65,4 +65,66 @@ dependencies {
 https://drive.google.com/file/d/1eLbhSd4nDno85L1Dds6i716-NlBZdMnV/view?usp=sharing
 
 
+We use EventBus to explose some event from the library that your application can consume. 
+
+Refer to below code to knoe how to use the events.
+
+```
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event: MessageEvent?) {
+        event?.let { eventType ->
+            Log.d(TAG, "event:${event.eventType}")
+
+
+            when (eventType.eventType) {
+                VisitEventType.AskForFitnessPermission -> {
+
+                }
+                VisitEventType.AskForLocationPermission -> {
+
+
+                }
+                VisitEventType.FitnessPermissionGranted -> {
+
+
+                }
+                is VisitEventType.RequestHealthDataForDetailedGraph -> {
+
+                    val graphEvent =
+                        event.eventType as VisitEventType.RequestHealthDataForDetailedGraph
+
+                }
+                is VisitEventType.StartVideoCall -> {
+                    val callEvent =
+                        event.eventType as VisitEventType.StartVideoCall
+
+
+                }
+            }
+
+        }
+
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+
+        //unregister any previously registered event listener first before registering.
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this)
+        }
+        EventBus.getDefault().register(this)
+    }
+
+
+    override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
+        super.onDestroy()
+    }
+
+```
+
+
 
