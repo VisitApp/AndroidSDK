@@ -16,7 +16,7 @@ sealed class VisitEventType {
      * Called when the PWA request for health data for certain type.
      * @param type can be 'day' or 'month' or 'week'
      * @param frequency can be 'steps' or 'distance' or 'calories' or 'sleep'
-     * @param timestamp is a type epoxy timestamp
+     * @param timestamp is a type epoch timestamp
      */
 
 
