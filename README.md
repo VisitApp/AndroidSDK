@@ -67,7 +67,7 @@ https://drive.google.com/file/d/1eLbhSd4nDno85L1Dds6i716-NlBZdMnV/view?usp=shari
 
 We use EventBus to explose some event from the library that your application can consume. 
 
-Refer to below code to knoe how to use the events.
+Add the following code in the activity where you want to consume the events broadcasted by this library.
 
 ```
 
