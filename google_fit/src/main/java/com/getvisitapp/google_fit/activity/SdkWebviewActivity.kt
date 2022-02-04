@@ -19,6 +19,8 @@ import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
+import com.getvisitapp.google_fit.event.MessageEvent
+import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
@@ -26,6 +28,7 @@ import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
+import org.greenrobot.eventbus.EventBus
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     VideoCallListener, GoogleFitStatusListener {
@@ -173,6 +176,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun askForPermissions() {
+        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForFitnessPermission))
+
         if (dailyDataSynced) {
             return
         }
@@ -192,6 +197,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onFitnessPermissionGranted() {
+        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted))
 
 
         Log.d(TAG, "onFitnessPermissionGranted() called")
@@ -217,6 +223,17 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
         Log.d(TAG, "requestActivityData() called.")
+
+        EventBus.getDefault().post(
+            MessageEvent(
+                VisitEventType.RequestHealthDataForDetailedGraph(
+                    type,
+                    frequency,
+                    timestamp
+                )
+            )
+        )
+
         runOnUiThread(Runnable {
             if (type != null && frequency != null) {
                 googleFitUtil.getActivityData(type, frequency, timestamp)
@@ -258,6 +275,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun askForLocationPermission() {
+        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForLocationPermission))
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -294,6 +313,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun startVideoCall(sessionId: Int, consultationId: Int, authToken: String?) {
 
+        EventBus.getDefault()
+            .post(MessageEvent(VisitEventType.StartVideoCall(sessionId, consultationId, authToken)))
+
         val intent = Intent(
             this,
             TwillioVideoCallActivity::class.java
@@ -328,3 +350,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
 
 }
+
+
+
+
