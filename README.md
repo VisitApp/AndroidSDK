@@ -78,28 +78,25 @@ Add the following code in the activity where you want to consume the events broa
 
 
             when (eventType.eventType) {
-                VisitEventType.AskForFitnessPermission -> {
-
-                }
-                VisitEventType.AskForLocationPermission -> {
-
-
-                }
-                VisitEventType.FitnessPermissionGranted -> {
-
-
-                }
+                VisitEventType.AskForFitnessPermission -> {}
+                VisitEventType.AskForLocationPermission -> {}
+                VisitEventType.FitnessPermissionGranted -> {}
                 is VisitEventType.RequestHealthDataForDetailedGraph -> {
-
                     val graphEvent =
                         event.eventType as VisitEventType.RequestHealthDataForDetailedGraph
-
                 }
                 is VisitEventType.StartVideoCall -> {
                     val callEvent =
                         event.eventType as VisitEventType.StartVideoCall
+                }
+                is VisitEventType.HRA_Completed -> {
+                    Handler(Looper.getMainLooper()).postDelayed({
+
+                        //passing event to Visit PWA to close itself
+                        EventBus.getDefault().post(ClosePWAEvent())
 
 
+                    }, 200)
                 }
             }
 
