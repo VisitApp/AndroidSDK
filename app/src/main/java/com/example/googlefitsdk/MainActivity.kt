@@ -1,11 +1,14 @@
 package com.example.googlefitsdk
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
 import com.getvisitapp.google_fit.event.MessageEvent
+import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -52,6 +55,12 @@ class MainActivity : AppCompatActivity() {
 
 
                 }
+                is VisitEventType.HRA_Completed -> {
+                    Handler(Looper.getMainLooper()).postDelayed({
+
+                        EventBus.getDefault().post(ClosePWAEvent())
+                    }, 200)
+                }
             }
 
         }
@@ -82,7 +91,6 @@ class MainActivity : AppCompatActivity() {
 
         val magicLink = "https://tata-aig.getvisitapp.xyz"
         val baseUrlOfMagicLink = "https://tata-aig.getvisitapp.xyz/"
-
 
 
         val default_client_id =

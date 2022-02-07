@@ -20,6 +20,7 @@ import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.MessageEvent
+import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
@@ -29,6 +30,8 @@ import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     VideoCallListener, GoogleFitStatusListener {
@@ -109,10 +112,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         super.onPause()
     }
 
-    override fun onDestroy() {
-        binding.webview.onDestroy();
-        super.onDestroy()
-    }
 
     override fun onPageStarted(url: String?, favicon: Bitmap?) {
         Log.d(TAG, "onPageStarted: $url")
@@ -351,6 +350,37 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+
+    override fun onStop() {
+        EventBus.getDefault().unregister(this)
+        super.onStop()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(PWAEvent: ClosePWAEvent?) {
+        Log.d("mytag", "onMessageEvent pwa close event triggered.")
+        if(!this.isFinishing){
+            closePWA()
+        }
+    }
+
+    fun closePWA() {
+        finish()
+        overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy called")
+        binding.webview.onDestroy();
+        super.onDestroy()
     }
 
 
