@@ -327,6 +327,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         startActivity(intent)
     }
 
+    override fun hraCompleted() {
+        EventBus.getDefault()
+            .post(MessageEvent(VisitEventType.HRA_Completed()))
+    }
+
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {

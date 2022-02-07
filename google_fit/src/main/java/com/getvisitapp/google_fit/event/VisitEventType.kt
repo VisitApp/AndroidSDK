@@ -38,4 +38,10 @@ sealed class VisitEventType {
     class StartVideoCall(var sessionId: Int, var consultationId: Int, var authToken: String?) :
         VisitEventType()
 
+    /**
+     * Called after the user has completed the HRA questions
+     */
+
+    class HRA_Completed() : VisitEventType()
+
 }

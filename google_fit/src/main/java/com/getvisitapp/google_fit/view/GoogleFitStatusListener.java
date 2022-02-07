@@ -9,4 +9,5 @@ public interface GoogleFitStatusListener {
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
     void askForLocationPermission();
     void startVideoCall(int sessionId, int consultationId, String authToken);
+    void hraCompleted();
 }

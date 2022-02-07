@@ -46,4 +46,10 @@ public class WebAppInterface {
         listener.startVideoCall(sessionId, consultationId, authToken);
     }
 
+    @JavascriptInterface
+    public void hraCompleted() {
+        Log.d("mytag", "hraCompleted() called.");
+        listener.hraCompleted();
+    }
+
 }
