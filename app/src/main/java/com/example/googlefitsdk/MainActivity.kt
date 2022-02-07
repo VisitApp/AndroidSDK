@@ -57,8 +57,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 is VisitEventType.HRA_Completed -> {
                     Handler(Looper.getMainLooper()).postDelayed({
-
+                        //passing event to Visit PWA to close itself
                         EventBus.getDefault().post(ClosePWAEvent())
+
+
                     }, 200)
                 }
             }
