@@ -52,4 +52,9 @@ public class WebAppInterface {
         listener.hraCompleted();
     }
 
+    @JavascriptInterface
+    public void googleFitConnectedAndSavedInPWA() {
+        Log.d("mytag", "googleFitConnectedAndSavedInPWA() called.");
+        listener.googleFitConnectedAndSavedInPWA();
+    }
 }

@@ -44,4 +44,6 @@ sealed class VisitEventType {
 
     class HRA_Completed() : VisitEventType()
 
+    class GoogleFitConnectedAndSavedInPWA():VisitEventType()
+
 }

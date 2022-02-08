@@ -10,4 +10,5 @@ public interface GoogleFitStatusListener {
     void askForLocationPermission();
     void startVideoCall(int sessionId, int consultationId, String authToken);
     void hraCompleted();
+    void googleFitConnectedAndSavedInPWA();
 }

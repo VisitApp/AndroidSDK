@@ -19,8 +19,8 @@ import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
-import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.ClosePWAEvent
+import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
@@ -136,14 +136,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         contentDisposition: String?,
         userAgent: String?
     ) {
-        Log.d("mytag", "url:$url");
+        Log.d("mytag", "url:$url, mimeType:$mimeType" );
 
         try {
             val uri = Uri.parse(url)
             startActivity(Intent(Intent.ACTION_VIEW, uri))
 
         } catch (e: Exception) {
-
+            e.printStackTrace()
         }
 
     }
@@ -331,6 +331,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             .post(MessageEvent(VisitEventType.HRA_Completed()))
     }
 
+    override fun googleFitConnectedAndSavedInPWA() {
+        EventBus.getDefault()
+            .post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
+    }
+
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
@@ -367,7 +372,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(PWAEvent: ClosePWAEvent?) {
         Log.d("mytag", "onMessageEvent pwa close event triggered.")
-        if(!this.isFinishing){
+        if (!this.isFinishing) {
             closePWA()
         }
     }
