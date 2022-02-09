@@ -11,4 +11,5 @@ public interface GoogleFitStatusListener {
     void startVideoCall(int sessionId, int consultationId, String authToken);
     void hraCompleted();
     void googleFitConnectedAndSavedInPWA();
+    void inHraEndPage();
 }

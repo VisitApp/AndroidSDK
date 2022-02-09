@@ -5,17 +5,27 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Button
+import android.widget.CompoundButton
+import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
+import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
     var TAG = "mytag10"
+
+    val default_client_id =
+        "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
+
+    lateinit var checker: GoogleFitAccessChecker
+    lateinit var switch: Switch
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -23,6 +33,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button).setOnClickListener {
             init()
         }
+
+        switch = findViewById<Switch>(R.id.switch1)
+
+        checker = GoogleFitAccessChecker(this)
 
 
     }
@@ -72,6 +86,13 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun init() {
+        val magicLink = "https://tata-aig.getvisitapp.xyz"
+        val baseUrlOfMagicLink = "https://tata-aig.getvisitapp.xyz/"
+
+        IntiateSdk.s(this, false, magicLink, baseUrlOfMagicLink, default_client_id)
+    }
+
     override fun onStart() {
         super.onStart()
 
@@ -83,26 +104,31 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onDestroy() {
-        EventBus.getDefault().unregister(this)
-        super.onDestroy()
+
+    override fun onResume() {
+        super.onResume()
+        switch.setOnCheckedChangeListener(null)
+        switch.isChecked = checker.checkGoogleFitAccess()
+        switch.setOnCheckedChangeListener(this)
     }
 
 
-    fun init() {
-        //        val prodMagicLink = "https://vsyt.me/m/1XFjA45h"
-//        val prodLinkMagicLink = "https://web.getvisitapp.com"
-//        val prodBaseUrl = "https://web.getvisitapp.com/"
-
-        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val baseUrlOfMagicLink = "https://tata-aig.getvisitapp.xyz/"
 
 
-        val default_client_id =
-            "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
+
+    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+        if (isChecked) {
+            init()
+        } else {
+            checker.revokeGoogleFitPermission(default_client_id)
+        }
+    }
 
 
-        IntiateSdk.s(this, false, magicLink, baseUrlOfMagicLink, default_client_id)
+
+    override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
+        super.onDestroy()
     }
 }
 

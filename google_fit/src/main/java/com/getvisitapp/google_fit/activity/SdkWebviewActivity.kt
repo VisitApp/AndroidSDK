@@ -26,6 +26,7 @@ import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
+import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
@@ -53,6 +54,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     var dailyDataSynced = false
     var syncDataWithServer = false
+
+    private lateinit var googleFitStepChecker: GoogleFitAccessChecker
 
     companion object {
         fun getIntent(
@@ -100,6 +103,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
+        googleFitStepChecker = GoogleFitAccessChecker(this)
+
     }
 
     override fun onResume() {
@@ -136,7 +141,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         contentDisposition: String?,
         userAgent: String?
     ) {
-        Log.d("mytag", "url:$url, mimeType:$mimeType" );
+        Log.d("mytag", "url:$url, mimeType:$mimeType");
 
         try {
             val uri = Uri.parse(url)
@@ -334,6 +339,27 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun googleFitConnectedAndSavedInPWA() {
         EventBus.getDefault()
             .post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
+    }
+
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun inHraEndPage() {
+        runOnUiThread {
+            //check for google fit has access and call this event
+
+            if (googleFitStepChecker.checkGoogleFitAccess()) {
+                binding.webview.evaluateJavascript(
+                    "window.showConnectToGoogleFit(false)",
+                    null
+                )
+                Log.d("mytag", "showConnectToGoogleFit(false) called")
+            }else{
+                binding.webview.evaluateJavascript(
+                    "window.showConnectToGoogleFit(true)",
+                    null
+                )
+                Log.d("mytag", "showConnectToGoogleFit(true) called")
+            }
+        }
     }
 
 
