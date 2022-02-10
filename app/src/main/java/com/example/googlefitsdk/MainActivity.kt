@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
                     }, 200)
                 }
                 is VisitEventType.HRAQuestionAnswered -> {
+                    // can be used for analytics events
                     val hraQuestionEvent = event.eventType as VisitEventType.HRAQuestionAnswered
                     Log.d(
                         "mytag",
