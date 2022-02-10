@@ -59,18 +59,22 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void inHraEndPage(){
-        Log.d("mytag","inHraEndPage() called");
+    public void inHraEndPage() {
+        Log.d("mytag", "inHraEndPage() called");
         listener.inHraEndPage();
     }
 
     @JavascriptInterface
-    public void hraQuestionAnswered(int current, int total){
-        Log.d("mytag","hraQuestionAnswered() called");
-        listener.hraQuestionAnswered(current,total);
+    public void hraQuestionAnswered(int current, int total) {
+        Log.d("mytag", "hraQuestionAnswered() called");
+        listener.hraQuestionAnswered(current, total);
     }
 
-
+    @JavascriptInterface
+    public void downloadHraLink(String link) {
+        Log.d("mytag", "downloadHraLink() called");
+        listener.downloadHraLink(link);
+    }
 
 
 }

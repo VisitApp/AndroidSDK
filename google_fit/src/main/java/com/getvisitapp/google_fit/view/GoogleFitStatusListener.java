@@ -13,4 +13,5 @@ public interface GoogleFitStatusListener {
     void googleFitConnectedAndSavedInPWA();
     void inHraEndPage();
     void hraQuestionAnswered(int current, int total);
+    void downloadHraLink(String link);
 }

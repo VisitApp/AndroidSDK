@@ -369,6 +369,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+    override fun downloadHraLink(link: String?) {
+        Log.d("mytag","downloadHraLink link:$link")
+    }
+
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
