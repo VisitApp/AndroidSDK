@@ -46,4 +46,6 @@ sealed class VisitEventType {
 
     class GoogleFitConnectedAndSavedInPWA():VisitEventType()
 
+    class HRAQuestionAnswered(val current:Int,val total:Int):VisitEventType()
+
 }

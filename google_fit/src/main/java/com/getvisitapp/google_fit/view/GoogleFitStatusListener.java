@@ -12,4 +12,5 @@ public interface GoogleFitStatusListener {
     void hraCompleted();
     void googleFitConnectedAndSavedInPWA();
     void inHraEndPage();
+    void hraQuestionAnswered(int current, int total);
 }

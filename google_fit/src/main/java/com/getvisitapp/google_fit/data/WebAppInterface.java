@@ -64,5 +64,13 @@ public class WebAppInterface {
         listener.inHraEndPage();
     }
 
+    @JavascriptInterface
+    public void hraQuestionAnswered(int current, int total){
+        Log.d("mytag","hraQuestionAnswered() called");
+        listener.hraQuestionAnswered(current,total);
+    }
+
+
+
 
 }

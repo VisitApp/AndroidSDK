@@ -352,13 +352,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(false) called")
-            }else{
+            } else {
                 binding.webview.evaluateJavascript(
                     "window.showConnectToGoogleFit(true)",
                     null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(true) called")
             }
+        }
+    }
+
+    override fun hraQuestionAnswered(current: Int, total: Int) {
+        runOnUiThread {
+            EventBus.getDefault()
+                .post(MessageEvent(VisitEventType.HRAQuestionAnswered(current, total)))
         }
     }
 

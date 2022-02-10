@@ -80,6 +80,13 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
                     }, 200)
                 }
+                is VisitEventType.HRAQuestionAnswered -> {
+                    val hraQuestionEvent = event.eventType as VisitEventType.HRAQuestionAnswered
+                    Log.d(
+                        "mytag",
+                        "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
+                    )
+                }
             }
 
         }
@@ -104,16 +111,12 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     }
 
 
-
     override fun onResume() {
         super.onResume()
         switch.setOnCheckedChangeListener(null)
         switch.isChecked = checker.checkGoogleFitAccess()
         switch.setOnCheckedChangeListener(this)
     }
-
-
-
 
 
     override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
@@ -123,7 +126,6 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
             checker.revokeGoogleFitPermission(default_client_id)
         }
     }
-
 
 
     override fun onDestroy() {
