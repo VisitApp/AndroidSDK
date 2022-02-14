@@ -5,5 +5,6 @@ object Constants {
     const val WEB_URL="web_url"
     const val BASE_URL="base_url"
     const val DEFAULT_CLIENT_ID="default_client_id"
+    const val TATA_AIG_BASE_URL="tataAIG_base_url"
 
 }

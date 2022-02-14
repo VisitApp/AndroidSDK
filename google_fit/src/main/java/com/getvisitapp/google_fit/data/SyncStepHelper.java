@@ -3,7 +3,6 @@ package com.getvisitapp.google_fit.data;
 import android.content.Context;
 import android.util.Log;
 
-import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
 import com.getvisitapp.google_fit.okhttp.Transformers;
@@ -11,6 +10,7 @@ import com.getvisitapp.google_fit.pojo.ActivitySummaryGoal;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 import com.getvisitapp.google_fit.pojo.StartEndDate;
 import com.getvisitapp.google_fit.util.DateHelper;
+import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -293,7 +293,6 @@ public class SyncStepHelper {
         Log.d(TAG, "endTimeStamp:" + readableFormat.format(endTimeStamp));
 
 
-
         syncDataForDay(startTimeStamp, endTimeStamp, context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -434,6 +433,10 @@ public class SyncStepHelper {
                         return mainActivityPresenter.syncDayWithServer(jsonObject);
                     }
                 });
+    }
+
+    public void syncDataForTataAIG(String tataAIG_base_url) {
+        Log.d("mytag", "tataAIG_base_url:" + tataAIG_base_url);
     }
 
 

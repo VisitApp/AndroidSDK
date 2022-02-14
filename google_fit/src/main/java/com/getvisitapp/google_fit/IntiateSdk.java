@@ -11,9 +11,9 @@ import com.getvisitapp.google_fit.activity.SdkWebviewActivity;
 @Keep
 public class IntiateSdk {
 
-    public static void s(Context c, boolean isDebug, String magicLink, String default_client_id) {
+    public static void s(Context c, boolean isDebug, String magicLink, String tataAIG_base_url, String default_client_id) {
 
-        Intent intent = SdkWebviewActivity.Companion.getIntent(c, isDebug, magicLink, default_client_id);
+        Intent intent = SdkWebviewActivity.Companion.getIntent(c, isDebug, magicLink,tataAIG_base_url, default_client_id);
         c.startActivity(intent);
 
     }

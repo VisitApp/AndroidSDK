@@ -1,6 +1,5 @@
 package com.getvisitapp.google_fit.okhttp;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.JsonObject;
@@ -32,6 +31,9 @@ public class MainActivityPresenter {
     }
 
 
+    /**
+     * This is getting used for hourly sync
+     */
     public Observable<Boolean> syncDayWithServer(JSONObject payload) {
         Log.d("mytag", "syncDayWithServer: " + payload.toString());
         String url = baseUrl + "users/embellish-sync";

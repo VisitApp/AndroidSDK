@@ -26,19 +26,19 @@ public class GoogleFitUtil implements GenericListener {
     private Activity context;
     WebAppInterface webAppInterface;
 
-    private String baseUrl;
     GoogleFitStatusListener listener;
     private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
+    private String tataAIG_base_url;
 
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String baseUrl) {
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String tataAIG_base_url) {
         this.context = context;
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
-        this.baseUrl = baseUrl;
+        this.tataAIG_base_url = tataAIG_base_url;
     }
 
     private StepsCounter stepsCounter;
@@ -359,7 +359,9 @@ public class GoogleFitUtil implements GenericListener {
             }
             if (gfHourlyLastSync != 0) {
                 syncStepHelper.hourlySync(gfHourlyLastSync);
+                syncStepHelper.syncDataForTataAIG(tataAIG_base_url);
             }
+
 
         }
 

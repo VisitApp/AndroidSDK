@@ -26,6 +26,8 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     lateinit var checker: GoogleFitAccessChecker
     lateinit var switch: Switch
 
+    val tataAIG_base_url = "https://tagic-dev-lb-399513584.ap-south-1.elb.amazonaws.com"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -96,7 +98,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
         val magicLink = "https://tata-aig.getvisitapp.xyz"
-        IntiateSdk.s(this, false, magicLink, default_client_id)
+        IntiateSdk.s(this, false, magicLink,tataAIG_base_url, default_client_id)
     }
 
     override fun onStart() {

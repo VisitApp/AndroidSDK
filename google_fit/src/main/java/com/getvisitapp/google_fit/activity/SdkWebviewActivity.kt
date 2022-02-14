@@ -24,6 +24,7 @@ import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
+import com.getvisitapp.google_fit.util.Constants.TATA_AIG_BASE_URL
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
@@ -54,17 +55,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var syncDataWithServer = false
 
     private lateinit var googleFitStepChecker: GoogleFitAccessChecker
+    private lateinit var tataAIG_base_url: String
 
     companion object {
         fun getIntent(
             context: Context,
             isDebug: Boolean,
             magicLink: String,
+            tataAIG_base_url: String,
             default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
             intent.putExtra(WEB_URL, magicLink)
+            intent.putExtra(TATA_AIG_BASE_URL, tataAIG_base_url)
             intent.putExtra(DEFAULT_CLIENT_ID, default_web_client_id)
             return intent
         }
@@ -77,6 +81,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.infoView.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
+        tataAIG_base_url = intent.extras!!.getString(TATA_AIG_BASE_URL)!!
         default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -93,7 +98,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
 
         googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id, "")
+            GoogleFitUtil(this, this, default_web_client_id, tataAIG_base_url)
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -264,8 +269,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 googleFitUtil.sendDataToServer(
                     apiBaseUrl + "/",
                     authtoken,
-                    googleFitLastSync,
-                    gfHourlyLastSync
+                    0,
+                    1644653348000
                 )
                 syncDataWithServer = true
             })
