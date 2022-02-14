@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-       implementation 'com.github.VisitApp:AndroidSDK:1.20'     
+       implementation 'com.github.VisitApp:AndroidSDK:1.22'     
  }  
  
 ```
@@ -145,5 +145,5 @@ Add the following code in the activity where you want to consume the events broa
 
 ```
 
-
+Use `GoogleFitAccessChecker.java` to check for the state of Google Fit Permission. Check `MainActivity.kt` to see how it is implemented 
 
