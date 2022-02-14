@@ -30,15 +30,13 @@ public class GoogleFitUtil implements GenericListener {
     private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
-    private String tataAIG_base_url;
 
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String tataAIG_base_url) {
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
         this.context = context;
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
-        this.tataAIG_base_url = tataAIG_base_url;
     }
 
     private StepsCounter stepsCounter;
@@ -351,15 +349,14 @@ public class GoogleFitUtil implements GenericListener {
         }
     }
 
-    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
+    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync, String memberId, String tataAIG_base_url, String tata_aig_authToken) {
         if (stepsCounter.hasAccess()) {
-            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken);
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, tataAIG_base_url, tata_aig_authToken, memberId, context);
             if (googleFitLastSync != 0) {
                 syncStepHelper.dailySync(googleFitLastSync);
             }
             if (gfHourlyLastSync != 0) {
                 syncStepHelper.hourlySync(gfHourlyLastSync);
-                syncStepHelper.syncDataForTataAIG(tataAIG_base_url);
             }
 
 

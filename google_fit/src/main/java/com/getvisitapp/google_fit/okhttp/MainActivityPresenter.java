@@ -1,5 +1,6 @@
 package com.getvisitapp.google_fit.okhttp;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.JsonObject;
@@ -12,13 +13,18 @@ import rx.functions.Func1;
 
 public class MainActivityPresenter {
     private final String baseUrl;
+    private final String tataAIG_base_url;
     private final String authToken;
     OkHttpRequests okHttpRequests;
+    OkHttpRequests tata_AIG_okHttpRequests;
 
-    public MainActivityPresenter(String baseUrl, String authToken) {
+    public MainActivityPresenter(String baseUrl, String authToken, String tataAIG_base_url, String tata_aig_authToken, Context context) {
         this.baseUrl = baseUrl;
         this.authToken = authToken;
-        this.okHttpRequests = new OkHttpRequests(authToken);
+        this.okHttpRequests = new OkHttpRequests(authToken,context);
+
+        this.tataAIG_base_url = tataAIG_base_url;
+        this.tata_AIG_okHttpRequests = new OkHttpRequests(tata_aig_authToken,context);
     }
 
     public Observable<ApiResponse> sendData(JsonObject payload) {
@@ -46,6 +52,31 @@ public class MainActivityPresenter {
                         Log.d("mytag", "call: API CALL SUCCESSFULL" + jsonObject);
                         try {
                             if (jsonObject.getString("message").equalsIgnoreCase("success")) {
+                                return Observable.just(true);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return Observable.just(false);
+                    }
+                });
+    }
+
+    /**
+     * This is getting used for hourly sync in tata AIG
+     */
+    public Observable<Boolean> syncDayWithTATA_AIG_Server(JSONObject payload) {
+        Log.d("mytag", "syncDayWithServer: " + payload.toString());
+        String url = tataAIG_base_url + "/fitness-activity";
+
+        return tata_AIG_okHttpRequests.postRequestHandler(url, payload, "SYNC_FITNESS")
+                .concatMap(new Func1<JSONObject, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(JSONObject jsonObject) {
+                        // If the server returns a positive response
+                        Log.d("mytag", "tata AIG server response:" + jsonObject);
+                        try {
+                            if (jsonObject.getString("action").equalsIgnoreCase("SUCCESS")) {
                                 return Observable.just(true);
                             }
                         } catch (JSONException e) {

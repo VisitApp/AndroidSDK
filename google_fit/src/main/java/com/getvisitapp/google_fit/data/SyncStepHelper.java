@@ -19,6 +19,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,12 +52,15 @@ public class SyncStepHelper {
     private Context context;
     private SimpleDateFormat readableFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 
+    JSONArray tataAIG_sync_data = new JSONArray();
+    private String memberId;
 
-    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken) {
+    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, String tata_aig_baseURL, String tata_aig_authToken, String memberId, Context context) {
         this.googleFitConnector = connector;
         this.compositeSubscription = new CompositeSubscription();
-        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken);
+        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, tata_aig_baseURL, tata_aig_authToken, context);
         this.context = context;
+        this.memberId = memberId;
     }
 
     public void dailySync(long googleFitLastSync) {
@@ -300,6 +305,20 @@ public class SyncStepHelper {
                     @Override
                     public void onCompleted() {
                         Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
+                        //this is called after all the steps for the days are synced from startTimeStamp to endTimeStamp
+                        //call the tataAIG api here.
+
+                        JSONObject finalRequest = new JSONObject();
+                        try {
+                            finalRequest.put("member_id", String.valueOf(memberId));
+                            finalRequest.put("data", tataAIG_sync_data);
+                            Log.d(TAG, "tata AIG finalRequest: " + finalRequest.toString());
+                            syncDateToTATA_Server(finalRequest);
+                        } catch (Exception e) {
+                            Log.d(TAG, "exception occured:" + e.getMessage());
+                        }
+
+
                     }
 
                     @Override
@@ -399,6 +418,11 @@ public class SyncStepHelper {
                         //Log.d(TAG, "call: steps :" + steps.getValues());
                         //Log.d(TAG, "call: distance :" + distance.getValues());
                         //Log.d(TAG, "call: calories :" + calories.getValues());
+
+                        JSONArray data_TATA_AIG = new JSONArray();
+                        JSONObject payloadTATA_AIG = new JSONObject();
+                        JSONObject jsonObject_TATA_AIG;
+
                         JSONArray data = new JSONArray();
                         JSONObject payload = new JSONObject();
                         JSONObject jsonObject;
@@ -410,7 +434,17 @@ public class SyncStepHelper {
                                 jsonObject.put("d", distance.getValues().get(i));
                                 jsonObject.put("h", i);
                                 jsonObject.put("s", steps.getAppContributedToGoogleFitValues().get(i));
+
+                                jsonObject_TATA_AIG = new JSONObject();
+                                jsonObject_TATA_AIG.put("hour", i);
+                                jsonObject_TATA_AIG.put("steps", steps.getValues().get(i));
+                                jsonObject_TATA_AIG.put("calories", calories.getValues().get(i));
+
+
                                 data.put(jsonObject);
+
+                                //for tata_aig
+                                data_TATA_AIG.put(jsonObject_TATA_AIG);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -419,6 +453,12 @@ public class SyncStepHelper {
                         try {
                             payload.put("data", data);
                             payload.put("dt", start);
+
+                            //for tata_aig
+                            payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
+                            payloadTATA_AIG.put("activity_data", data_TATA_AIG);
+                            tataAIG_sync_data.put(payloadTATA_AIG);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -435,8 +475,18 @@ public class SyncStepHelper {
                 });
     }
 
-    public void syncDataForTataAIG(String tataAIG_base_url) {
-        Log.d("mytag", "tataAIG_base_url:" + tataAIG_base_url);
+
+    private void syncDateToTATA_Server(JSONObject jsonObject) {
+        mainActivityPresenter.syncDayWithTATA_AIG_Server(jsonObject).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        Log.d("mytag", "TATA AIG Sync Status: "+aBoolean);
+                    }
+                });
+
+
     }
 
 

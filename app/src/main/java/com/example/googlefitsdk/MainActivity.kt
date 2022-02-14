@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     lateinit var switch: Switch
 
     val tataAIG_base_url = "https://tagic-dev-lb-399513584.ap-south-1.elb.amazonaws.com"
+    val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +74,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
                 }
                 is VisitEventType.HRA_Completed -> {
 
+
                 }
                 is VisitEventType.GoogleFitConnectedAndSavedInPWA -> {
                     Handler(Looper.getMainLooper()).postDelayed({
@@ -98,7 +100,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
         val magicLink = "https://tata-aig.getvisitapp.xyz"
-        IntiateSdk.s(this, false, magicLink,tataAIG_base_url, default_client_id)
+        IntiateSdk.s(this, false, magicLink,tataAIG_base_url,tataAIG_auth_token, default_client_id)
     }
 
     override fun onStart() {

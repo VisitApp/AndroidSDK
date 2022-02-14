@@ -6,7 +6,7 @@ public interface GoogleFitStatusListener {
     void loadWebUrl(String urlString);
     void requestActivityData(String type, String frequency, long timestamp);
     void loadGraphDataUrl(String url);
-    void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
+    void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync,String memberId);
     void askForLocationPermission();
     void startVideoCall(int sessionId, int consultationId, String authToken);
     void hraCompleted();
@@ -14,4 +14,5 @@ public interface GoogleFitStatusListener {
     void inHraEndPage();
     void hraQuestionAnswered(int current, int total);
     void downloadHraLink(String link);
+    void inFitSelectScreen();
 }

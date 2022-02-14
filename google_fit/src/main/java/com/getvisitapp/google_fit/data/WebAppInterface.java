@@ -28,9 +28,9 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync) {
-        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync);
-        listener.syncDataWithServer(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync);
+    public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId) {
+        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId);
+        listener.syncDataWithServer(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId);
     }
 
     @JavascriptInterface
@@ -74,6 +74,12 @@ public class WebAppInterface {
     public void downloadHraLink(String link) {
         Log.d("mytag", "downloadHraLink() called");
         listener.downloadHraLink(link);
+    }
+
+    @JavascriptInterface
+    public void inFitSelectScreen() {
+        Log.d("mytag", "inFitSelectScreen() called");
+        listener.inFitSelectScreen();
     }
 
 

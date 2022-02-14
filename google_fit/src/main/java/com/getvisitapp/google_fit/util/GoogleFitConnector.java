@@ -928,7 +928,7 @@ public class GoogleFitConnector {
     }
 
     public HealthDataGraphValues convertDataReadResultToHealthDataStepsAndActivity(DataReadResponse dataReadResponse, boolean isDataTypeInt, int healthDataGraphType, final long startTime, final long endTime) {
-        Log.d(TAG, "blacklistedApps: " + blacklistedApps.toString());
+//        Log.d(TAG, "blacklistedApps: " + blacklistedApps.toString());
 
         Set<String> fraudApps = new HashSet<>();
 
@@ -983,7 +983,7 @@ public class GoogleFitConnector {
                     if (blackListedAppInstalled == false) {
                         //user have installed a fraud app to insert data to Google Fit
                     }
-                    Log.d(TAG, "appContributedToGoogleFitDate: " + appContributedToGoogleFitDateString);
+//                    Log.d(TAG, "appContributedToGoogleFitDate: " + appContributedToGoogleFitDateString);
 
 
                     // values array fills the y-axis of the graphs
