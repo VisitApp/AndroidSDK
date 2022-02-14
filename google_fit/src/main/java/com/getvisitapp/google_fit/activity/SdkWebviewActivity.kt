@@ -22,7 +22,6 @@ import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
-import com.getvisitapp.google_fit.util.Constants.BASE_URL
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
@@ -49,7 +48,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var isDebug: Boolean = false
     lateinit var magicLink: String
     lateinit var default_web_client_id: String
-    lateinit var baseUrl: String
 
 
     var dailyDataSynced = false
@@ -62,13 +60,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             context: Context,
             isDebug: Boolean,
             magicLink: String,
-            baseUrl: String,
             default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
             intent.putExtra(WEB_URL, magicLink)
-            intent.putExtra(BASE_URL, baseUrl)
             intent.putExtra(DEFAULT_CLIENT_ID, default_web_client_id)
             return intent
         }
@@ -80,8 +76,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding = DataBindingUtil.setContentView(this, R.layout.activity_sdk)
         binding.infoView.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
-        baseUrl =
-            intent.extras!!.getString(BASE_URL)!!  //the need of baseUrl if only for updating the google fit daily steps card after the webpage as loaded.
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
         default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
 
@@ -99,7 +93,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
 
         googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id, baseUrl)
+            GoogleFitUtil(this, this, default_web_client_id, "")
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -263,7 +257,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long
     ) {
-        Log.d("mytag", "baseUrl: $baseUrl")
+        Log.d("mytag", "apiBaseUrl: $apiBaseUrl")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
             runOnUiThread(Runnable {
@@ -370,7 +364,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun downloadHraLink(link: String?) {
-        Log.d("mytag","downloadHraLink link:$link")
+        Log.d("mytag", "downloadHraLink link:$link")
     }
 
 

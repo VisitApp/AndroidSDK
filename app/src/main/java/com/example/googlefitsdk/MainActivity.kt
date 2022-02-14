@@ -96,9 +96,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
         val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val baseUrlOfMagicLink = "https://tata-aig.getvisitapp.xyz/"
-
-        IntiateSdk.s(this, false, magicLink, baseUrlOfMagicLink, default_client_id)
+        IntiateSdk.s(this, false, magicLink, default_client_id)
     }
 
     override fun onStart() {

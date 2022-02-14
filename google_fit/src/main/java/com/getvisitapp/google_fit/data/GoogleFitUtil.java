@@ -90,7 +90,7 @@ public class GoogleFitUtil implements GenericListener {
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadWebUrl(baseUrl + "home?fitnessPermission=true&steps=" + sleepStepsData.steps + "&sleep=" + TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+//                listener.loadWebUrl(baseUrl + "home?fitnessPermission=true&steps=" + sleepStepsData.steps + "&sleep=" + TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
