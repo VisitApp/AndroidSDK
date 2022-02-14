@@ -4,15 +4,14 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
-import com.getvisitapp.google_fit.view.GenericListener;
+import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.getvisitapp.google_fit.util.StepsCounter;
-import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
+import com.getvisitapp.google_fit.view.GenericListener;
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -355,8 +354,12 @@ public class GoogleFitUtil implements GenericListener {
     public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
         if (stepsCounter.hasAccess()) {
             syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken);
-            syncStepHelper.dailySync(googleFitLastSync);
-            syncStepHelper.hourlySync(gfHourlyLastSync);
+            if (googleFitLastSync != 0) {
+                syncStepHelper.dailySync(googleFitLastSync);
+            }
+            if (gfHourlyLastSync != 0) {
+                syncStepHelper.hourlySync(gfHourlyLastSync);
+            }
 
         }
 
