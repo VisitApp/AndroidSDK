@@ -391,13 +391,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     "window.googleFitStatus(true)",
                     null
                 )
-                Log.d("mytag", "googleFitStatus(false) called")
+                Log.d("mytag", "googleFitStatus(true) called")
             } else {
                 binding.webview.evaluateJavascript(
                     "window.googleFitStatus(false)",
                     null
                 )
-                Log.d("mytag", "googleFitStatus(true) called")
+                Log.d("mytag", "googleFitStatus(false) called")
             }
         }
     }
