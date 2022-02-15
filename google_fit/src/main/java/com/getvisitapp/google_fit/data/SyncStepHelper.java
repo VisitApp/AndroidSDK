@@ -478,11 +478,23 @@ public class SyncStepHelper {
 
     private void syncDateToTATA_Server(JSONObject jsonObject) {
         mainActivityPresenter.syncDayWithTATA_AIG_Server(jsonObject).subscribeOn(Schedulers.io())
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean aBoolean) {
-                        Log.d("mytag", "TATA AIG Sync Status: "+aBoolean);
+                        Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
+
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
                     }
                 });
 

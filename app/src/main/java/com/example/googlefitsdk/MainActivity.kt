@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     lateinit var checker: GoogleFitAccessChecker
     lateinit var switch: Switch
 
-    val tataAIG_base_url = "https://tagic-dev-lb-399513584.ap-south-1.elb.amazonaws.com"
+    val tataAIG_base_url = "https://uathealthvas.tataaig.com"
     val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
 
     override fun onCreate(savedInstanceState: Bundle?) {
