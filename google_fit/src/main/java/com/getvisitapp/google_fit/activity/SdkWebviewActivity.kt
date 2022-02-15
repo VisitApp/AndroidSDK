@@ -388,16 +388,16 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(false)",
+                    "window.googleFitStatus(true)",
                     null
                 )
-                Log.d("mytag", "showConnectToGoogleFit(false) called")
+                Log.d("mytag", "googleFitStatus(false) called")
             } else {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(true)",
+                    "window.googleFitStatus(false)",
                     null
                 )
-                Log.d("mytag", "showConnectToGoogleFit(true) called")
+                Log.d("mytag", "googleFitStatus(true) called")
             }
         }
     }
