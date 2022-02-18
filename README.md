@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-       implementation 'com.github.VisitApp:AndroidSDK:1.24'     
+        implementation 'com.github.VisitApp:AndroidSDK:v1.26'   
  }  
  
 ```
@@ -146,4 +146,23 @@ Add the following code in the activity where you want to consume the events broa
 ```
 
 Use `GoogleFitAccessChecker.java` to check for the state of Google Fit Permission. Check `MainActivity.kt` to see how it is implemented 
+
+### To initialize the SDK: 
+```
+IntiateSdk.s(
+            this,
+            false, 
+            magicLink,
+            tataAIG_base_url,
+            tataAIG_auth_token,
+            default_client_id
+        )
+ ```
+ 
+#### Use `VisitStepSyncHelper` to sync steps manually (this is only work if the google fit is connected).
+```
+ val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
+ syncStepHelper.syncSteps()
+```        
+
 
