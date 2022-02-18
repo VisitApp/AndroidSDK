@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
+import com.getvisitapp.google_fit.data.SharedPrefUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
@@ -58,6 +59,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     private lateinit var googleFitStepChecker: GoogleFitAccessChecker
     private lateinit var tataAIG_base_url: String
     private lateinit var tataAIG_auth_token: String
+
+    lateinit var sharedPrefUtil: SharedPrefUtil
+
 
     companion object {
         fun getIntent(
@@ -108,6 +112,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         googleFitUtil.init()
 
         googleFitStepChecker = GoogleFitAccessChecker(this)
+        sharedPrefUtil = SharedPrefUtil(this)
+
+        sharedPrefUtil.setTataAIG_Base_URL(tata_aig_base_url = tataAIG_base_url)
+        sharedPrefUtil.setTataAIGAuthToken(tataAIG_auth_token = tataAIG_auth_token)
 
     }
 
@@ -262,18 +270,29 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun syncDataWithServer(
-        apiBaseUrl: String?,
+        visitApiBaseUrl: String?,
         authtoken: String?,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
         memberId: String
     ) {
-        Log.d("mytag", "apiBaseUrl: $apiBaseUrl $memberId")
+        Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
+
+            visitApiBaseUrl?.let {
+                sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl+"/")
+            }
+            authtoken?.let {
+                sharedPrefUtil.setVisitAuthToken(authtoken)
+            }
+            memberId?.let {
+                sharedPrefUtil.setTATA_AIG_MemberId(memberId)
+            }
+
             runOnUiThread(Runnable {
                 googleFitUtil.sendDataToServer(
-                    apiBaseUrl + "/",
+                    visitApiBaseUrl + "/",
                     authtoken,
                     googleFitLastSync,
                     gfHourlyLastSync,

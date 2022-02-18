@@ -356,7 +356,7 @@ public class GoogleFitUtil implements GenericListener {
                 syncStepHelper.dailySync(googleFitLastSync);
             }
             if (gfHourlyLastSync != 0) {
-                syncStepHelper.hourlySync(gfHourlyLastSync);
+                syncStepHelper.hourlySync(gfHourlyLastSync,false);
             }
 
 

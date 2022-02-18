@@ -9,6 +9,7 @@ import android.widget.CompoundButton
 import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
+import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
@@ -40,6 +41,9 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         switch = findViewById<Switch>(R.id.switch1)
 
         checker = GoogleFitAccessChecker(this)
+
+        val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
+        syncStepHelper.syncSteps()
 
 
     }
@@ -99,8 +103,17 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     }
 
     fun init() {
-        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        IntiateSdk.s(this, false, magicLink,tataAIG_base_url,tataAIG_auth_token, default_client_id)
+//        val magicLink = "https://tata-aig.getvisitapp.xyz"
+        val magicLink =
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=0UQpL6UCwpWLwQjwMZGOEz1Qt3lhN3BbQXuvTBhsRo4gTy6kz7JftAFCVY14rGwIaGAOu8jRbe8cOgjKxIR1cjYI0MlwkOLcDDxLfYZzMiM9Tkks2JwwC4k12kQsO5O6J0VPKTMhSfz6qzngMQmLx8d2tkocMELoNF8_ABWuAxwc4SB0r4v8wAVGsfAjEsktS8R09ZbVfVrXdCnV1qPmFw&clientId=tata-aig-a8b455"
+        IntiateSdk.s(
+            this,
+            false,
+            magicLink,
+            tataAIG_base_url,
+            tataAIG_auth_token,
+            default_client_id
+        )
     }
 
     override fun onStart() {

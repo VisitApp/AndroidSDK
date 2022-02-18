@@ -54,6 +54,9 @@ public class SyncStepHelper {
 
     JSONArray tataAIG_sync_data = new JSONArray();
     private String memberId;
+    private boolean syncWithTataAIGServerOnly;
+
+    private SharedPrefUtil sharedPrefUtil;
 
     public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, String tata_aig_baseURL, String tata_aig_authToken, String memberId, Context context) {
         this.googleFitConnector = connector;
@@ -61,6 +64,7 @@ public class SyncStepHelper {
         this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, tata_aig_baseURL, tata_aig_authToken, context);
         this.context = context;
         this.memberId = memberId;
+        this.sharedPrefUtil = new SharedPrefUtil(context);
     }
 
     public void dailySync(long googleFitLastSync) {
@@ -258,7 +262,17 @@ public class SyncStepHelper {
     }
 
 
-    public void hourlySync(long startTimeStamp) {
+    /**
+     * this is used for hourly sync api
+     * For hourly sync there are 2 cases:
+     * 1. When user open our PWA, then we need to call Visit server first, then at last call, TATA AIG server api.
+     * 2. When user directly open TATA AIG app, then we don't need to call Visit api, only fetch all the steps and call TATA AIG api.
+     *
+     * @param startTimeStamp is the epoch timestamp in the format 1645166569594
+     */
+    public void hourlySync(long startTimeStamp, boolean syncWithTataAIGServerOnly) {
+        this.syncWithTataAIGServerOnly = syncWithTataAIGServerOnly;
+
         Calendar calendar = Calendar.getInstance();
 
         calendar.setTimeInMillis(startTimeStamp);
@@ -470,11 +484,14 @@ public class SyncStepHelper {
                 .concatMap(new Func1<JSONObject, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(JSONObject jsonObject) {
-                        return mainActivityPresenter.syncDayWithServer(jsonObject);
+                        if (syncWithTataAIGServerOnly) {
+                            return Observable.just(true);
+                        } else {
+                            return mainActivityPresenter.syncDayWithServer(jsonObject);
+                        }
                     }
                 });
     }
-
 
     private void syncDateToTATA_Server(JSONObject jsonObject) {
         mainActivityPresenter.syncDayWithTATA_AIG_Server(jsonObject).subscribeOn(Schedulers.io())
@@ -489,6 +506,10 @@ public class SyncStepHelper {
                     @Override
                     public void call(Boolean aBoolean) {
                         Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
+                        if (aBoolean) {
+                            Calendar calendar = Calendar.getInstance();
+                            sharedPrefUtil.setTataAIGLastSyncTimeStamp(calendar.getTimeInMillis());
+                        }
 
                     }
                 }, new Action1<Throwable>() {
