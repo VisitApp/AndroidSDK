@@ -153,7 +153,7 @@ IntiateSdk.s(
         )
  ```
  
-#### Use `VisitStepSyncHelper` to sync steps manually (this is only work if the google fit is connected).
+#### Use `VisitStepSyncHelper` to sync steps manually (this will only work if the google fit is connected).
 ```
  val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
  syncStepHelper.syncSteps()
