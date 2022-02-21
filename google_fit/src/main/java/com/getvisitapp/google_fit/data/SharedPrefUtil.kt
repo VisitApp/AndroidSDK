@@ -38,21 +38,6 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getString(Constants.VISIT_AUTH_TOKEN, "")!!
     }
 
-    fun setTataAIG_Base_URL(tata_aig_base_url: String) {
-        sharedPreferencesEditor.putString(Constants.TATA_AIG_BASE_URL, tata_aig_base_url).commit()
-    }
-
-    fun getTATA_AIG_BaseURL(): String {
-        return sharedPreferences.getString(Constants.TATA_AIG_BASE_URL, "")!!
-    }
-
-    fun setTataAIGAuthToken(tataAIG_auth_token: String) {
-        sharedPreferencesEditor.putString(Constants.TATA_AIG_AUTH_TOKEN, tataAIG_auth_token).commit()
-    }
-
-    fun getTataAIGAuthToken(): String {
-        return sharedPreferences.getString(Constants.TATA_AIG_AUTH_TOKEN, "")!!
-    }
 
     fun setTataAIGLastSyncTimeStamp(tata_aig_last_sync_time_stamp: Long) {
         sharedPreferencesEditor.putLong(

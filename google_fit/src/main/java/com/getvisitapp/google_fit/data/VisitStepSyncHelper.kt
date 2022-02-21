@@ -13,7 +13,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
     private lateinit var syncStepHelper: SyncStepHelper
     private lateinit var checker: GoogleFitAccessChecker
 
-    fun syncSteps() {
+    fun syncSteps(tataAIG_base_url:String,tata_aig_authToken:String) {
 
         checker = GoogleFitAccessChecker(context)
 
@@ -22,8 +22,6 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
             val tataAIGLastSyncTimeStamp = sharedPrefUtil.getTataAIGLastSyncTimeStamp()
             val baseUrl = sharedPrefUtil.getVisitBaseUrl()
             val authToken = sharedPrefUtil.getVisitAuthToken()
-            val tataAIG_base_url = sharedPrefUtil.getTATA_AIG_BaseURL()
-            val tata_aig_authToken = sharedPrefUtil.getTataAIGAuthToken()
             val memberId = sharedPrefUtil.getTATA_AIG_MemberId()
 
             if (tataAIGLastSyncTimeStamp != 0L) {

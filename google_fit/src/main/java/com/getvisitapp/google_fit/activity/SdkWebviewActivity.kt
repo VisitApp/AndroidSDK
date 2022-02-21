@@ -114,9 +114,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         googleFitStepChecker = GoogleFitAccessChecker(this)
         sharedPrefUtil = SharedPrefUtil(this)
 
-        sharedPrefUtil.setTataAIG_Base_URL(tata_aig_base_url = tataAIG_base_url)
-        sharedPrefUtil.setTataAIGAuthToken(tataAIG_auth_token = tataAIG_auth_token)
-
     }
 
     override fun onResume() {
