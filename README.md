@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-       implementation 'com.github.VisitApp:AndroidSDK:1.24'     
+        implementation 'com.github.VisitApp:AndroidSDK:v1.26'   
  }  
  
 ```
@@ -58,12 +58,6 @@ dependencies {
 
 
 ```
-
-#### Follow the instructions from the link below to configure Google Fit into your project:  
-
-
-https://drive.google.com/file/d/1eLbhSd4nDno85L1Dds6i716-NlBZdMnV/view?usp=sharing
-
 
 We use EventBus to explose some event from the library that your application can consume. 
 
@@ -146,4 +140,23 @@ Add the following code in the activity where you want to consume the events broa
 ```
 
 Use `GoogleFitAccessChecker.java` to check for the state of Google Fit Permission. Check `MainActivity.kt` to see how it is implemented 
+
+### To initialize the SDK: 
+```
+IntiateSdk.s(
+            this,
+            false, 
+            magicLink,
+            tataAIG_base_url,
+            tataAIG_auth_token,
+            default_client_id
+        )
+ ```
+ 
+#### Use `VisitStepSyncHelper` to sync steps manually (this will only work if the google fit is connected).
+```
+ val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
+ syncStepHelper.syncSteps()
+```        
+
 
