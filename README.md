@@ -158,5 +158,6 @@ IntiateSdk.s(
  val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
  syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
 ```        
-
+#### Proguard rule
+For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 
