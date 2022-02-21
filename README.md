@@ -161,3 +161,4 @@ IntiateSdk.s(
 #### Proguard rule
 For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 
+##### Use ` mytag ` to see the logs of the SDK.
