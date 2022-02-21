@@ -63,6 +63,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     lateinit var sharedPrefUtil: SharedPrefUtil
 
 
+    var visitApiBaseUrl: String? = null
+    var authtoken: String? = null
+    var googleFitLastSync: Long = 0L
+    var gfHourlyLastSync = 0L
+    var memberId: String? = null
+
+
     companion object {
         fun getIntent(
             context: Context,
@@ -224,6 +231,28 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             )
         }
 
+        //manually calling sync steps here because we are not getting sync step event after the google fit is connected
+        if (visitApiBaseUrl != null &&
+            authtoken != null &&
+            googleFitLastSync != 0L &&
+            gfHourlyLastSync != 0L &&
+            memberId != null
+        ) {
+            runOnUiThread {
+                googleFitUtil.sendDataToServer(
+                    visitApiBaseUrl + "/",
+                    authtoken,
+                    googleFitLastSync,
+                    gfHourlyLastSync,
+                    memberId,
+                    tataAIG_base_url,
+                    tataAIG_auth_token
+                )
+                syncDataWithServer = true
+            }
+        }
+
+
 //        runOnUiThread(Runnable { googleFitUtil.fetchDataFromFit() })
     }
 
@@ -273,16 +302,28 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         gfHourlyLastSync: Long,
         memberId: String
     ) {
+
+        this.visitApiBaseUrl = visitApiBaseUrl
+        this.authtoken = authtoken
+        this.googleFitLastSync = googleFitLastSync
+        this.gfHourlyLastSync = gfHourlyLastSync
+        this.memberId = memberId
+
+
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
 
             visitApiBaseUrl?.let {
-                sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl+"/")
+                sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl + "/")
             }
             authtoken?.let {
                 sharedPrefUtil.setVisitAuthToken(authtoken)
             }
+
+            sharedPrefUtil.setGoogleFitDailyLastSyncTimeStamp(googleFitLastSync)
+            sharedPrefUtil.setGoogleFitHourlyLastSyncTimeStamp(gfHourlyLastSync)
+
             memberId?.let {
                 sharedPrefUtil.setTATA_AIG_MemberId(memberId)
             }

@@ -50,5 +50,28 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getLong(Constants.TATA_AIG_LAST_SYNC_TIME_STAMP, 0L)
     }
 
+    fun setGoogleFitDailyLastSyncTimeStamp(google_fit_last_sync_daily_timestamp: Long) {
+        sharedPreferencesEditor.putLong(
+            Constants.GOOGLE_FIT_LAST_SYNC_DAILY_TIMESTAMP,
+            google_fit_last_sync_daily_timestamp
+        ).commit()
+    }
+
+    fun getGoogleFitDailyLastSyncTimeStamp(): Long {
+        return sharedPreferences.getLong(Constants.GOOGLE_FIT_LAST_SYNC_DAILY_TIMESTAMP, 0L)
+    }
+
+    fun setGoogleFitHourlyLastSyncTimeStamp(google_fit_last_sync_hourly_timestamp: Long) {
+        sharedPreferencesEditor.putLong(
+            Constants.GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP,
+            google_fit_last_sync_hourly_timestamp
+        ).commit()
+    }
+
+    fun getGoogleFitHourlyLastSyncTimeStamp(): Long {
+        return sharedPreferences.getLong(Constants.GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP, 0L)
+    }
+
+
 
 }
