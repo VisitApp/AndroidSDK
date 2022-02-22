@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         checker = GoogleFitAccessChecker(this)
 
         val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
-        syncStepHelper.syncSteps(tataAIG_base_url,tataAIG_auth_token)
+        syncStepHelper.syncSteps(tataAIG_base_url,tataAIG_auth_token,1645185624000L)
 
 
     }
