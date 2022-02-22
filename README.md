@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-        implementation 'com.github.VisitApp:AndroidSDK:v1.26'   
+        implementation 'com.github.VisitApp:AndroidSDK:1.27'   
  }  
  
 ```
@@ -156,7 +156,9 @@ IntiateSdk.s(
 #### Use `VisitStepSyncHelper` to sync steps manually (this will only work if the google fit is connected).
 ```
  val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
- syncStepHelper.syncSteps()
+ syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
 ```        
+#### Proguard rule
+For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 
-
+##### Use ` mytag ` to see the logs of the SDK.
