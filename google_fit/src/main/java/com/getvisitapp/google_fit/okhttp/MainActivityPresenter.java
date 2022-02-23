@@ -30,7 +30,7 @@ public class MainActivityPresenter {
     public Observable<ApiResponse> sendData(JsonObject payload) {
         Log.d("mytag", "sendData() authToken: " + authToken);
 
-        String url = baseUrl + "users/data-sync";
+        String url = baseUrl + "users/data-sync?isPWA=yes";
 
         Log.d("mytag", "dataSync URL: " + url);
         return okHttpRequests.postRequest(url, payload, ApiResponse.class);
@@ -42,7 +42,7 @@ public class MainActivityPresenter {
      */
     public Observable<Boolean> syncDayWithServer(JSONObject payload) {
         Log.d("mytag", "syncDayWithServer: " + payload.toString());
-        String url = baseUrl + "users/embellish-sync";
+        String url = baseUrl + "users/embellish-sync?isPWA=yes";
 
         return okHttpRequests.postRequestHandler(url, payload, "SYNC_FITNESS")
                 .concatMap(new Func1<JSONObject, Observable<Boolean>>() {

@@ -89,6 +89,7 @@ public class OkHttpRequests {
         if (builder == null) return null;
         builder.addHeader("Content-type", "application/json");
         builder.addHeader("Authorization", authToken);
+        builder.addHeader("platform","ANDROID");
         return builder.build();
 
     }
