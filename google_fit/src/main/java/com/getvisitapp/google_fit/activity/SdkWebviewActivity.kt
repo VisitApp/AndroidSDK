@@ -35,6 +35,7 @@ import im.delight.android.webview.AdvancedWebView
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.*
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     VideoCallListener, GoogleFitStatusListener {
@@ -309,6 +310,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         this.gfHourlyLastSync = gfHourlyLastSync
         this.memberId = memberId
 
+        //For the first time, when the logs in the PWA, this will comes zero, so in that case just make it today's date
+        if (this.googleFitLastSync == 0L) {
+            this.googleFitLastSync = getTodayDateTimeStamp()
+        }
+        if (this.gfHourlyLastSync == 0L) {
+            this.gfHourlyLastSync = getTodayDateTimeStamp()
+        }
+
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
@@ -324,7 +333,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             sharedPrefUtil.setGoogleFitDailyLastSyncTimeStamp(googleFitLastSync)
             sharedPrefUtil.setGoogleFitHourlyLastSyncTimeStamp(gfHourlyLastSync)
             sharedPrefUtil.setTataAIGLastSyncTimeStamp(gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
-                                                                        // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
+            // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
 
             memberId?.let {
                 sharedPrefUtil.setTATA_AIG_MemberId(memberId)
@@ -511,6 +520,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         Log.d(TAG, "onDestroy called")
         binding.webview.onDestroy();
         super.onDestroy()
+    }
+
+    fun getTodayDateTimeStamp(): Long {
+        val startCalendar: Calendar = Calendar.getInstance()
+        startCalendar.setTimeInMillis(System.currentTimeMillis())
+
+        //doing to remove the hours passed in the today's date.
+
+        //doing to remove the hours passed in the today's date.
+        startCalendar.set(Calendar.HOUR_OF_DAY, 0)
+        startCalendar.set(Calendar.MINUTE, 0)
+        startCalendar.set(Calendar.SECOND, 0)
+
+        return startCalendar.getTimeInMillis()
     }
 
 
