@@ -236,6 +236,7 @@ public class SyncStepHelper {
         }
 
         postBody.add("fitnessData", jsonArray);
+        postBody.addProperty("platform", "ANDROID");
         Log.d(TAG, "data sync api called:" + String.valueOf(postBody));
         sendData1(postBody);
 
@@ -467,6 +468,8 @@ public class SyncStepHelper {
                         try {
                             payload.put("data", data);
                             payload.put("dt", start);
+                            payload.put("platform", "ANDROID");
+
 
                             //for tata_aig
                             payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
