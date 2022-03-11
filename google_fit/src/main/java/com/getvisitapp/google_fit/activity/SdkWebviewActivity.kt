@@ -470,6 +470,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
 
+
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
@@ -555,6 +557,25 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
 
 
+    }
+
+    override fun openDependentLink(link: String?) {
+        Log.d("mytag", "openDependentLink link:$link")
+        val customIntent = CustomTabsIntent.Builder()
+        customIntent.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
+        customIntent.setShowTitle(false)
+        customIntent.setToolbarColor(
+            ContextCompat.getColor(
+                this,
+                R.color.tata_aig_brand_color
+            )
+        )
+        try {
+            val uri = Uri.parse(link)
+            openCustomTab(this, customIntent.build(), uri = uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {

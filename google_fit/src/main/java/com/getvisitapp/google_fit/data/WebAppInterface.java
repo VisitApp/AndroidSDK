@@ -82,5 +82,13 @@ public class WebAppInterface {
         listener.inFitSelectScreen();
     }
 
+    @JavascriptInterface
+    public void openDependentLink(String link) {
+        Log.d("mytag", "openDependentLink() called");
+        listener.openDependentLink(link);
+    }
+
+
+
 
 }
