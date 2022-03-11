@@ -100,5 +100,9 @@ dependencies {
     releaseApi "com.github.chuckerteam.chucker:library-no-op:3.3.0"
 
 
+    implementation "androidx.browser:browser:1.4.0"
+
+
+
 
 }

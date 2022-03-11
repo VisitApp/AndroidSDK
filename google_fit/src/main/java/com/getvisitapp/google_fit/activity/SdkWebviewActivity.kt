@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.activity
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import android.view.View
 import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
@@ -445,9 +447,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
-    override fun downloadHraLink(link: String?) {
-        Log.d("mytag", "downloadHraLink link:$link")
-    }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun inFitSelectScreen() {
@@ -534,6 +533,34 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         startCalendar.set(Calendar.SECOND, 0)
 
         return startCalendar.getTimeInMillis()
+    }
+
+    override fun downloadHraLink(url: String) {
+        Log.d("mytag", "downloadHraLink link:$url")
+
+        val customIntent = CustomTabsIntent.Builder()
+        customIntent.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
+        customIntent.setShowTitle(false)
+        customIntent.setToolbarColor(
+            ContextCompat.getColor(
+                this,
+                R.color.tata_aig_brand_color
+            )
+        )
+        try {
+            val uri = Uri.parse(url)
+            openCustomTab(this, customIntent.build(), uri = uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+
+    }
+
+    fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
+        val packageName = "com.android.chrome"
+        customTabsIntent.intent.setPackage(packageName)
+        customTabsIntent.launchUrl(activity, uri)
     }
 
 
