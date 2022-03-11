@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-        implementation 'com.github.VisitApp:AndroidSDK:v1.32'   
+        implementation 'com.github.VisitApp:AndroidSDK:v1.34'   
  }  
  
 ```
@@ -55,6 +55,8 @@ dependencies {
     }
     
     implementation("org.greenrobot:eventbus:3.3.1")
+    
+    implementation "androidx.browser:browser:1.4.0"
 
 
 ```
