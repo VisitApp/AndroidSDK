@@ -164,3 +164,5 @@ IntiateSdk.s(
 For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 
 ##### Use ` mytag ` to see the logs of the SDK.
+
+##### Use `openGoogleFit()` to open Google Fit app. It returns false if the google fit app is not installed.
