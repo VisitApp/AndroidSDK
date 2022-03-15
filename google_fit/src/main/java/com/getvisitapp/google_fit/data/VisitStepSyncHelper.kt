@@ -71,4 +71,18 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
 
     }
+
+    companion object {
+        fun Context.openGoogleFit(): Boolean {
+            val launchIntent =
+                packageManager.getLaunchIntentForPackage("com.google.android.apps.fitness")
+            return if (launchIntent != null) {
+                startActivity(launchIntent)
+                true;
+            } else {
+                false;
+            }
+        }
+    }
+
 }
