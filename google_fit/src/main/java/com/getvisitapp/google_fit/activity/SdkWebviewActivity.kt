@@ -540,22 +540,12 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun downloadHraLink(url: String) {
         Log.d("mytag", "downloadHraLink link:$url")
 
-        val customIntent = CustomTabsIntent.Builder()
-        customIntent.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
-        customIntent.setShowTitle(false)
-        customIntent.setToolbarColor(
-            ContextCompat.getColor(
-                this,
-                R.color.tata_aig_brand_color
-            )
-        )
         try {
             val uri = Uri.parse(url)
-            openCustomTab(this, customIntent.build(), uri = uri)
+            startActivity(Intent(Intent.ACTION_VIEW, uri))
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
 
     }
 
