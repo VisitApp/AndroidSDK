@@ -1,5 +1,8 @@
 package com.getvisitapp.google_fit.okhttp;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class BaseException extends Exception {
 
 

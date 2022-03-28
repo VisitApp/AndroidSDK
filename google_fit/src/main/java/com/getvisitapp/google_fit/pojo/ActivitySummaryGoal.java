@@ -1,9 +1,12 @@
 package com.getvisitapp.google_fit.pojo;
 
+import androidx.annotation.Keep;
+
 /**
  * Created by shashvat on 06/05/18.
  */
 
+@Keep
 public class ActivitySummaryGoal {
     private int stepsGoal;
     private int distanceGoal;

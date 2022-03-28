@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import com.getvisitapp.google_fit.view.GenericListener;
@@ -28,6 +29,7 @@ import java.lang.ref.SoftReference;
  * Created by Ghost on 05/01/18.
  */
 
+@Keep
 public class StepsCounter {
     public static final String TAG = StepsCounter.class.getSimpleName();
     private static final int REQUEST_OAUTH_REQUEST_CODE = 0x1001;

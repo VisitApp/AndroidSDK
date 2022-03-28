@@ -32,10 +32,13 @@ import rx.schedulers.Schedulers;
 
 import static java.text.DateFormat.getTimeInstance;
 
+import androidx.annotation.Keep;
+
 /**
  * Created by shashvat on 12/05/18.
  */
 
+@Keep
 public class ActivityTimeHelper {
 
     private static final String TAG = "ActivityTimeHelper";

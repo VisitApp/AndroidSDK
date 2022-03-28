@@ -3,6 +3,7 @@ package com.getvisitapp.google_fit.util;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -20,6 +21,8 @@ import com.google.android.gms.tasks.Task;
 /**
  * https://github.com/android/fit-samples/issues/28
  */
+
+@Keep
 public class GoogleFitAccessChecker {
     Context context;
 

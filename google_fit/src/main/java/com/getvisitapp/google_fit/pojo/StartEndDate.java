@@ -1,5 +1,8 @@
 package com.getvisitapp.google_fit.pojo;
 
+import androidx.annotation.Keep;
+
+@Keep
 public class StartEndDate {
     long startTime;
     long endTime;

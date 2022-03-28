@@ -10,6 +10,7 @@ import android.os.Build;
 import android.util.Log;
 import android.util.Pair;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
@@ -19,6 +20,7 @@ import com.twilio.video.VideoCapturer;
 
 import tvi.webrtc.Camera2Enumerator;
 
+@Keep
 public class CameraCapturerCompat {
     private static final String TAG = "CameraCapturerCompat";
 

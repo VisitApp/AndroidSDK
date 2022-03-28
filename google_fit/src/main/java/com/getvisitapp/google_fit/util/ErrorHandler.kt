@@ -1,5 +1,6 @@
 package com.getvisitapp.google_fit.util
 
+import androidx.annotation.Keep
 import com.getvisitapp.google_fit.model.ErrorModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -7,6 +8,7 @@ import okhttp3.ResponseBody
 import retrofit2.HttpException
 import java.lang.reflect.Type
 
+@Keep
 class ErrorHandler {
 
     fun parseException(throwable: Throwable): String? {

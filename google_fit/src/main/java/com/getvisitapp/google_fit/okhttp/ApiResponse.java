@@ -1,5 +1,7 @@
 package com.getvisitapp.google_fit.okhttp;
 
+import androidx.annotation.Keep;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +11,7 @@ import okhttp3.Headers;
  * Created by Ghost on 29/06/17.
  */
 
+@Keep
 public class ApiResponse {
     private Headers headers;
     private int responseCode;

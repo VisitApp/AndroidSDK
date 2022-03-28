@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import com.getvisitapp.google_fit.pojo.ActivitySession;
@@ -57,6 +58,7 @@ import rx.schedulers.Schedulers;
  * dp.getOriginalDataSource().getAppPackageName() return null or com.google.android.gms, if the data is originally from google fit.
  */
 
+@Keep
 public class GoogleFitConnector {
 
     private static final int REQUEST_GOOGLE_SIGNIN = 101;

@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.network
 
 import android.content.Context
+import androidx.annotation.Keep
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -10,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 
+@Keep
 object RetrofitBuilder {
 
 

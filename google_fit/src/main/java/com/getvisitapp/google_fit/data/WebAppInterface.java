@@ -3,8 +3,11 @@ package com.getvisitapp.google_fit.data;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
+import androidx.annotation.Keep;
+
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
+@Keep
 public class WebAppInterface {
     GoogleFitStatusListener listener;
 

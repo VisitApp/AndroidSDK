@@ -3,6 +3,8 @@ package com.getvisitapp.google_fit.okhttp;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Keep;
+
 import com.chuckerteam.chucker.api.ChuckerInterceptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,6 +27,7 @@ import okhttp3.Response;
 import rx.Observable;
 
 
+@Keep
 public class OkHttpRequests {
     private final OkHttpClient client;
     private final String authToken;

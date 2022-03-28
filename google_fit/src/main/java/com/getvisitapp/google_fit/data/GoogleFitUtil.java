@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.annotation.Keep;
+
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.getvisitapp.google_fit.util.StepsCounter;
@@ -18,6 +20,7 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+@Keep
 public class GoogleFitUtil implements GenericListener {
     String default_web_client_id;
     String TAG = "mytag";

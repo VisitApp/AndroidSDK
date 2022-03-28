@@ -1,9 +1,12 @@
 package com.getvisitapp.google_fit.okhttp;
 
+import androidx.annotation.Keep;
+
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
+@Keep
 public class Transformers {
 
     public static <T> Observable.Transformer<T, T> applySchedulers() {

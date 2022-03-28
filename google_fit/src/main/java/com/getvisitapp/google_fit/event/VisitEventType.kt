@@ -1,5 +1,8 @@
 package com.getvisitapp.google_fit.event
 
+import androidx.annotation.Keep
+
+@Keep
 sealed class VisitEventType {
     /**
      * Called when user clicked on Connect to Google Fit

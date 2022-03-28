@@ -2,10 +2,12 @@ package com.getvisitapp.google_fit.data
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.Keep
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.GoogleFitConnector
 import com.getvisitapp.google_fit.util.GoogleFitConnector.GoogleConnectorFitListener
 
+@Keep
 class VisitStepSyncHelper(var context: Context, var default_web_client_id: String) {
 
     private var TAG = "mytag1"

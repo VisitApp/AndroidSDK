@@ -1,5 +1,9 @@
 package com.getvisitapp.google_fit.util
 
+import androidx.annotation.Keep
+
+
+@Keep
 open class SingletonHolderForTwoVariable<out T: Any, in A,in B>(creator: (A, B) -> T) {
     private var creator: ((A,B) -> T)? = creator
     @Volatile private var instance: T? = null

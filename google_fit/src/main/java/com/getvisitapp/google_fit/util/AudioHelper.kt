@@ -1,8 +1,10 @@
 package com.getvisitapp.google_fit.util
 
+import androidx.annotation.Keep
 import com.twilio.audioswitch.AudioDevice
 import com.twilio.audioswitch.AudioSwitch
 
+@Keep
 class AudioHelper {
 
     companion object {

@@ -1,11 +1,14 @@
 package com.getvisitapp.google_fit.util;
 
 
+import androidx.annotation.Keep;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+@Keep
 public class DateHelper {
 
     public static final String TAG = DateHelper.class.getSimpleName();

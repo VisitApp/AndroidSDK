@@ -3,6 +3,8 @@ package com.getvisitapp.google_fit.okhttp;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Keep;
+
 import com.google.gson.JsonObject;
 
 import org.json.JSONException;
@@ -11,6 +13,7 @@ import org.json.JSONObject;
 import rx.Observable;
 import rx.functions.Func1;
 
+@Keep
 public class MainActivityPresenter {
     private final String baseUrl;
     private final String tataAIG_base_url;

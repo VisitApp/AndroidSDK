@@ -2,9 +2,11 @@ package com.getvisitapp.google_fit.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
 
+@Keep
 class SharedPrefUtil(context: Context) {
 
     var sharedPreferences: SharedPreferences =

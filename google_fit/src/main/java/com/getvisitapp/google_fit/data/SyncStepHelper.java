@@ -3,6 +3,8 @@ package com.getvisitapp.google_fit.data;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Keep;
+
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
 import com.getvisitapp.google_fit.okhttp.Transformers;
@@ -39,6 +41,7 @@ import rx.functions.Func4;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
+@Keep
 public class SyncStepHelper {
     String TAG = "SyncStepHelper";
     private GoogleFitConnector googleFitConnector;

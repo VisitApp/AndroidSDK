@@ -1,10 +1,12 @@
 package com.getvisitapp.google_fit.presenter
 
+import androidx.annotation.Keep
 import com.getvisitapp.google_fit.network.ApiService
 import com.getvisitapp.google_fit.util.ErrorHandler
 import com.getvisitapp.google_fit.view.TwillioVideoView
 import kotlinx.coroutines.*
 
+@Keep
 class TwillioVideoPresenter(var apiService: ApiService, var twillioVideoView: TwillioVideoView) {
 
     var TAG = this.javaClass.simpleName

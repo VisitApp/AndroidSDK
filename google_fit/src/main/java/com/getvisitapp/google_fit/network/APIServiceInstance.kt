@@ -1,8 +1,10 @@
 package com.getvisitapp.google_fit.network
 
 import android.content.Context
+import androidx.annotation.Keep
 
 
+@Keep
 object APIServiceInstance {
 
     fun getApiService(
