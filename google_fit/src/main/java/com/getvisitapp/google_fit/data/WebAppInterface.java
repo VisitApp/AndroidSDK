@@ -91,7 +91,11 @@ public class WebAppInterface {
         listener.openDependentLink(link);
     }
 
-
+    @JavascriptInterface
+    public void closeView(boolean tataUser) {
+        Log.d("mytag", "closeView() called");
+        listener.closeView(tataUser);
+    }
 
 
 }

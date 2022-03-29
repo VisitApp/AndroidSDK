@@ -33,4 +33,6 @@ public interface GoogleFitStatusListener {
     void inFitSelectScreen();
 
     void openDependentLink(String link);
+
+    void closeView(boolean tataUser);
 }

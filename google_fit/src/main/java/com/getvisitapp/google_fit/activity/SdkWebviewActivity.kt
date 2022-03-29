@@ -470,8 +470,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
 
-
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
@@ -565,6 +563,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             openCustomTab(this, customIntent.build(), uri = uri)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    override fun closeView(tataUser: Boolean) {
+        if (tataUser) {
+            finish()
+            overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
         }
     }
 
