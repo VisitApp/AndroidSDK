@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     fun init() {
 //        val magicLink = "https://tata-aig.getvisitapp.xyz"
         val magicLink =
-            "https://axis-tata.getvisitapp.xyz/sso?userParams=DJsu6SFXLdsSNBuRr2Q83Z9Am1Y3EOEmKY2o4S4hvoYmjZxusiABb7D0nxr3bDtprg0o603IWvmMPOMT-IMuXa5faX64LueVOPmX15BC-WLpWDd8gXPrDUDBD9-w2u-u&clientId=tata-aig-axis-f7b4d3"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=Z2V0dmlzaXRhcHBkb2NvbU_soYtq36LuSdShf5vXPRZzECYuzMD1arR8-PjcjE3b3FCpCQt7cemkQ-MVgCEu8VpdF2QVLo20ZOA7EVZtFqwFgKcI9V6GIULGG1RH0POJAP7o9FY7_d1NzZ1I26uzIFo0sB2SHCj9RCblmxAPs1U=&clientId=tata-aig-a8b455"
         IntiateSdk.s(
             this,
             false,
