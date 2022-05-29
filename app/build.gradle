@@ -21,15 +21,9 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "APP_BASE_URL", localProperties['BASE_URL'])
-        buildConfigField("int", "APP_RETRY_ATTEMPTS", localProperties['RETRY_ATTEMPTS'])
-        buildConfigField("float", "APP_THRESHOLD_VALUE", localProperties['THRESHOLD_VALUE'])
     }
 
     buildTypes {
-        debug{
-            resValue("string", "maps_key", localProperties['MAP_KEY'])
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -50,8 +44,8 @@ android {
 }
 
 dependencies {
-    implementation files('google_fit-debug.aar')
-//    implementation project(':google_fit')
+//    implementation files('google_fit-debug.aar')
+    implementation project(':google_fit')
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
