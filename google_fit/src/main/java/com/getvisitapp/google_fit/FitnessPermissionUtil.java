@@ -27,32 +27,25 @@ import java.lang.ref.SoftReference;
  * Created by Ghost on 05/01/18.
  */
 
-public class StepsCounter {
-    public static final String TAG = StepsCounter.class.getSimpleName();
-    private static final int REQUEST_OAUTH_REQUEST_CODE = 0x1001;
+public class FitnessPermissionUtil {
+    public static final String TAG = "mytag";
+    private static final int REQUEST_OAUTH_REQUEST_CODE = 4097;
     private static final int GM_SIGN_IN = 1900;
-    private static StepsCounter sInstance;
+
     private SoftReference<Activity> softContext;
     private GoogleSignInAccount googleSignInAccount;
     private GoogleSignInClient mGoogleSignInClient;
-    private GenericListener genericListener;
+    private FitnessPermissionListener fitnessPermissionListener;
     FitnessOptions fitnessOptions;
 
 
-
-    private StepsCounter(Activity activity) {
+    public FitnessPermissionUtil(Activity activity, FitnessPermissionListener fitnessPermissionListener) {
         this.softContext = new SoftReference<>(activity);
+        this.fitnessPermissionListener = fitnessPermissionListener;
     }
 
-    public static StepsCounter getInstance(Activity activity) {
-        if (sInstance == null)
-            return new StepsCounter(activity);
-        return sInstance;
-    }
-
-    public void run(String defaultWebClientId, GenericListener genericListener) {
+    public void intiateGoogleFitPermission(String defaultWebClientId) {
         //Log.d(TAG, "run: google fit");
-        this.genericListener = genericListener;
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
@@ -73,7 +66,6 @@ public class StepsCounter {
             mGoogleSignInClient = GoogleSignIn.getClient(softContext.get(), gso);
             mGoogleSignInClient.signOut();
             loginUsingGoogle();
-
         }
 
     }
@@ -111,11 +103,6 @@ public class StepsCounter {
 
             } else {
                 handleFitnessPermission();
-                if (isLastSignedIn) {
-                    if (genericListener != null) {
-                        genericListener.onJobDone(googleSignInAccount.getEmail());
-                    }
-                }
             }
         }
     }
@@ -127,24 +114,30 @@ public class StepsCounter {
     }
 
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data, GenericListener genericListener1) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(
+                TAG,
+                "onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode
+        );
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_OAUTH_REQUEST_CODE) {
-                //Log.d(TAG, "onActivity result: google fit 1");
+                Log.d(TAG, "onActivity result: google fit 1");
                 handleFitnessPermission();
             }
             if (requestCode == GM_SIGN_IN) {
-                //Log.d(TAG, "onActivity result: google fit 2");
+                Log.d(TAG, "onActivity result: google fit 2");
                 askFitnessPermissions(handleGoogleSignIn(data), false);
-                genericListener1.onJobDone("");
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
-            if (googleSignInAccount != null)
-                genericListener.onJobDone(googleSignInAccount.getEmail());
+            fitnessPermissionListener.onFitnessPermissionCancelled();
+        } else {
+            fitnessPermissionListener.onFitnessPermissionDenied();
         }
     }
 
     private void handleFitnessPermission() {
+        fitnessPermissionListener.onFitnessPermissionGranted();
+
         //Log.d(TAG, "handleFitnessPermission: 1 : " + googleSignInAccount.getIdToken());
         //Log.d(TAG, "handleFitnessPermission: 2 : " + googleSignInAccount.getServerAuthCode());
         //Log.d(TAG, "handleFitnessPermission: 3 : " + googleSignInAccount.getGrantedScopes());
@@ -286,8 +279,6 @@ public class StepsCounter {
                         Log.d(TAG, "TYPE_STEP_COUNT_DELTA There was a problem subscribing.");
                     }
                 });
-
-
 
 
         Fitness.getRecordingClient(softContext.get(), GoogleSignIn.getAccountForExtension(softContext.get(), fitnessOptions))

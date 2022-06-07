@@ -1,13 +1,12 @@
 package com.getvisitapp.google_fit.data;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.getvisitapp.google_fit.GenericListener;
+import com.getvisitapp.google_fit.FitnessPermissionListener;
+import com.getvisitapp.google_fit.FitnessPermissionUtil;
 import com.getvisitapp.google_fit.GoogleFitConnector;
-import com.getvisitapp.google_fit.StepsCounter;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 
 import java.text.SimpleDateFormat;
@@ -19,7 +18,7 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class GoogleFitUtil implements GenericListener {
+public class GoogleFitUtil implements FitnessPermissionListener {
     String default_web_client_id;
     String TAG = "mytag";
 
@@ -42,11 +41,11 @@ public class GoogleFitUtil implements GenericListener {
         this.baseUrl = baseUrl;
     }
 
-    private StepsCounter stepsCounter;
+    private FitnessPermissionUtil fitnessPermissionUtil;
     private GoogleFitConnector googleFitConnector;
 
-    public StepsCounter getStepsCounter() {
-        return stepsCounter;
+    public FitnessPermissionUtil getStepsCounter() {
+        return fitnessPermissionUtil;
     }
 
     public GoogleFitConnector getGoogleFitConnector() {
@@ -58,7 +57,7 @@ public class GoogleFitUtil implements GenericListener {
     }
 
     public void init() {
-        stepsCounter = StepsCounter.getInstance(context);
+        fitnessPermissionUtil = new FitnessPermissionUtil(context, this);
         googleFitConnector = new GoogleFitConnector(context, default_web_client_id, new GoogleFitConnector.GoogleConnectorFitListener() {
             @Override
             public void onComplete() {
@@ -98,31 +97,22 @@ public class GoogleFitUtil implements GenericListener {
 
     public void askForGoogleFitPermission() {
         Log.d("mytag", "askForPermission() called");
-        stepsCounter.run(default_web_client_id, new GenericListener() {
-            @Override
-            public void onJobDone(String s) {
-                Log.d(TAG, "onJobDone() called Email Id: " + s);
-
-                listener.onFitnessPermissionGranted();
-            }
-
-
-        });
+        fitnessPermissionUtil.intiateGoogleFitPermission(default_web_client_id);
 
     }
 
     public void fetchDataFromFit() {
         Observable.zip(googleFitConnector.getTotalStepsForToday(),
-                googleFitConnector.getSleepForToday(),
-                (integers, sleepCard) -> {
-                    SleepStepsData sleepStepsData;
-                    if (!integers.isEmpty()) {
-                        sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
-                    } else {
-                        sleepStepsData = new SleepStepsData(sleepCard, 0);
-                    }
-                    return sleepStepsData;
-                })
+                        googleFitConnector.getSleepForToday(),
+                        (integers, sleepCard) -> {
+                            SleepStepsData sleepStepsData;
+                            if (!integers.isEmpty()) {
+                                sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
+                            } else {
+                                sleepStepsData = new SleepStepsData(sleepCard, 0);
+                            }
+                            return sleepStepsData;
+                        })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(sleepStepsDataSubscriber);
@@ -332,28 +322,14 @@ public class GoogleFitUtil implements GenericListener {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        Log.d("mytag", "onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode);
-
-        if (this.stepsCounter != null) {
-            this.stepsCounter.onActivityResult(requestCode, resultCode, intent, this);
+        if (this.fitnessPermissionUtil != null) {
+            this.fitnessPermissionUtil.onActivityResult(requestCode, resultCode, intent);
         }
 
-    }
-
-
-    @Override
-    public void onJobDone(String s) {
-        Log.d(TAG, "onJobDone() called email: " + s);
-
-        if (s != null && !s.isEmpty() && s.equals("UPDATE THE UI")) {
-            listener.onFitnessPermissionGranted();
-        } else {
-            this.askForGoogleFitPermission();
-        }
     }
 
     public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
-        if (stepsCounter.hasAccess()) {
+        if (fitnessPermissionUtil.hasAccess()) {
             syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken);
             syncStepHelper.dailySync(googleFitLastSync);
             syncStepHelper.hourlySync(gfHourlyLastSync);
@@ -362,4 +338,21 @@ public class GoogleFitUtil implements GenericListener {
 
     }
 
+    @Override
+    public void onFitnessPermissionGranted() {
+        Log.d("mytag", "onFitnessPermissionGranted()");
+        listener.onFitnessPermissionGranted();
+    }
+
+    @Override
+    public void onFitnessPermissionCancelled() {
+        Log.d("mytag", "onFitnessPermissionCancelled()");
+        listener.onFitnessPermissionCancelled();
+    }
+
+    @Override
+    public void onFitnessPermissionDenied() {
+        Log.d("mytag", "onFitnessPermissionDenied()");
+        listener.onFitnessPermissionDenied();
+    }
 }

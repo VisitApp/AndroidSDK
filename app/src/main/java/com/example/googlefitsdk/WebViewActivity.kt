@@ -5,12 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.getvisitapp.google_fit.GoogleFitConnector
-import com.getvisitapp.google_fit.StepsCounter
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import im.delight.android.webview.AdvancedWebView
@@ -41,8 +39,10 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.setMixedContentAllowed(false);
         mWebView.settings.javaScriptEnabled = true
 
+//        val magicLink =
+//            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158";
         val magicLink =
-            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158";
+            "https://star-health.getvisitapp.xyz/login"
         mWebView.loadUrl(magicLink)
 
         googleFitUtil =
@@ -92,16 +92,13 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     override fun onExternalPageRequest(url: String?) {}
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.d(
-            TAG,
-            "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
-        )
+
 
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == 4097 || requestCode == 1900) {
-            googleFitUtil.onActivityResult(requestCode, resultCode, intent)
-        }
+        googleFitUtil.onActivityResult(requestCode, resultCode, intent)
+
+
         mWebView.onActivityResult(requestCode, resultCode, intent);
 
     }
@@ -131,6 +128,14 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     override fun onFitnessPermissionGranted() {
         Log.d(TAG, "onFitnessPermissionGranted() called")
         runOnUiThread(Runnable { googleFitUtil.fetchDataFromFit() })
+    }
+
+    override fun onFitnessPermissionCancelled() {
+        Log.d(TAG, "onFitnessPermissionCancelled() called")
+    }
+
+    override fun onFitnessPermissionDenied() {
+        Log.d(TAG, "onFitnessPermissionCancelled() called")
     }
 
     override fun loadWebUrl(url: String?) {
@@ -165,7 +170,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         googleFitLastSync: Long,
         gfHourlyLastSync: Long
     ) {
-        Log.d("mytag","baseUrl: $baseUrl")
+        Log.d("mytag", "baseUrl: $baseUrl")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
             runOnUiThread(Runnable {
@@ -207,7 +212,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-           ACTIVITY_RECOGNITION_REQUEST_CODE -> {
+            ACTIVITY_RECOGNITION_REQUEST_CODE -> {
                 Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted")
                 googleFitUtil.askForGoogleFitPermission()
             }
