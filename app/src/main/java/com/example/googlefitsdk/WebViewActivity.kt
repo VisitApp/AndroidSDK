@@ -111,18 +111,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     }
 
     override fun askForPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                    ACTIVITY_RECOGNITION_REQUEST_CODE
-                )
-            } else {
-                googleFitUtil.askForGoogleFitPermission()
-            }
-        }
+        googleFitUtil.askForGoogleFitPermission()
     }
 
     override fun onFitnessPermissionGranted() {
@@ -138,11 +127,9 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         Log.d(TAG, "onFitnessPermissionCancelled() called")
     }
 
-    override fun loadWebUrl(url: String?) {
-        Log.d("mytag", "daily Fitness Data url:$url")
-        if (url != null) {
-            mWebView.loadUrl(url)
-        }
+    override fun loadDailyFitnessData(steps: Long, sleep: Long) {
+        Log.d("mytag", "daily Fitness Data url:$steps, sleep: $sleep")
+
     }
 
     override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
@@ -154,10 +141,10 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         })
     }
 
-    override fun loadGraphDataUrl(url: String?) {
-        if (url != null) {
+    override fun loadGraphData(data: String?) {
+        if (data != null) {
             mWebView.evaluateJavascript(
-                url,
+                data,
                 null
             )
         }
