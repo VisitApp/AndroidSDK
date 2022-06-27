@@ -46,7 +46,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.loadUrl(magicLink)
 
         googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id, baseUrl)
+            GoogleFitUtil(this, this, default_web_client_id)
         mWebView.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 

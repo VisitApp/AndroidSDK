@@ -26,19 +26,17 @@ public class GoogleFitUtil implements FitnessPermissionListener {
     private Activity context;
     WebAppInterface webAppInterface;
 
-    private String baseUrl;
     GoogleFitStatusListener listener;
     private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
 
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, String baseUrl) {
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
         this.context = context;
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
-        this.baseUrl = baseUrl;
     }
 
     private FitnessPermissionUtil fitnessPermissionUtil;
