@@ -97,5 +97,11 @@ public class WebAppInterface {
         listener.closeView(tataUser);
     }
 
+    @JavascriptInterface
+    public void pendingHraUpdation() {
+        Log.d("mytag", "pendingHraUpdation() called");
+        listener.pendingHraUpdation();
+    }
+
 
 }

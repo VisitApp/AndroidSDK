@@ -35,4 +35,8 @@ public interface GoogleFitStatusListener {
     void openDependentLink(String link);
 
     void closeView(boolean tataUser);
+
+    void pendingHraUpdation();
+
+
 }

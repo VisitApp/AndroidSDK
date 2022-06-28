@@ -573,6 +573,16 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun pendingHraUpdation() {
+        runOnUiThread {
+            binding.webview.evaluateJavascript(
+                "window.updateHraToAig()",
+                null
+            )
+        }
+    }
+
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
         val packageName = "com.android.chrome"
         customTabsIntent.intent.setPackage(packageName)
