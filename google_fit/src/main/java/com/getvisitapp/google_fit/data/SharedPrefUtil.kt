@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
+import com.getvisitapp.google_fit.util.Constants.HRA_INCOMPLETE_RESPONSE
+import com.getvisitapp.google_fit.util.Constants.IS_HRA_INCOMPLETE
 
 @Keep
 class SharedPrefUtil(context: Context) {
@@ -12,8 +14,6 @@ class SharedPrefUtil(context: Context) {
     var sharedPreferences: SharedPreferences =
         context.getSharedPreferences("VisitSdkPref", AppCompatActivity.MODE_PRIVATE)
     var sharedPreferencesEditor: SharedPreferences.Editor = sharedPreferences.edit()
-
-
 
 
     fun setVisitBaseUrl(baseUrl: String) {
@@ -74,6 +74,21 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getLong(Constants.GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP, 0L)
     }
 
+    fun setHRAIncompleteStatusRequest(jsonObject: String) {
+        sharedPreferencesEditor.putString(HRA_INCOMPLETE_RESPONSE, jsonObject).commit();
+    }
+
+    fun getHRAInCompleteStatusResponse(): String? {
+        return sharedPreferences.getString(HRA_INCOMPLETE_RESPONSE, null);
+    }
+
+    fun setHRAIncompleteStatus(isInComplete: Boolean) {
+        sharedPreferencesEditor.putBoolean(IS_HRA_INCOMPLETE, isInComplete).commit()
+    }
+
+    fun getHRAIncompleteStatus():Boolean {
+       return sharedPreferences.getBoolean(IS_HRA_INCOMPLETE,true)
+    }
 
 
 }

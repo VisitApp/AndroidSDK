@@ -528,5 +528,28 @@ public class SyncStepHelper {
 
     }
 
+    public void sendHRAInCompleteStatusToTataAIG(JSONObject jsonObject){
+        mainActivityPresenter.sendHRAInCompleteStatus(jsonObject).subscribeOn(Schedulers.io())
+                .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
+
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                });
+    }
+
 
 }

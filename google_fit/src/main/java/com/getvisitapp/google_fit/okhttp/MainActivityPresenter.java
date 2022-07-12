@@ -24,10 +24,10 @@ public class MainActivityPresenter {
     public MainActivityPresenter(String baseUrl, String authToken, String tataAIG_base_url, String tata_aig_authToken, Context context) {
         this.baseUrl = baseUrl;
         this.authToken = authToken;
-        this.okHttpRequests = new OkHttpRequests(authToken,context);
+        this.okHttpRequests = new OkHttpRequests(authToken, context);
 
         this.tataAIG_base_url = tataAIG_base_url;
-        this.tata_AIG_okHttpRequests = new OkHttpRequests(tata_aig_authToken,context);
+        this.tata_AIG_okHttpRequests = new OkHttpRequests(tata_aig_authToken, context);
     }
 
     public Observable<ApiResponse> sendData(JsonObject payload) {
@@ -78,6 +78,32 @@ public class MainActivityPresenter {
                     public Observable<Boolean> call(JSONObject jsonObject) {
                         // If the server returns a positive response
                         Log.d("mytag", "tata AIG server response:" + jsonObject);
+                        try {
+                            if (jsonObject.getString("action").equalsIgnoreCase("SUCCESS")) {
+                                return Observable.just(true);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return Observable.just(false);
+                    }
+                });
+    }
+
+
+    /**
+     * Sending HRA incomplete status to TATA AIG
+     */
+    public Observable<Boolean> sendHRAInCompleteStatus(JSONObject payload) {
+        Log.d("mytag", "sendHRAInCompleteStatus: " + payload.toString());
+        String url = tataAIG_base_url + "/hra-fitness-details";
+
+        return tata_AIG_okHttpRequests.putRequestHandler(url, payload)
+                .concatMap(new Func1<JSONObject, Observable<Boolean>>() {
+                    @Override
+                    public Observable<Boolean> call(JSONObject jsonObject) {
+                        // If the server returns a positive response
+                        Log.d("mytag", "tata AIG send data response:" + jsonObject);
                         try {
                             if (jsonObject.getString("action").equalsIgnoreCase("SUCCESS")) {
                                 return Observable.just(true);

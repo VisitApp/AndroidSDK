@@ -131,5 +131,35 @@ public class OkHttpRequests {
         });
     }
 
+    public Observable<JSONObject> putRequestHandler(final String url, final JSONObject payload) {
+        //Log.d(TAG, "postRequestHandler: " + authToken);
+
+        return Observable.fromCallable(new Callable<JSONObject>() {
+            @Override
+            public JSONObject call() throws Exception {
+                MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+                RequestBody requestBody = RequestBody.create(mediaType, String.valueOf(payload));
+                Request request =
+                        addHeadersToBuilder(new Request.Builder().url(url).put(requestBody));
+
+                Response response = client.newCall(request).execute();
+
+                String responseString = response.body().string();
+
+                if (response.isSuccessful()) {
+                    return new JSONObject(responseString);
+                } else {
+                    BaseException baseException =
+                            new Gson().fromJson(responseString, BaseException.class);
+                    if (baseException.message != null) {
+                        throw baseException;
+                    } else {
+                        throw new Exception("Error occurred");
+                    }
+                }
+            }
+        });
+    }
+
 
 }

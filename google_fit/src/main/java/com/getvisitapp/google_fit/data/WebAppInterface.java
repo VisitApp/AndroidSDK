@@ -6,6 +6,9 @@ import android.webkit.JavascriptInterface;
 import androidx.annotation.Keep;
 
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
+import com.google.gson.JsonObject;
+
+import org.json.JSONObject;
 
 @Keep
 public class WebAppInterface {
@@ -101,6 +104,12 @@ public class WebAppInterface {
     public void pendingHraUpdation() {
         Log.d("mytag", "pendingHraUpdation() called");
         listener.pendingHraUpdation();
+    }
+
+    @JavascriptInterface
+    public void hraInComplete(String jsonObject, boolean isIncomplete) {
+        Log.d("mytag", "hraInComplete called(). jsonObject:" + jsonObject + " isIncomplete:" + isIncomplete);
+        listener.hraInComplete(jsonObject, isIncomplete);
     }
 
 

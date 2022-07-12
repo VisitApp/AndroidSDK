@@ -2,6 +2,10 @@ package com.getvisitapp.google_fit.view;
 
 import androidx.annotation.Keep;
 
+import com.google.gson.JsonObject;
+
+import org.json.JSONObject;
+
 @Keep
 public interface GoogleFitStatusListener {
     void askForPermissions();
@@ -37,6 +41,8 @@ public interface GoogleFitStatusListener {
     void closeView(boolean tataUser);
 
     void pendingHraUpdation();
+
+    void hraInComplete(String jsonObject, boolean isIncomplete);
 
 
 }

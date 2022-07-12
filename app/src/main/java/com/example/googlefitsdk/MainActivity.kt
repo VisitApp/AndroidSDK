@@ -10,7 +10,6 @@ import android.widget.Switch
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
-import com.getvisitapp.google_fit.data.SyncStepHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
 import com.getvisitapp.google_fit.event.ClosePWAEvent
@@ -53,12 +52,16 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
         //Open Google Fit if installed else return false.
         findViewById<Button>(R.id.openGoogleFitApp).setOnClickListener {
-            val result=openGoogleFit()
-            if(result){
+            val result = openGoogleFit()
+            if (result) {
                 //do nothing
-            }else{
-                Toast.makeText(this,"Google Fit app is not installed.",Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Google Fit app is not installed.", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        findViewById<Button>(R.id.hraIncomplete).setOnClickListener {
+            syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
         }
     }
 

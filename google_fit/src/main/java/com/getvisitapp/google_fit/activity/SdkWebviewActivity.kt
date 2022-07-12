@@ -583,6 +583,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+    override fun hraInComplete(jsonObject: String?, isIncomplete: Boolean) {
+        jsonObject?.let {
+            sharedPrefUtil.setHRAIncompleteStatusRequest(jsonObject);
+            sharedPrefUtil.setHRAIncompleteStatus(isIncomplete)
+        }
+    }
+
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
         val packageName = "com.android.chrome"
         customTabsIntent.intent.setPackage(packageName)
