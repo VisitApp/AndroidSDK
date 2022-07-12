@@ -166,3 +166,9 @@ For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 ##### Use ` mytag ` to see the logs of the SDK.
 
 ##### Use `openGoogleFit()` to open Google Fit app. It returns false if the google fit app is not installed.
+
+##### Use this to handle HRA retry logic from your end
+```
+val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
+syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
+```
