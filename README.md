@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-	      implementation 'com.github.VisitApp:AndroidSDK:1.43'
+	      implementation 'com.github.VisitApp:AndroidSDK:1.44'
  }  
  
 ```
