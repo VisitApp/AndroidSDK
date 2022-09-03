@@ -13,4 +13,7 @@ public interface GoogleFitStatusListener {
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
     void askForLocationPermission();
     void closeVisitPWA();
+
+    void setDailyFitnessDataJSON(String data);
+    void setHourlyFitnessDataJSON(String data);
 }

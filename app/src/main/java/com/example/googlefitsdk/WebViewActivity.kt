@@ -192,6 +192,14 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
     }
 
+    override fun setDailyFitnessDataJSON(data: String?) {
+
+    }
+
+    override fun setHourlyFitnessDataJSON(data: String?) {
+
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,

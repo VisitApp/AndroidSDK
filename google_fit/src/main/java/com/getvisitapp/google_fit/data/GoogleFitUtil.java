@@ -18,7 +18,7 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class GoogleFitUtil implements FitnessPermissionListener {
+public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelperListener {
     String default_web_client_id;
     String TAG = "mytag";
 
@@ -30,6 +30,7 @@ public class GoogleFitUtil implements FitnessPermissionListener {
     private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
+    private FitnessDataHelper fitnessDataHelper;
 
 
     public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
@@ -336,6 +337,26 @@ public class GoogleFitUtil implements FitnessPermissionListener {
 
     }
 
+    public void getDailyFitnessJSONData(long timeStamp) {
+        if (fitnessPermissionUtil.hasAccess()) {
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper.dailySync(timeStamp);
+        }else{
+            listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
+        }
+
+    }
+
+    public void getHourlyFitnessJSONData(long timeStamp) {
+        if (fitnessPermissionUtil.hasAccess()) {
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper.hourlySync(timeStamp);
+        }
+        else{
+            listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
+        }
+    }
+
     @Override
     public void onFitnessPermissionGranted() {
         Log.d("mytag", "onFitnessPermissionGranted()");
@@ -352,5 +373,15 @@ public class GoogleFitUtil implements FitnessPermissionListener {
     public void onFitnessPermissionDenied() {
         Log.d("mytag", "onFitnessPermissionDenied()");
         listener.onFitnessPermissionDenied();
+    }
+
+    @Override
+    public void setDailyFitnessDataJSON(String data) {
+        listener.setDailyFitnessDataJSON(data);
+    }
+
+    @Override
+    public void setHourlyFitnessDataJSON(String data) {
+        listener.setHourlyFitnessDataJSON(data);
     }
 }
