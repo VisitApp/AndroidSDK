@@ -127,7 +127,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         Log.d(TAG, "onFitnessPermissionCancelled() called")
     }
 
-    override fun loadDailyFitnessData(steps: Long, sleep: Long) {
+    override fun loadDailyFitnessData(steps: Long, sleep: Long, calorie: Float) {
         Log.d("mytag", "daily Fitness Data url:$steps, sleep: $sleep")
 
     }

@@ -27,10 +27,11 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
     WebAppInterface webAppInterface;
 
     GoogleFitStatusListener listener;
-    private Subscriber<SleepStepsData> sleepStepsDataSubscriber;
+    private Subscriber<StepsSleepCalorieData> sleepStepsDataSubscriber;
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
     private FitnessDataHelper fitnessDataHelper;
+    private SharedPrefManager sharedPrefManager;
 
 
     public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
@@ -38,6 +39,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
+        this.sharedPrefManager = new SharedPrefManager(context);
     }
 
     private FitnessPermissionUtil fitnessPermissionUtil;
@@ -74,7 +76,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
             }
         });
 
-        sleepStepsDataSubscriber = new Subscriber<SleepStepsData>() {
+        sleepStepsDataSubscriber = new Subscriber<StepsSleepCalorieData>() {
             @Override
             public void onCompleted() {
 
@@ -86,9 +88,9 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
             }
 
             @Override
-            public void onNext(SleepStepsData sleepStepsData) {
-                Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps, TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+            public void onNext(StepsSleepCalorieData stepsSleepCalorieData) {
+                Log.d("mytag", "steps:" + stepsSleepCalorieData.steps + " , sleep=" + stepsSleepCalorieData.sleepCard);
+                listener.loadDailyFitnessData(stepsSleepCalorieData.steps, TimeUnit.SECONDS.toMinutes(stepsSleepCalorieData.sleepCard.getSleepSeconds()), stepsSleepCalorieData.calorie);
             }
         };
 
@@ -104,13 +106,13 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
         Observable.zip(googleFitConnector.getTotalStepsForToday(),
                         googleFitConnector.getSleepForToday(),
                         (integers, sleepCard) -> {
-                            SleepStepsData sleepStepsData;
+                            StepsSleepCalorieData stepsSleepCalorieData;
                             if (!integers.isEmpty()) {
-                                sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
+                                stepsSleepCalorieData = new StepsSleepCalorieData(sleepCard, integers.get(0), sharedPrefManager.getCalorieCount());
                             } else {
-                                sleepStepsData = new SleepStepsData(sleepCard, 0);
+                                stepsSleepCalorieData = new StepsSleepCalorieData(sleepCard, 0, sharedPrefManager.getCalorieCount());
                             }
-                            return sleepStepsData;
+                            return stepsSleepCalorieData;
                         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -362,6 +364,11 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
         } else {
             listener.setGoogleFitConnection(false);
         }
+    }
+
+    public void setCalorieFromWeb(double count) {
+        Log.d("mytag", "setCalorieFromWeb called: " + count);
+        sharedPrefManager.setCalorieCount(count);
     }
 
     @Override

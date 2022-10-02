@@ -8,7 +8,7 @@ public interface GoogleFitStatusListener {
 
     void onFitnessPermissionDenied();
     void requestActivityData(String type, String frequency, long timestamp);
-    void loadDailyFitnessData(long steps,long sleep);
+    void loadDailyFitnessData(long steps, long sleep, float calorie);
 
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
     void askForLocationPermission();
