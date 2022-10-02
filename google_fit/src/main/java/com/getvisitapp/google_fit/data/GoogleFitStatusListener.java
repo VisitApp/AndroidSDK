@@ -16,4 +16,5 @@ public interface GoogleFitStatusListener {
 
     void setDailyFitnessDataJSON(String data);
     void setHourlyFitnessDataJSON(String data);
+    void setGoogleFitConnection(boolean isGranted);
 }

@@ -88,7 +88,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps ,TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                listener.loadDailyFitnessData(sleepStepsData.steps, TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
@@ -339,9 +339,9 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
     public void getDailyFitnessJSONData(long timeStamp) {
         if (fitnessPermissionUtil.hasAccess()) {
-            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(), this);
             fitnessDataHelper.dailySync(timeStamp);
-        }else{
+        } else {
             listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
         }
 
@@ -349,11 +349,18 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
     public void getHourlyFitnessJSONData(long timeStamp) {
         if (fitnessPermissionUtil.hasAccess()) {
-            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(), this);
             fitnessDataHelper.hourlySync(timeStamp);
-        }
-        else{
+        } else {
             listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
+        }
+    }
+
+    public void checkForGoogleFitConnection() {
+        if (fitnessPermissionUtil.hasAccess()) {
+            listener.setGoogleFitConnection(true);
+        } else {
+            listener.setGoogleFitConnection(false);
         }
     }
 
