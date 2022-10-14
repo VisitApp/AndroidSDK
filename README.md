@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-	      implementation 'com.github.VisitApp:AndroidSDK:1.44'
+	      implementation 'com.github.VisitApp:AndroidSDK:1.45'
  }  
  
 ```
@@ -28,8 +28,8 @@ dependencies {
     implementation 'io.reactivex:rxandroid:1.2.1'
 
 
-    implementation 'com.twilio:video-android:5.10.1'
-    implementation 'com.twilio:audioswitch:1.0.0'
+    implementation 'com.twilio:video-android:7.1.2'
+    implementation 'com.twilio:audioswitch:1.1.5'
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2'
