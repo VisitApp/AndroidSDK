@@ -479,6 +479,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                         Log.d("Webview Url", binding.webview.url.toString())
                         if (binding.webview.url!!.contains("home")) {
                             finish()
+                        } else if (binding.webview.url!!.contains("online/preview")) {
+                            finish()
                         }
                     } else {
                         finish()
