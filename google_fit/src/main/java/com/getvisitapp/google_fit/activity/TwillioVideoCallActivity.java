@@ -38,11 +38,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.getvisitapp.google_fit.R;
+import com.getvisitapp.google_fit.model.RoomDetails;
 import com.getvisitapp.google_fit.network.APIServiceInstance;
 import com.getvisitapp.google_fit.network.ApiService;
 import com.getvisitapp.google_fit.presenter.TwillioVideoPresenter;
-import com.getvisitapp.google_fit.R;
-import com.getvisitapp.google_fit.model.RoomDetails;
 import com.getvisitapp.google_fit.util.AudioHelper;
 import com.getvisitapp.google_fit.util.CameraCapturerCompat;
 import com.getvisitapp.google_fit.util.ViewExtensionKt;
@@ -50,7 +50,6 @@ import com.getvisitapp.google_fit.view.TwillioVideoView;
 import com.twilio.audioswitch.AudioDevice;
 import com.twilio.audioswitch.AudioSwitch;
 import com.twilio.video.AudioCodec;
-import com.twilio.video.CameraCapturer;
 import com.twilio.video.ConnectOptions;
 import com.twilio.video.EncodingParameters;
 import com.twilio.video.G722Codec;
@@ -73,7 +72,6 @@ import com.twilio.video.Room;
 import com.twilio.video.TwilioException;
 import com.twilio.video.Video;
 import com.twilio.video.VideoCodec;
-import com.twilio.video.VideoRenderer;
 import com.twilio.video.VideoTextureView;
 import com.twilio.video.VideoTrack;
 import com.twilio.video.VideoView;
@@ -85,6 +83,7 @@ import java.util.List;
 import java.util.Locale;
 
 import kotlin.Unit;
+import tvi.webrtc.VideoSink;
 
 ;
 
@@ -182,7 +181,7 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
     private AudioSwitch audioSwitch;
     private int savedVolumeControlStream;
     private MenuItem audioDeviceMenuItem;
-    private VideoRenderer localVideoView;
+    private VideoSink localVideoView;
     private boolean disconnectedFromOnDestroy;
     private boolean enableAutomaticSubscription;
     ApiService apiService = null;
@@ -376,9 +375,9 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
         if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
             localVideoTrack = LocalVideoTrack.create(this,
                     true,
-                    cameraCapturerCompat.getVideoCapturer(),
+                    cameraCapturerCompat,
                     LOCAL_VIDEO_TRACK_NAME);
-            localVideoTrack.addRenderer(localVideoView);
+            localVideoTrack.addSink(localVideoView);
 
             /*
              * If connected to a Room then share the local video track.
@@ -492,13 +491,13 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
         localAudioTrack = LocalAudioTrack.create(this, true, LOCAL_AUDIO_TRACK_NAME);
 
         // Share your camera
-        cameraCapturerCompat = new CameraCapturerCompat(this, getAvailableCameraSource());
+        cameraCapturerCompat = new CameraCapturerCompat(this, CameraCapturerCompat.Source.FRONT_CAMERA);
         localVideoTrack = LocalVideoTrack.create(this,
                 true,
-                cameraCapturerCompat.getVideoCapturer(),
+                cameraCapturerCompat,
                 LOCAL_VIDEO_TRACK_NAME);
         videoTextureView.setMirror(true);
-        localVideoTrack.addRenderer(videoTextureView);
+        localVideoTrack.addSink(videoTextureView);
         localVideoView = videoTextureView;
 
 
@@ -541,11 +540,11 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
         });
     }
 
-    private CameraCapturer.CameraSource getAvailableCameraSource() {
-        return (CameraCapturer.isSourceAvailable(CameraCapturer.CameraSource.FRONT_CAMERA)) ?
-                (CameraCapturer.CameraSource.FRONT_CAMERA) :
-                (CameraCapturer.CameraSource.BACK_CAMERA);
-    }
+//    private CameraCapturer.CameraSource getAvailableCameraSource() {
+//        return (CameraCapturer.isSourceAvailable(CameraCapturer.CameraSource.FRONT_CAMERA)) ?
+//                (CameraCapturer.CameraSource.FRONT_CAMERA) :
+//                (CameraCapturer.CameraSource.BACK_CAMERA);
+//    }
 
 
     private void connectToRoom(String roomName, String accessToken) {
@@ -720,7 +719,7 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
     private void addRemoteParticipantVideo(VideoTrack videoTrack) {
         moveLocalVideoToThumbnailView();
         primaryVideoView.setMirror(false);
-        videoTrack.addRenderer(primaryVideoView);
+        videoTrack.addSink(primaryVideoView);
     }
 
     private void moveLocalVideoToThumbnailView() {
@@ -762,7 +761,7 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
     }
 
     private void removeParticipantVideo(VideoTrack videoTrack) {
-        videoTrack.removeRenderer(primaryVideoView);
+        videoTrack.removeSink(primaryVideoView);
     }
 
     private void moveLocalVideoToPrimaryView() {
@@ -775,12 +774,12 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
                 e.printStackTrace();
             }
             if (localVideoTrack != null) {
-                localVideoTrack.removeRenderer(videoTextureView);
-                localVideoTrack.addRenderer(primaryVideoView);
+                localVideoTrack.removeSink(videoTextureView);
+                localVideoTrack.addSink(primaryVideoView);
             }
             localVideoView = primaryVideoView;
             primaryVideoView.setMirror(cameraCapturerCompat.getCameraSource() ==
-                    CameraCapturer.CameraSource.FRONT_CAMERA);
+                    CameraCapturerCompat.Source.FRONT_CAMERA);
         }
     }
 
@@ -1148,12 +1147,12 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
     private View.OnClickListener switchCameraClickListener() {
         return v -> {
             if (cameraCapturerCompat != null) {
-                CameraCapturer.CameraSource cameraSource = cameraCapturerCompat.getCameraSource();
+                CameraCapturerCompat.Source cameraSource = cameraCapturerCompat.getCameraSource();
                 cameraCapturerCompat.switchCamera();
                 if (videoTextureView.getVisibility() == View.VISIBLE) {
-                    videoTextureView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                    videoTextureView.setMirror(cameraSource == CameraCapturerCompat.Source.BACK_CAMERA);
                 } else {
-                    primaryVideoView.setMirror(cameraSource == CameraCapturer.CameraSource.BACK_CAMERA);
+                    primaryVideoView.setMirror(cameraSource == CameraCapturerCompat.Source.BACK_CAMERA);
                 }
             }
         };
