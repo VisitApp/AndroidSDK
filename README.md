@@ -155,6 +155,19 @@ IntiateSdk.s(
         )
  ```
  
+ 
+ base_url examples - 
+ 
+https://web.getvisitapp.xyz/sso?userParams=XHymLn6AQGWjniLhaFGfdMRTtogNkB-3ub6LajcEO9M8IoVqqHq9lWFIXPAGZGdMh0CXGII5hf66lIYf2gDCBZELtckIK-COGoIuzDqATv_qeXcl3g12RTvS8vnOShIy&clientId=visit-web-app-3498hjkfd832 -- Online consults
+ 
+https://web.getvisitapp.xyz/sso?userParams=XHymLn6AQGWjniLhaFGfdMRTtogNkB-3ub6LajcEO9M8IoVqqHq9lWFIXPAGZGdMh0CXGII5hf66lIYf2gDCBZELtckIK-COGoIuzDqATv9fyVyuxcrqSwfX3Nv-t22N&clientId=visit-web-app-3498hjkfd832 -- HRA
+ 
+https://web.getvisitapp.xyz/sso?userParams=XHymLn6AQGWjniLhaFGfdMRTtogNkB-3ub6LajcEO9M8IoVqqHq9lWFIXPAGZGdMh0CXGII5hf66lIYf2gDCBZELtckIK-COGoIuzDqATv8t9-s4toFaKHOkzFKnriRU&clientId=visit-web-app-3498hjkfd832  -- OPD
+
+https://web.getvisitapp.xyz/sso?userParams=XHymLn6AQGWjniLhaFGfdMRTtogNkB-3ub6LajcEO9M8IoVqqHq9lWFIXPAGZGdMh0CXGII5hf66lIYf2gDCBZELtckIK-COGoIuzDqATv9XqLPagqnIMhr6XGktuMkN&clientId=visit-web-app-3498hjkfd832 -- LAB TEST
+
+https://web.getvisitapp.xyz/sso?userParams=XHymLn6AQGWjniLhaFGfdMRTtogNkB-3ub6LajcEO9M8IoVqqHq9lWFIXPAGZGdMh0CXGII5hf66lIYf2gDCBZELtckIK-COGoIuzDqATv8S8HabSqbWql3MKly6H82e&clientId=visit-web-app-3498hjkfd832 -- PHARMACY
+ 
 #### Use `VisitStepSyncHelper` to sync steps manually (this will only work if the google fit is connected).
 ```
  val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
