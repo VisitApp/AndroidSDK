@@ -149,8 +149,8 @@ IntiateSdk.s(
             this,
             false, 
             magicLink,
-            tataAIG_base_url,
-            tataAIG_auth_token,
+            base_url,
+            auth_token,
             default_client_id
         )
  ```
