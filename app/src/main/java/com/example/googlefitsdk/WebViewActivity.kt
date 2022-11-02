@@ -42,7 +42,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 //        val magicLink =
 //            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158";
         val magicLink =
-            "https://star-health.getvisitapp.xyz/login"
+            "https://vsyt.me/m/tV5VeeG3?starHealthUser=true"
         mWebView.loadUrl(magicLink)
 
         googleFitUtil =
