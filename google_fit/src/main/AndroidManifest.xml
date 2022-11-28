@@ -28,8 +28,19 @@
 
         <activity android:name=".activity.TwillioVideoCallActivity" />
         <activity android:name=".activity.SdkWebviewActivity" />
+
+        <provider
+            android:authorities="com.googlefitsdk.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_path"/>
+        </provider>
     </application>
     <queries>
         <package android:name="com.google.android.apps.fitness" />
     </queries>
+
+
 </manifest>

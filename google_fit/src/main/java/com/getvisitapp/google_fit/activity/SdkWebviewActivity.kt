@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
@@ -31,6 +32,7 @@ import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
 import com.getvisitapp.google_fit.util.Constants.TATA_AIG_BASE_URL
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
+import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
@@ -64,6 +66,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     private lateinit var tataAIG_auth_token: String
 
     lateinit var sharedPrefUtil: SharedPrefUtil
+    lateinit var pdfDownloader: PdfDownloader
 
 
     var visitApiBaseUrl: String? = null
@@ -123,6 +126,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
         googleFitStepChecker = GoogleFitAccessChecker(this)
         sharedPrefUtil = SharedPrefUtil(this)
+        pdfDownloader = PdfDownloader()
 
     }
 
@@ -152,25 +156,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.infoView.visibility = View.GONE
     }
 
-    override fun onDownloadRequested(
-        url: String?,
-        suggestedFilename: String?,
-        mimeType: String?,
-        contentLength: Long,
-        contentDisposition: String?,
-        userAgent: String?
-    ) {
-        Log.d("mytag", "url:$url, mimeType:$mimeType");
-
-        try {
-            val uri = Uri.parse(url)
-            startActivity(Intent(Intent.ACTION_VIEW, uri))
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-    }
 
     override fun onExternalPageRequest(url: String?) {
         try {
@@ -537,16 +522,76 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         return startCalendar.getTimeInMillis()
     }
 
-    override fun downloadHraLink(url: String) {
-        Log.d("mytag", "downloadHraLink link:$url")
+    override fun onDownloadRequested(
+        url: String?,
+        suggestedFilename: String?,
+        mimeType: String?,
+        contentLength: Long,
+        contentDisposition: String?,
+        userAgent: String?
+    ) {
+        Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimeType");
 
-        try {
-            val uri = Uri.parse(url)
-            startActivity(Intent(Intent.ACTION_VIEW, uri))
-        } catch (e: Exception) {
-            e.printStackTrace()
+        url?.let {
+            pdfDownloader.downloadPdfFile(
+                fileDir = filesDir,
+                pdfUrl = url,
+                onDownloadComplete = {
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(
+                            Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                                applicationContext, "com.googlefitsdk.fileprovider",
+                                it
+                            )
+                        )
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        type = "application/pdf"
+                    }
+                    val sendIntent = Intent.createChooser(shareIntent, null)
+                    startActivity(sendIntent)
+                }, onDownloadFailed = {
+                    Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
+                    try {
+                        val uri = Uri.parse(url)
+                        startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                })
         }
 
+    }
+
+    override fun downloadHraLink(url: String) {
+        Log.d("mytag", "downloadHraLink() link:$url")
+
+        pdfDownloader.downloadPdfFile(
+            fileDir = filesDir,
+            pdfUrl = url,
+            onDownloadComplete = {
+                val shareIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(
+                        Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                            applicationContext, "com.googlefitsdk.fileprovider",
+                            it
+                        )
+                    )
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    type = "application/pdf"
+                }
+                val sendIntent = Intent.createChooser(shareIntent, null)
+                startActivity(sendIntent)
+            }, onDownloadFailed = {
+                Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+                try {
+                    val uri = Uri.parse(url)
+                    startActivity(Intent(Intent.ACTION_VIEW, uri))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            })
     }
 
     override fun openDependentLink(link: String?) {

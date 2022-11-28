@@ -121,8 +121,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
 //        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=5bosbVgZtdk1l8N3fou9JHEYg8KqcsaXvaoWkMK9RTvZt2Znf8yo_Ecv3eJu_itgkftm3mktddOjghkVFRSUXLX4NT7AJLx4t2Koqv9MBnEXfGfkfPzVXbdekiypryqxIYYEfcIiSzZskEcaXiK1YXkuRDNdT2NM-hXC31xK0ymo5lM_atM2Lhyw2F9-r_vO&clientId=tata-aig-a8b455"
+        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9Hs_wLC77IXuvARXejIBkeEutA679aoq10l_CZvX_YM4XabcH4lgUPh5bxHkhXoE4kr1cTXLlbhj4ESuY_C6InWTl4OAN77-WD8PRMuNOcv8zxnO3RPxM1HcO_4hwPt77c&clientId=tata-aig-a8b455"
         IntiateSdk.s(
             this,
             false,
