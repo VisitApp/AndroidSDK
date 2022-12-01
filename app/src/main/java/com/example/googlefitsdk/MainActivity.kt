@@ -113,6 +113,9 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
                         "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
                     )
                 }
+                VisitEventType.ConsultationBooked ->{
+                    Log.d("mytag","MainActivity ConsultationBooked event")
+                }
             }
 
         }
@@ -121,7 +124,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
 //        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9Hs_wLC77IXuvARXejIBkeEutA679aoq10l_CZvX_YM4XabcH4lgUPh5bxHkhXoE4kr1cTXLlbhj4ESuY_C6InWTl4OAN77-WD8PRMuNOcv8zxnO3RPxM1HcO_4hwPt77c&clientId=tata-aig-a8b455"
+        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=d5rBLSSjvmq0JFCbl8f9tJy_fVtEntV1-DBeHoFe_fLRwWvwKRJmW6kiYmtuwUcxF23d1cbJ9gnxu0jwKejVWtBv6nKUUT0ESoqfKIwM40Q9YfrzeENdzNO07wDErxZx9e4XdEaAQ500zUT02BZyzGUpVYq3sFy89YQscONtFGd6dYsF9bUheLeGxBWJYHF5fDWZi8tGyDBMqyLmPvkCC1MR99KOaobCuSOhd3zV5LMuYjMAHUblQ7zUmjYQQpPDx07L2AdjVnVmbivB6AaLt6mdSfftDOMYVIp8gktjgzOGo09x_LfGleJTY-gvfGZc&clientId=tata-aig-a8b455"
         IntiateSdk.s(
             this,
             false,

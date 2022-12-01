@@ -637,10 +637,19 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+
+
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
         val packageName = "com.android.chrome"
         customTabsIntent.intent.setPackage(packageName)
         customTabsIntent.launchUrl(activity, uri)
+    }
+
+    override fun consultationBooked() {
+        runOnUiThread {
+            EventBus.getDefault()
+                .post(MessageEvent(VisitEventType.ConsultationBooked))
+        }
     }
 
 

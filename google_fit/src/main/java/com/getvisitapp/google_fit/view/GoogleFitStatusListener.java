@@ -44,5 +44,7 @@ public interface GoogleFitStatusListener {
 
     void hraInComplete(String jsonObject, boolean isIncomplete);
 
+    void consultationBooked();
+
 
 }

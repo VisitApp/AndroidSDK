@@ -51,4 +51,6 @@ sealed class VisitEventType {
 
     class HRAQuestionAnswered(val current:Int,val total:Int):VisitEventType()
 
+    object ConsultationBooked:VisitEventType()
+
 }

@@ -113,4 +113,12 @@ public class WebAppInterface {
     }
 
 
+    @JavascriptInterface
+    public void consultationBooked() {
+        Log.d("mytag", "consultationBooked called().");
+        listener.consultationBooked();
+    }
+
+
+
 }
