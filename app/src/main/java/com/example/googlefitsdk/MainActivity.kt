@@ -1,24 +1,14 @@
 package com.example.googlefitsdk
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.Switch
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.IntiateSdk
-import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
-import com.getvisitapp.google_fit.event.ClosePWAEvent
-import com.getvisitapp.google_fit.event.MessageEvent
-import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 
 
 class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
@@ -30,8 +20,6 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     lateinit var checker: GoogleFitAccessChecker
     lateinit var switch: Switch
 
-    val tataAIG_base_url = "https://uathealthvas.tataaig.com"
-    val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,14 +29,9 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
             init()
         }
 
-
         switch = findViewById<Switch>(R.id.switch1)
 
         checker = GoogleFitAccessChecker(this)
-
-        val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
-        syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
-
 
         //Open Google Fit if installed else return false.
         findViewById<Button>(R.id.openGoogleFitApp).setOnClickListener {
@@ -60,89 +43,20 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
             }
         }
 
-        findViewById<Button>(R.id.hraIncomplete).setOnClickListener {
-            syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
-        }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMessageEvent(event: MessageEvent?) {
-        event?.let { eventType ->
-            Log.d(TAG, "event:${event.eventType}")
-            when (eventType.eventType) {
-                VisitEventType.AskForFitnessPermission -> {
-
-                }
-                VisitEventType.AskForLocationPermission -> {
-
-
-                }
-                VisitEventType.FitnessPermissionGranted -> {
-
-
-                }
-                is VisitEventType.RequestHealthDataForDetailedGraph -> {
-
-                    val graphEvent =
-                        event.eventType as VisitEventType.RequestHealthDataForDetailedGraph
-
-                }
-                is VisitEventType.StartVideoCall -> {
-                    val callEvent =
-                        event.eventType as VisitEventType.StartVideoCall
-
-
-                }
-                is VisitEventType.HRA_Completed -> {
-
-
-                }
-                is VisitEventType.GoogleFitConnectedAndSavedInPWA -> {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        //passing event to Visit PWA to close itself
-                        EventBus.getDefault().post(ClosePWAEvent())
-
-
-                    }, 200)
-                }
-                is VisitEventType.HRAQuestionAnswered -> {
-                    // can be used for analytics events
-                    val hraQuestionEvent = event.eventType as VisitEventType.HRAQuestionAnswered
-                    Log.d(
-                        "mytag",
-                        "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
-                    )
-                }
-                VisitEventType.ConsultationBooked ->{
-                    Log.d("mytag","MainActivity ConsultationBooked event")
-                }
-            }
-
-        }
-
-    }
 
     fun init() {
-//        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=d5rBLSSjvmq0JFCbl8f9tJy_fVtEntV1-DBeHoFe_fLRwWvwKRJmW6kiYmtuwUcxF23d1cbJ9gnxu0jwKejVWtBv6nKUUT0ESoqfKIwM40Q9YfrzeENdzNO07wDErxZx9e4XdEaAQ500zUT02BZyzGUpVYq3sFy89YQscONtFGd6dYsF9bUheLeGxBWJYHF5fDWZi8tGyDBMqyLmPvkCC1MR99KOaobCuSOhd3zV5LMuYjMAHUblQ7zUmjYQQpPDx07L2AdjVnVmbivB6AaLt6mdSfftDOMYVIp8gktjgzOGo09x_LfGleJTY-gvfGZc&clientId=tata-aig-a8b455"
+
+        val magicLink =
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9FcM3nQvrMAJqKIAwIfJoSeg8x8yYN6hXdwIYwcDsHfvRSEvU3fd7PKzVHMphgdQJdpfDwfK-zWUpRrmBVpPDrO7TuflUrTzTp-cvA8P-EtwTHkLUPTmlLu_LPBtrqJYBA&clientId=tata-aig-a8b455"
+
         IntiateSdk.s(
             this,
             false,
             magicLink,
-            tataAIG_base_url,
-            tataAIG_auth_token,
             default_client_id
         )
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        //unregister first before registering again.
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this)
-        }
-        EventBus.getDefault().register(this)
     }
 
 
@@ -162,10 +76,5 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         }
     }
 
-
-    override fun onDestroy() {
-        EventBus.getDefault().unregister(this)
-        super.onDestroy()
-    }
 }
 

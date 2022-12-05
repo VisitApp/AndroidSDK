@@ -23,22 +23,14 @@ import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.data.SharedPrefUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
-import com.getvisitapp.google_fit.event.ClosePWAEvent
-import com.getvisitapp.google_fit.event.MessageEvent
-import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
-import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
-import com.getvisitapp.google_fit.util.Constants.TATA_AIG_BASE_URL
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
@@ -62,8 +54,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var syncDataWithServer = false
 
     private lateinit var googleFitStepChecker: GoogleFitAccessChecker
-    private lateinit var tataAIG_base_url: String
-    private lateinit var tataAIG_auth_token: String
 
     lateinit var sharedPrefUtil: SharedPrefUtil
     lateinit var pdfDownloader: PdfDownloader
@@ -81,15 +71,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             context: Context,
             isDebug: Boolean,
             magicLink: String,
-            tataAIG_base_url: String,
-            tataAIG_auth_token: String,
             default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
             intent.putExtra(WEB_URL, magicLink)
-            intent.putExtra(TATA_AIG_BASE_URL, tataAIG_base_url)
-            intent.putExtra(TATA_AIG_AUTH_TOKEN, tataAIG_auth_token)
             intent.putExtra(DEFAULT_CLIENT_ID, default_web_client_id)
             return intent
         }
@@ -102,8 +88,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.infoView.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
-        tataAIG_base_url = intent.extras!!.getString(TATA_AIG_BASE_URL)!!
-        tataAIG_auth_token = intent.extras!!.getString(TATA_AIG_AUTH_TOKEN)!!
         default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -184,7 +168,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun askForPermissions() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForFitnessPermission))
 
         if (dailyDataSynced) {
             return
@@ -205,7 +188,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onFitnessPermissionGranted() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted))
 
 
         Log.d(TAG, "onFitnessPermissionGranted() called")
@@ -231,10 +213,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     visitApiBaseUrl + "/",
                     authtoken,
                     googleFitLastSync,
-                    gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
+                    gfHourlyLastSync
                 )
                 syncDataWithServer = true
             }
@@ -254,15 +233,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
         Log.d(TAG, "requestActivityData() called.")
 
-        EventBus.getDefault().post(
-            MessageEvent(
-                VisitEventType.RequestHealthDataForDetailedGraph(
-                    type,
-                    frequency,
-                    timestamp
-                )
-            )
-        )
 
         runOnUiThread(Runnable {
             if (type != null && frequency != null) {
@@ -332,9 +302,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     authtoken,
                     googleFitLastSync,
                     gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
                 )
                 syncDataWithServer = true
             })
@@ -342,7 +309,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun askForLocationPermission() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForLocationPermission))
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -380,8 +346,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun startVideoCall(sessionId: Int, consultationId: Int, authToken: String?) {
 
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.StartVideoCall(sessionId, consultationId, authToken)))
 
         val intent = Intent(
             this,
@@ -394,14 +358,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         startActivity(intent)
     }
 
-    override fun hraCompleted() {
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.HRA_Completed()))
-    }
+    override fun hraCompleted() {}
 
     override fun googleFitConnectedAndSavedInPWA() {
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -427,8 +386,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun hraQuestionAnswered(current: Int, total: Int) {
         runOnUiThread {
-            EventBus.getDefault()
-                .post(MessageEvent(VisitEventType.HRAQuestionAnswered(current, total)))
         }
     }
 
@@ -480,21 +437,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun onStart() {
         super.onStart()
-        EventBus.getDefault().register(this)
     }
 
 
     override fun onStop() {
-        EventBus.getDefault().unregister(this)
         super.onStop()
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMessageEvent(PWAEvent: ClosePWAEvent?) {
-        Log.d("mytag", "onMessageEvent pwa close event triggered.")
-        if (!this.isFinishing) {
-            closePWA()
-        }
     }
 
     fun closePWA() {
@@ -647,8 +594,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun consultationBooked() {
         runOnUiThread {
-            EventBus.getDefault()
-                .post(MessageEvent(VisitEventType.ConsultationBooked))
+
         }
     }
 
