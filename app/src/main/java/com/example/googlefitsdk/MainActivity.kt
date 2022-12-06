@@ -11,14 +11,12 @@ import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleF
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 
 
-class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
+class MainActivity : AppCompatActivity() {
     var TAG = "mytag10"
 
     val default_client_id =
         "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
 
-    lateinit var checker: GoogleFitAccessChecker
-    lateinit var switch: Switch
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,27 +27,12 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
             init()
         }
 
-        switch = findViewById<Switch>(R.id.switch1)
-
-        checker = GoogleFitAccessChecker(this)
-
-        //Open Google Fit if installed else return false.
-        findViewById<Button>(R.id.openGoogleFitApp).setOnClickListener {
-            val result = openGoogleFit()
-            if (result) {
-                //do nothing
-            } else {
-                Toast.makeText(this, "Google Fit app is not installed.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
     }
-
 
     fun init() {
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9FcM3nQvrMAJqKIAwIfJoSeg8x8yYN6hXdwIYwcDsHfvRSEvU3fd7PKzVHMphgdQJdpfDwfK-zWUpRrmBVpPDrO7TuflUrTzTp-cvA8P-EtwTHkLUPTmlLu_LPBtrqJYBA&clientId=tata-aig-a8b455"
+            "https://api.getvisitapp.xyz/care/partners/consult?data=f9af%2Fcwc5hB4oUeJjiqdiqrTKDzIblG7oX2pL6Ql5I2Iz5D2Mt5W7EZLx%2F7AGyzTyQ2JPvBzH%2BJDNZn7JwAqHAgJZ3%2FyidaK2ojJfT5AdXY33aN1R%2F8xBv9waA7kE09KFTwD53bQyaPR0Et7osINIxYjH1TPo6gbNCRcGpR5a6sHa4hTWK2NJsrhZaHJzNUp9fZmc2MUph71aKeyZZIdewFtZQ4JwkA9%2BlvQCujDamFw9Nzf%2FFTx2W5ZNapER%2Bo7"
 
         IntiateSdk.s(
             this,
@@ -60,21 +43,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     }
 
 
-    override fun onResume() {
-        super.onResume()
-        switch.setOnCheckedChangeListener(null)
-        switch.isChecked = checker.checkGoogleFitAccess()
-        switch.setOnCheckedChangeListener(this)
-    }
 
-
-    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
-        if (isChecked) {
-            init()
-        } else {
-            checker.revokeGoogleFitPermission(default_client_id)
-        }
-    }
 
 }
 

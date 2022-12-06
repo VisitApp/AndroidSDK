@@ -103,6 +103,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.webview.loadUrl(magicLink)
 
 
+
         googleFitUtil =
             GoogleFitUtil(this, this, default_web_client_id)
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
