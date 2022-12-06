@@ -60,6 +60,11 @@ dependencies {
 
 ```
 
+## Steps to integrate google fit into the app.
+```
+https://drive.google.com/file/d/1uqhlTLWzYlfcDlJa6tfAbhMOS6QNJ94h/view?usp=sharing
+```
+
 
 Use `GoogleFitAccessChecker.java` to check for the state of Google Fit Permission. Check `MainActivity.kt` to see how it is implemented 
 
