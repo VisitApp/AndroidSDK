@@ -76,7 +76,9 @@ IntiateSdk.s(
             magicLink,
             default_client_id
         )
+Note: default_client_id can be found in google-services.json file.	
  ```
+ 
 
 #### Proguard rule
 For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
