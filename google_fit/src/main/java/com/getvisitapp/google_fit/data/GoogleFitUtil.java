@@ -14,6 +14,7 @@ import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -90,7 +91,7 @@ public class GoogleFitUtil implements GenericListener {
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-//                listener.loadWebUrl(baseUrl + "home?fitnessPermission=true&steps=" + sleepStepsData.steps + "&sleep=" + TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                listener.loadDailyFitnessData(sleepStepsData.steps , TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 

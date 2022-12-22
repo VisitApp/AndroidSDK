@@ -124,7 +124,8 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     fun init() {
 //        val magicLink = "https://tata-aig.getvisitapp.xyz"
-        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=d5rBLSSjvmq0JFCbl8f9tJy_fVtEntV1-DBeHoFe_fLRwWvwKRJmW6kiYmtuwUcxF23d1cbJ9gnxu0jwKejVWtBv6nKUUT0ESoqfKIwM40Q9YfrzeENdzNO07wDErxZx9e4XdEaAQ500zUT02BZyzGUpVYq3sFy89YQscONtFGd6dYsF9bUheLeGxBWJYHF5fDWZi8tGyDBMqyLmPvkCC1MR99KOaobCuSOhd3zV5LMuYjMAHUblQ7zUmjYQQpPDx07L2AdjVnVmbivB6AaLt6mdSfftDOMYVIp8gktjgzOGo09x_LfGleJTY-gvfGZc&clientId=tata-aig-a8b455"
+//        val magicLink ="https://tata-aig.getvisitapp.xyz/weight-management"
+        val magicLink ="https://star-health.getvisitapp.xyz/?mluib7c=0ZidhSZ1"
         IntiateSdk.s(
             this,
             false,

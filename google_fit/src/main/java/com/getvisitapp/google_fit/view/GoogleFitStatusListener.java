@@ -46,5 +46,8 @@ public interface GoogleFitStatusListener {
 
     void consultationBooked();
 
+    void loadDailyFitnessData(long steps,long sleep);
+
+
 
 }

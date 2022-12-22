@@ -207,7 +207,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun onFitnessPermissionGranted() {
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted))
 
-
+        googleFitUtil.fetchDataFromFit()
         Log.d(TAG, "onFitnessPermissionGranted() called")
 
         Log.d(TAG, "window.googleFitnessConnectedSuccessfully() called")
@@ -638,7 +638,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
 
-
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
         val packageName = "com.android.chrome"
         customTabsIntent.intent.setPackage(packageName)
@@ -649,6 +648,18 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         runOnUiThread {
             EventBus.getDefault()
                 .post(MessageEvent(VisitEventType.ConsultationBooked))
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun loadDailyFitnessData(steps: Long, sleep: Long) {
+        val finalString = "window.updateFitnessPermissions(true,$steps,$sleep)"
+
+        runOnUiThread {
+            binding.webview.evaluateJavascript(
+                finalString,
+                null
+            )
         }
     }
 
