@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
+import com.getvisitapp.google_fit.data.SharedPrefUtil;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.Scopes;
@@ -25,9 +26,11 @@ import com.google.android.gms.tasks.Task;
 @Keep
 public class GoogleFitAccessChecker {
     Context context;
+    SharedPrefUtil sharedPrefUtil;
 
     public GoogleFitAccessChecker(Context context) {
         this.context = context;
+        sharedPrefUtil = new SharedPrefUtil(context);
     }
 
     public void revokeGoogleFitPermission(String default_client_id) {
@@ -51,17 +54,19 @@ public class GoogleFitAccessChecker {
 
                         GoogleSignIn.getClient(context, signInOptions)
                                 .revokeAccess().addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Log.d("mytag", "googleFit permission revoked successfully");
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                e.printStackTrace();
-                                Log.d("mytag", "googleFit permission revoked failed #1");
-                            }
-                        });
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        Log.d("mytag", "googleFit permission revoked successfully");
+                                        sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        e.printStackTrace();
+                                        sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                        Log.d("mytag", "googleFit permission revoked failed #1");
+                                    }
+                                });
                         return null;
                     }
                 })

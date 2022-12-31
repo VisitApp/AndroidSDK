@@ -75,6 +75,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var gfHourlyLastSync = 0L
     var memberId: String? = null
 
+    var redirectUserToGoogleFitStatusPage: Boolean =
+        false //this flag acts a check with which we should redirect user to google connected successfully page or not.
+
 
     companion object {
         fun getIntent(
@@ -183,7 +186,28 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
-    override fun askForPermissions() {
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun askForPermissions(redirectUserToGoogleFitStatusPage: Boolean) {
+        this.redirectUserToGoogleFitStatusPage = redirectUserToGoogleFitStatusPage
+
+        //if we are redirecting user to google fit status page, then it means it is a fresh connection request.
+        //so here i am resetting the flag.
+
+        if(!redirectUserToGoogleFitStatusPage && sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()){
+            Log.d(TAG,"window.googleFitStatus(false) called")
+
+            runOnUiThread {
+                binding.webview.evaluateJavascript(
+                    "window.googleFitStatus(false)",
+                    null
+                )
+            }
+
+            Log.d(TAG,"setGoogleFitDisconnectedFromTATAAig(false)")
+            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(false)
+            return
+        }
+
         EventBus.getDefault().post(MessageEvent(VisitEventType.AskForFitnessPermission))
 
         if (dailyDataSynced) {
@@ -208,16 +232,31 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted))
 
         googleFitUtil.fetchDataFromFit()
-        Log.d(TAG, "onFitnessPermissionGranted() called")
+        Log.d(
+            TAG,
+            "onFitnessPermissionGranted() called , redirectUserToGoogleFitPage: $redirectUserToGoogleFitStatusPage"
+        )
 
-        Log.d(TAG, "window.googleFitnessConnectedSuccessfully() called")
+        //here i am not calling "window.googleFitnessConnectedSuccessfully(true)" because
+        // i don't want to user to redirect to separate page,
+        if (redirectUserToGoogleFitStatusPage) {
+            Log.d(TAG, "window.googleFitnessConnectedSuccessfully() called")
 
-        runOnUiThread {
-            binding.webview.evaluateJavascript(
-                "window.googleFitnessConnectedSuccessfully(true)",
-                null
-            )
+            runOnUiThread {
+                binding.webview.evaluateJavascript(
+                    "window.googleFitnessConnectedSuccessfully(true)",
+                    null
+                )
+            }
         }
+
+        //if we are not redirecting the user to separate page, that means, we are that the home page where the graph are getting shown
+        //here there might be a case, when the user unlink google fit permission from TATA AIG app, and open the PWA.
+        //in that case, we have a call a window method to change the google fit connction status in that is stored in the cache of PWA
+        if (!redirectUserToGoogleFitStatusPage) {
+
+        }
+
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
         if (visitApiBaseUrl != null &&
@@ -406,6 +445,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun inHraEndPage() {
+        Log.d("mytag", "inHraEndPage() called")
         runOnUiThread {
             //check for google fit has access and call this event
 
@@ -459,6 +499,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> {
+                    Log.d(TAG,"webview.canGoBack(): ${binding.webview.canGoBack()}")
+
                     if (binding.webview.canGoBack()) {
                         binding.webview.goBack()
                         Log.d("Webview Url", binding.webview.url.toString())

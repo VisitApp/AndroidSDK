@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 @Keep
 public interface GoogleFitStatusListener {
-    void askForPermissions();
+    void askForPermissions(boolean redirectUserToGoogleFitStatusPage);
 
     void onFitnessPermissionGranted();
 

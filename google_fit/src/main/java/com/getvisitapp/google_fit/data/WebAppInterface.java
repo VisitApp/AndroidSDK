@@ -23,7 +23,16 @@ public class WebAppInterface {
 
         Log.d("mytag", "connectToGoogleFit() called");
 
-        listener.askForPermissions();
+        listener.askForPermissions(true);
+
+    }
+
+    @JavascriptInterface
+    public void askForGoogleFitGraphData() {
+
+        Log.d("mytag", "askForGoogleFitGraphData() called");
+
+        listener.askForPermissions(false);
 
     }
 
