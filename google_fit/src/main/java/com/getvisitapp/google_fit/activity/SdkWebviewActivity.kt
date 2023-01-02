@@ -203,7 +203,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 )
             }
 
-            Log.d(TAG,"setGoogleFitDisconnectedFromTATAAig(false)")
+            Log.d(TAG,"window.googleFitStatus(false)")
             sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(false)
             return
         }
@@ -250,12 +250,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             }
         }
 
-        //if we are not redirecting the user to separate page, that means, we are that the home page where the graph are getting shown
-        //here there might be a case, when the user unlink google fit permission from TATA AIG app, and open the PWA.
-        //in that case, we have a call a window method to change the google fit connction status in that is stored in the cache of PWA
-        if (!redirectUserToGoogleFitStatusPage) {
-
-        }
 
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
