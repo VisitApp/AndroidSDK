@@ -2,13 +2,13 @@ package com.getvisitapp.google_fit.view;
 
 import androidx.annotation.Keep;
 
-import com.google.gson.JsonObject;
-
-import org.json.JSONObject;
-
 @Keep
 public interface GoogleFitStatusListener {
-    void askForPermissions(boolean redirectUserToGoogleFitStatusPage);
+    void connectToGoogleFit(boolean redirectUserToGoogleFitStatusPage);
+
+    void disconnectFromGoogleFit();
+
+    void connectToFitbit(String url,String authToken);
 
     void onFitnessPermissionGranted();
 

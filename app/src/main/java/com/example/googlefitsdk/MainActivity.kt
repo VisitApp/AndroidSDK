@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 //        val magicLink ="https://tata-aig.getvisitapp.xyz/weight-management"
 //        val magicLink ="https://star-health.getvisitapp.xyz/?mluib7c=0ZidhSZ1"
 //        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
-        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
+        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=Kzdzgp8Pe6DTEgvljdI5itsRV03uMwm5wlrnRHA9jsxtfdU8A2FfhAcno_A3ja8faMn2B2HQRAkQ3i5v14WLbovrEg_9sgoluwcs-4pmtcxQxk61NhS1hR1y0lEdwbnrTrmWdGGqpDDoln-gxsEB6Mk3FYprNuE-SjwGnzlacxhnD3s8In7haPYJXMteENBvyDLKG_O4iR2n7Bhz08GM_EcsFRWWVLc_NHF-XvG_OtgldLTsrsQDWuBdkT9fCXl1nfhN1EfbcrbjVnLCHQNEwZkSS56F7jbeRAEyjkzuZzA&clientId=tata-aig-a8b455"
         IntiateSdk.s(
             this,
             false,
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         if (isChecked) {
             init()
         } else {
-            checker.revokeGoogleFitPermission(default_client_id)
+            checker.revokeGoogleFitPermission(default_client_id,true)
         }
     }
 

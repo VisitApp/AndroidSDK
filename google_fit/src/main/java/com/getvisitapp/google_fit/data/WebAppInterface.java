@@ -6,9 +6,6 @@ import android.webkit.JavascriptInterface;
 import androidx.annotation.Keep;
 
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
-import com.google.gson.JsonObject;
-
-import org.json.JSONObject;
 
 @Keep
 public class WebAppInterface {
@@ -23,8 +20,23 @@ public class WebAppInterface {
 
         Log.d("mytag", "connectToGoogleFit() called");
 
-        listener.askForPermissions(true);
+        listener.connectToGoogleFit(true);
 
+    }
+
+
+    @JavascriptInterface
+    public void disconnectFromGoogleFit() {
+        Log.d("mytag", "disconnectFromGoogleFit() called");
+        listener.disconnectFromGoogleFit();
+    }
+
+
+    @JavascriptInterface
+    public void connectToFitbit(String url, String authToken) {
+        Log.d("mytag", "connectToFitbit() called");
+
+        listener.connectToFitbit(url, authToken);
     }
 
     @JavascriptInterface
@@ -32,7 +44,7 @@ public class WebAppInterface {
 
         Log.d("mytag", "askForGoogleFitGraphData() called");
 
-        listener.askForPermissions(false);
+        listener.connectToGoogleFit(false);
 
     }
 
@@ -127,7 +139,6 @@ public class WebAppInterface {
         Log.d("mytag", "consultationBooked called().");
         listener.consultationBooked();
     }
-
 
 
 }

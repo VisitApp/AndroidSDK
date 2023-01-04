@@ -9,10 +9,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Browser
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -133,6 +137,58 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        if (intent!!.data != null) {
+            val uri = intent.data
+
+            Log.d(
+                TAG,
+                "onNewIntent: Getting URI"
+            )
+            if (uri!!.queryParameterNames.contains("fitbit")) {
+                val message = uri!!.getQueryParameter("message")
+
+                Handler(Looper.getMainLooper()).postDelayed({ //Do something here
+                    if (message != null && message.equals("success", ignoreCase = true)) {
+                        runOnUiThread {
+                            binding.webview.evaluateJavascript(
+                                "window.fitbitConnectSuccessfully(true)",
+                                null
+                            )
+                        }
+                        Toast.makeText(applicationContext, "Fitbit is connected", Toast.LENGTH_LONG)
+                            .show()
+
+                    } else if (message != null && message.equals(
+                            "failed",
+                            ignoreCase = true
+                        )
+                    ) Toast.makeText(
+                        applicationContext,
+                        "Failed to connect Fitbit device. Please retry or contact support",
+                        Toast.LENGTH_LONG
+                    ).show() else if (message != null && message.equals(
+                            "accessDenied",
+                            ignoreCase = true
+                        )
+                    ) Toast.makeText(
+                        applicationContext,
+                        "You have denied access to connect to Fitbit",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }, 1000)
+            }
+        } else {
+            Log.d(
+                TAG,
+                "onNewIntent: getData is null"
+            )
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         binding.webview.onResume();
@@ -187,14 +243,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun askForPermissions(redirectUserToGoogleFitStatusPage: Boolean) {
+    override fun connectToGoogleFit(redirectUserToGoogleFitStatusPage: Boolean) {
         this.redirectUserToGoogleFitStatusPage = redirectUserToGoogleFitStatusPage
 
         //if we are redirecting user to google fit status page, then it means it is a fresh connection request.
         //so here i am resetting the flag.
 
-        if(!redirectUserToGoogleFitStatusPage && sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()){
-            Log.d(TAG,"window.googleFitStatus(false) called")
+
+        Log.d(
+            TAG,
+            "redirectUserToGoogleFitStatusPage: $redirectUserToGoogleFitStatusPage, userDisconnectedInTATAAig app:  " + sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()
+        )
+
+        if (!redirectUserToGoogleFitStatusPage && sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()) {
+            Log.d(TAG, "window.googleFitStatus(false) called")
 
             runOnUiThread {
                 binding.webview.evaluateJavascript(
@@ -203,7 +265,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 )
             }
 
-            Log.d(TAG,"window.googleFitStatus(false)")
             sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(false)
             return
         }
@@ -224,6 +285,31 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             } else {
                 googleFitUtil.askForGoogleFitPermission()
             }
+        }
+    }
+
+    override fun disconnectFromGoogleFit() {
+        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id,false)
+    }
+
+    override fun connectToFitbit(url: String, authToken: String) {
+
+
+        Log.d(TAG, "connectToFitbit: $url, authToken: $authToken")
+
+        runOnUiThread {
+            val browserIntent = Intent(
+                Intent.ACTION_VIEW, Uri.parse(url)
+            )
+
+            val bundle = Bundle()
+            bundle.putString(
+                "Authorization",
+                authToken
+            )
+            browserIntent.putExtra(Browser.EXTRA_HEADERS, bundle)
+
+            startActivity(browserIntent)
         }
     }
 
@@ -249,7 +335,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 )
             }
         }
-
 
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
@@ -493,7 +578,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> {
-                    Log.d(TAG,"webview.canGoBack(): ${binding.webview.canGoBack()}")
+                    Log.d(TAG, "webview.canGoBack(): ${binding.webview.canGoBack()}")
 
                     if (binding.webview.canGoBack()) {
                         binding.webview.goBack()
@@ -690,6 +775,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun loadDailyFitnessData(steps: Long, sleep: Long) {
         val finalString = "window.updateFitnessPermissions(true,$steps,$sleep)"
+
+        Log.d(TAG, finalString)
 
         runOnUiThread {
             binding.webview.evaluateJavascript(

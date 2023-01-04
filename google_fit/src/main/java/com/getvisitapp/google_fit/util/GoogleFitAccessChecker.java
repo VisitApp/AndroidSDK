@@ -33,7 +33,7 @@ public class GoogleFitAccessChecker {
         sharedPrefUtil = new SharedPrefUtil(context);
     }
 
-    public void revokeGoogleFitPermission(String default_client_id) {
+    public void revokeGoogleFitPermission(String default_client_id, boolean disconnectingFromTATA_AIG_app) {
         Fitness.getConfigClient(context, GoogleSignIn.getAccountForExtension(context, getFitnessOptions()))
                 .disableFit()
                 .continueWith(new Continuation<Void, Void>() {
@@ -57,13 +57,17 @@ public class GoogleFitAccessChecker {
                                     @Override
                                     public void onSuccess(Void unused) {
                                         Log.d("mytag", "googleFit permission revoked successfully");
-                                        sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                        if (disconnectingFromTATA_AIG_app) {
+                                            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                        }
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
                                         e.printStackTrace();
-                                        sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                        if (disconnectingFromTATA_AIG_app) {
+                                            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
+                                        }
                                         Log.d("mytag", "googleFit permission revoked failed #1");
                                     }
                                 });
