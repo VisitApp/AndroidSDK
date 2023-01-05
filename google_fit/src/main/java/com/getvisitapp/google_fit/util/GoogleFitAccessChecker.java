@@ -26,14 +26,12 @@ import com.google.android.gms.tasks.Task;
 @Keep
 public class GoogleFitAccessChecker {
     Context context;
-    SharedPrefUtil sharedPrefUtil;
 
     public GoogleFitAccessChecker(Context context) {
         this.context = context;
-        sharedPrefUtil = new SharedPrefUtil(context);
     }
 
-    public void revokeGoogleFitPermission(String default_client_id, boolean disconnectingFromTATA_AIG_app) {
+    public void revokeGoogleFitPermission(String default_client_id) {
         Fitness.getConfigClient(context, GoogleSignIn.getAccountForExtension(context, getFitnessOptions()))
                 .disableFit()
                 .continueWith(new Continuation<Void, Void>() {
@@ -57,17 +55,11 @@ public class GoogleFitAccessChecker {
                                     @Override
                                     public void onSuccess(Void unused) {
                                         Log.d("mytag", "googleFit permission revoked successfully");
-                                        if (disconnectingFromTATA_AIG_app) {
-                                            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
-                                        }
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
                                         e.printStackTrace();
-                                        if (disconnectingFromTATA_AIG_app) {
-                                            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(true);
-                                        }
                                         Log.d("mytag", "googleFit permission revoked failed #1");
                                     }
                                 });

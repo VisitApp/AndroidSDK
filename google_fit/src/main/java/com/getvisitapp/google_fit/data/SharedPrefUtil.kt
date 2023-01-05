@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
-import com.getvisitapp.google_fit.util.Constants.GOOGLE_FIT_DISCONNECTED_FROM_TATA_AIG
 import com.getvisitapp.google_fit.util.Constants.HRA_INCOMPLETE_RESPONSE
 import com.getvisitapp.google_fit.util.Constants.IS_HRA_INCOMPLETE
 
@@ -91,13 +90,6 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getBoolean(IS_HRA_INCOMPLETE, true)
     }
 
-    fun setGoogleFitDisconnectedFromTATAAig(status: Boolean) {
-        sharedPreferencesEditor.putBoolean(GOOGLE_FIT_DISCONNECTED_FROM_TATA_AIG, status).commit()
-    }
-
-    fun isGoogleFitDisconnectedFromTATAAIG(): Boolean {
-        return sharedPreferences.getBoolean(GOOGLE_FIT_DISCONNECTED_FROM_TATA_AIG, false)
-    }
 
 
 }

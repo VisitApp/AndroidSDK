@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         if (isChecked) {
             init()
         } else {
-            checker.revokeGoogleFitPermission(default_client_id,true)
+            checker.revokeGoogleFitPermission(default_client_id)
         }
     }
 

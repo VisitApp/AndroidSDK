@@ -252,10 +252,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
         Log.d(
             TAG,
-            "redirectUserToGoogleFitStatusPage: $redirectUserToGoogleFitStatusPage, userDisconnectedInTATAAig app:  " + sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()
+            "redirectUserToGoogleFitStatusPage: $redirectUserToGoogleFitStatusPage, googleFitStepChecker.checkGoogleFitAccess() :  " + googleFitStepChecker.checkGoogleFitAccess()
         )
 
-        if (!redirectUserToGoogleFitStatusPage && sharedPrefUtil.isGoogleFitDisconnectedFromTATAAIG()) {
+        if (!redirectUserToGoogleFitStatusPage && !googleFitStepChecker.checkGoogleFitAccess()) {
             Log.d(TAG, "window.googleFitStatus(false) called")
 
             runOnUiThread {
@@ -264,8 +264,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     null
                 )
             }
-
-            sharedPrefUtil.setGoogleFitDisconnectedFromTATAAig(false)
             return
         }
 
@@ -289,7 +287,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun disconnectFromGoogleFit() {
-        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id,false)
+        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
     }
 
     override fun connectToFitbit(url: String, authToken: String) {
