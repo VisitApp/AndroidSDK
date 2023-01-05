@@ -585,6 +585,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                             finish()
                         } else if (binding.webview.url!!.contains("online/preview")) {
                             finish()
+                        } else if (binding.webview.url!!.endsWith("/weight-management")) {
+                            finish()
                         }
                     } else {
                         finish()
