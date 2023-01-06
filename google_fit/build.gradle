@@ -125,7 +125,7 @@ afterEvaluate {
 
                 groupId = 'com.getvisitapp'
                 artifactId = 'google_fit'
-                version = '1.52'
+                version = '1.53'
             }
         }
     }
