@@ -36,6 +36,7 @@ import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
 import com.getvisitapp.google_fit.util.Constants.TATA_AIG_BASE_URL
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
+import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
@@ -82,6 +83,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var redirectUserToGoogleFitStatusPage: Boolean =
         false //this flag acts a check with which we should redirect user to google connected successfully page or not.
 
+    lateinit var locationTrackerUtil: LocationTrackerUtil
 
     companion object {
         fun getIntent(
@@ -134,7 +136,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         googleFitStepChecker = GoogleFitAccessChecker(this)
         sharedPrefUtil = SharedPrefUtil(this)
         pdfDownloader = PdfDownloader()
-
+        locationTrackerUtil = LocationTrackerUtil(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -457,17 +459,46 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun askForLocationPermission() {
         EventBus.getDefault().post(MessageEvent(VisitEventType.AskForLocationPermission))
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_REQUEST_CODE
+        runOnUiThread {
+            if (locationTrackerUtil.isLocationPermissionAllowed()) {
+                if (locationTrackerUtil.isGPSEnabled()) {
+                    runOnUiThread {
+                        binding.webview.evaluateJavascript(
+                            "window.checkTheGpsPermission(true)",
+                            null
+                        )
+                        Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                    }
+                } else {
+                    locationTrackerUtil.showGPS_NotEnabledDialog()
+                }
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        LOCATION_PERMISSION_REQUEST_CODE
+                    )
+                }
+            }
+        }
+
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun onRestart() {
+        super.onRestart()
+        if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
+            runOnUiThread {
+                binding.webview.evaluateJavascript(
+                    "window.checkTheGpsPermission(true)",
+                    null
                 )
+                Log.d("mytag", "window.checkTheGpsPermission(true) called")
             }
         }
     }
@@ -490,7 +521,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 }
 
             }
-            LOCATION_PERMISSION_REQUEST_CODE -> {}
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty()) {
+                    val locationPermissionGranted =
+                        (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+
+                    if (locationPermissionGranted) {
+                        if (!locationTrackerUtil.isGPSEnabled()) {
+                            locationTrackerUtil.showGPS_NotEnabledDialog()
+                        }
+                    } else {
+                        locationTrackerUtil.showLocationPermissionDeniedAlertDialog()
+                    }
+                }
+            }
         }
     }
 
