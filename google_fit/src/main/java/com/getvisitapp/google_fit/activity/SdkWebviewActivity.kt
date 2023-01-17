@@ -160,6 +160,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                                 "window.fitbitConnectSuccessfully(true)",
                                 null
                             )
+                            EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
                         }
                         Toast.makeText(applicationContext, "Fitbit is connected", Toast.LENGTH_LONG)
                             .show()
@@ -315,7 +316,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onFitnessPermissionGranted() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted))
+        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(true)))
 
         googleFitUtil.fetchDataFromFit()
         Log.d(

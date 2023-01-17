@@ -10,9 +10,11 @@ sealed class VisitEventType {
     object AskForFitnessPermission : VisitEventType()
 
     /**
-     * Called after the user has successfully connected to Google Fit
+     * Called after the user has successfully connected to Google Fit or FitBit is connected
+     * true in case of google fit is connected
+     * false is case of fitbit is connected
      */
-    object FitnessPermissionGranted : VisitEventType()
+    class FitnessPermissionGranted(var isGoogleFit:Boolean) : VisitEventType()
 
 
     /**

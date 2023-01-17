@@ -77,7 +77,16 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
 
                 }
-                VisitEventType.FitnessPermissionGranted -> {
+                is VisitEventType.FitnessPermissionGranted -> {
+                    val data = event.eventType as VisitEventType.FitnessPermissionGranted
+
+                    Log.d(
+                        "mytag",
+                        "MainActivity onMessageEvent() FitnessPermissionGranted called, isGoogleFit: ${data.isGoogleFit}"
+                    )
+
+
+                    data.isGoogleFit
 
 
                 }
@@ -113,8 +122,8 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
                         "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
                     )
                 }
-                VisitEventType.ConsultationBooked ->{
-                    Log.d("mytag","MainActivity ConsultationBooked event")
+                VisitEventType.ConsultationBooked -> {
+                    Log.d("mytag", "MainActivity ConsultationBooked event")
                 }
             }
 
@@ -126,8 +135,9 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 //        val magicLink = "https://tata-aig.getvisitapp.xyz"
 //        val magicLink ="https://tata-aig.getvisitapp.xyz/weight-management"
 //        val magicLink ="https://star-health.getvisitapp.xyz/?mluib7c=0ZidhSZ1"
-//        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
-        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=Kzdzgp8Pe6DTEgvljdI5itsRV03uMwm5wlrnRHA9jsxtfdU8A2FfhAcno_A3ja8faMn2B2HQRAkQ3i5v14WLbovrEg_9sgoluwcs-4pmtcyFVLD7olcVOsipHaMHopFiVMz7raHFfeEcjLO-UhQhqAbGPYvxKUvyj286GKGFOwlto5v_jyNflaBn5zSkevbEHZbEd5-CUpvMqfu82UJahYx2geUr6AK4xx_FaROqQEbM0LWj4ezxrZDbcqeK6gKf&clientId=tata-aig-a8b455"
+        val magicLink =
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
+//        val magicLink ="https://tata-aig.getvisitapp.xyz/sso?userParams=Kzdzgp8Pe6DTEgvljdI5itsRV03uMwm5wlrnRHA9jsxtfdU8A2FfhAcno_A3ja8faMn2B2HQRAkQ3i5v14WLbovrEg_9sgoluwcs-4pmtcyFVLD7olcVOsipHaMHopFiVMz7raHFfeEcjLO-UhQhqAbGPYvxKUvyj286GKGFOwlto5v_jyNflaBn5zSkevbEHZbEd5-CUpvMqfu82UJahYx2geUr6AK4xx_FaROqQEbM0LWj4ezxrZDbcqeK6gKf&clientId=tata-aig-a8b455"
         IntiateSdk.s(
             this,
             false,
