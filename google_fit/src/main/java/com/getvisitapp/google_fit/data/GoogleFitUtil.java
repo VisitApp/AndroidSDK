@@ -77,23 +77,6 @@ public class GoogleFitUtil implements GenericListener {
             }
         });
 
-        sleepStepsDataSubscriber = new Subscriber<SleepStepsData>() {
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onNext(SleepStepsData sleepStepsData) {
-                Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps , TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
-            }
-        };
 
     }
 
@@ -113,6 +96,25 @@ public class GoogleFitUtil implements GenericListener {
     }
 
     public void fetchDataFromFit() {
+
+        sleepStepsDataSubscriber = new Subscriber<SleepStepsData>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onNext(SleepStepsData sleepStepsData) {
+                Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
+                listener.loadDailyFitnessData(sleepStepsData.steps , TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+            }
+        };
+
         Observable.zip(googleFitConnector.getTotalStepsForToday(),
                 googleFitConnector.getSleepForToday(),
                 (integers, sleepCard) -> {
