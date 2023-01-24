@@ -30,12 +30,13 @@
         <activity android:name=".activity.SdkWebviewActivity" />
 
         <provider
-            android:authorities="com.googlefitsdk.fileprovider"
-            android:name="androidx.core.content.FileProvider"
+            android:name="com.getvisitapp.google_fit.util.GoogleFitSdkFileProvider"
+            android:authorities="${applicationId}.googlefitsdk.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_provider_path"/>
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/library_file_path" />
         </provider>
     </application>
     <queries>

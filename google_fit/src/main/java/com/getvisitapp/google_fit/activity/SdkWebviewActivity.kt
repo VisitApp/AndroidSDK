@@ -65,6 +65,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     var gfHourlyLastSync = 0L
     var memberId: String? = null
 
+    private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
+
 
     companion object {
         fun getIntent(
@@ -489,7 +491,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                         action = Intent.ACTION_SEND
                         putExtra(
                             Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                applicationContext, "com.googlefitsdk.fileprovider",
+                                applicationContext,
+                                applicationContext.packageName + AUTHORITY_SUFFIX,
                                 it
                             )
                         )
@@ -522,7 +525,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     action = Intent.ACTION_SEND
                     putExtra(
                         Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                            applicationContext, "com.googlefitsdk.fileprovider",
+                            applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX,
                             it
                         )
                     )
@@ -584,7 +587,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             sharedPrefUtil.setHRAIncompleteStatus(isIncomplete)
         }
     }
-
 
 
     fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
