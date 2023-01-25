@@ -17,6 +17,8 @@ sealed class VisitEventType {
     class FitnessPermissionGranted(var isGoogleFit:Boolean) : VisitEventType()
 
 
+    class FitnessPermissionRevoked(var isGoogleFit:Boolean) : VisitEventType()
+
     /**
      * Called when the PWA request for health data for certain type.
      * @param type can be 'day' or 'month' or 'week'
@@ -54,5 +56,8 @@ sealed class VisitEventType {
     class HRAQuestionAnswered(val current:Int,val total:Int):VisitEventType()
 
     object ConsultationBooked:VisitEventType()
+
+
+
 
 }

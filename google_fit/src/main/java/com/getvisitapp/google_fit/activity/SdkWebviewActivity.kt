@@ -292,7 +292,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun disconnectFromGoogleFit() {
+
         googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
+
+        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(true)))
+
     }
 
     override fun connectToFitbit(url: String, authToken: String) {
@@ -832,6 +836,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 null
             )
         }
+    }
+
+    override fun disconnectFromFitbit() {
+        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(false)))
+
     }
 
 

@@ -48,6 +48,8 @@ public interface GoogleFitStatusListener {
 
     void loadDailyFitnessData(long steps,long sleep);
 
+    void disconnectFromFitbit();
+
 
 
 }

@@ -39,6 +39,12 @@ public class WebAppInterface {
         listener.connectToFitbit(url, authToken);
     }
 
+    public void disconnectFromFitbit(){
+        Log.d("mytag", "disconnectFromFitbit() called");
+
+        listener.disconnectFromFitbit();
+    }
+
     @JavascriptInterface
     public void askForGoogleFitGraphData() {
 

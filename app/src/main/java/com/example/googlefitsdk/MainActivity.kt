@@ -90,6 +90,16 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
 
                 }
+
+                is VisitEventType.FitnessPermissionRevoked -> {
+                    val data = event.eventType as VisitEventType.FitnessPermissionRevoked
+
+                    Log.d(
+                        "mytag",
+                        "MainActivity onMessageEvent() FitnessPermissionRevoked called, isGoogleFit: ${data.isGoogleFit}"
+                    )
+
+                }
                 is VisitEventType.RequestHealthDataForDetailedGraph -> {
 
                     val graphEvent =
@@ -137,8 +147,13 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 //        val magicLink ="https://star-health.getvisitapp.xyz/?mluib7c=0ZidhSZ1"
 //        val magicLink =
 //            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
+//        val magicLink =
+//            "https://axis-tata.getvisitapp.xyz/sso?userParams=DJsu6SFXLdsSNBuRr2Q83Z9Am1Y3EOEmKY2o4S4hvoYmjZxusiABb7D0nxr3bDtprg0o603IWvmMPOMT-IMuXa5faX64LueVOPmX15BC-WLpWDd8gXPrDUDBD9-w2u-u&clientId=tata-aig-axis-f7b4d3"
+
         val magicLink =
-            "https://axis-tata.getvisitapp.xyz/sso?userParams=DJsu6SFXLdsSNBuRr2Q83Z9Am1Y3EOEmKY2o4S4hvoYmjZxusiABb7D0nxr3bDtprg0o603IWvmMPOMT-IMuXa5faX64LueVOPmX15BC-WLpWDd8gXPrDUDBD9-w2u-u&clientId=tata-aig-axis-f7b4d3"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=zw8Ck649KpW0PocCtcALfvAuXOK-NO7lzSfgWRR99upZwg5IzQnURkWDxzMsNwDKC9LCT91j6mhXnNODYQdu3FY7ssE6lMujWrYjLk_wtx6B__kBZozqpNQ8PVATQrIR4lQ0tD7GUVI4S_ac6PFgwrT2TvSYH9fk1xF1FrIGDCBp4Qb-fPyLYiNKJO3AWiQSqsGFASrtjcLo_Q9YtWo80Y14Q3haCFR1lKRo7ZLNEgyb40qR-U4l4ELkNLzAnaQ_mGKdYdVgXgcVRdq5GW09bNnNs9MQolcW3TQUmSkyiPuVl8kRHDGOUZ-Wakir20s-&clientId=tata-aig-a8b455"
+
+
         IntiateSdk.s(
             this,
             false,
