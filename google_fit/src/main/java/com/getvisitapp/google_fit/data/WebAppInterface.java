@@ -39,6 +39,7 @@ public class WebAppInterface {
         listener.connectToFitbit(url, authToken);
     }
 
+    @JavascriptInterface
     public void disconnectFromFitbit(){
         Log.d("mytag", "disconnectFromFitbit() called");
 
