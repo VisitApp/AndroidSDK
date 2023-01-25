@@ -24,7 +24,7 @@ class PdfDownloader {
         onDownloadFailed: () -> Unit
     ) {
 
-        dirPath = "${fileDir}/cert/pdffiles"
+        dirPath = "${fileDir}/files/pdfFiles"
         val dirFile = File(dirPath)
         if (!dirFile.exists()) {
             dirFile.mkdirs()

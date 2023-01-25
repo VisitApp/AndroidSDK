@@ -84,6 +84,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         false //this flag acts a check with which we should redirect user to google connected successfully page or not.
 
     lateinit var locationTrackerUtil: LocationTrackerUtil
+    private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
     companion object {
         fun getIntent(
@@ -160,7 +161,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                                 "window.fitbitConnectSuccessfully(true)",
                                 null
                             )
-                            EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
+                            EventBus.getDefault()
+                                .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
                         }
                         Toast.makeText(applicationContext, "Fitbit is connected", Toast.LENGTH_LONG)
                             .show()
@@ -707,7 +709,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                         action = Intent.ACTION_SEND
                         putExtra(
                             Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                applicationContext, "com.googlefitsdk.fileprovider",
+                                applicationContext,
+                                applicationContext.packageName + AUTHORITY_SUFFIX,
                                 it
                             )
                         )
@@ -740,7 +743,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     action = Intent.ACTION_SEND
                     putExtra(
                         Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                            applicationContext, "com.googlefitsdk.fileprovider",
+                            applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX,
                             it
                         )
                     )
