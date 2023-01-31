@@ -46,8 +46,8 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
-class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
-    VideoCallListener, GoogleFitStatusListener {
+class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoCallListener,
+    GoogleFitStatusListener {
 
     var TAG = "mytag"
 
@@ -129,8 +129,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.webview.loadUrl(magicLink)
 
 
-        googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id)
+        googleFitUtil = GoogleFitUtil(this, this, default_web_client_id)
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -148,8 +147,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             val uri = intent.data
 
             Log.d(
-                TAG,
-                "onNewIntent: Getting URI"
+                TAG, "onNewIntent: Getting URI"
             )
             if (uri!!.queryParameterNames.contains("fitbit")) {
                 val message = uri!!.getQueryParameter("message")
@@ -158,8 +156,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     if (message != null && message.equals("success", ignoreCase = true)) {
                         runOnUiThread {
                             binding.webview.evaluateJavascript(
-                                "window.fitbitConnectSuccessfully(true)",
-                                null
+                                "window.fitbitConnectSuccessfully(true)", null
                             )
                             EventBus.getDefault()
                                 .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
@@ -168,16 +165,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                             .show()
 
                     } else if (message != null && message.equals(
-                            "failed",
-                            ignoreCase = true
+                            "failed", ignoreCase = true
                         )
                     ) Toast.makeText(
                         applicationContext,
                         "Failed to connect Fitbit device. Please retry or contact support",
                         Toast.LENGTH_LONG
                     ).show() else if (message != null && message.equals(
-                            "accessDenied",
-                            ignoreCase = true
+                            "accessDenied", ignoreCase = true
                         )
                     ) Toast.makeText(
                         applicationContext,
@@ -188,8 +183,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             }
         } else {
             Log.d(
-                TAG,
-                "onNewIntent: getData is null"
+                TAG, "onNewIntent: getData is null"
             )
         }
     }
@@ -234,8 +228,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         Log.d(
-            TAG,
-            "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
+            TAG, "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
         )
 
         super.onActivityResult(requestCode, resultCode, intent)
@@ -265,8 +258,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             runOnUiThread {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(false)",
-                    null
+                    "window.googleFitStatus(false)", null
                 )
             }
             return
@@ -278,8 +270,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-                != PackageManager.PERMISSION_GRANTED
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACTIVITY_RECOGNITION
+                ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissions(
                     arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
@@ -311,8 +305,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             val bundle = Bundle()
             bundle.putString(
-                "Authorization",
-                authToken
+                "Authorization", authToken
             )
             browserIntent.putExtra(Browser.EXTRA_HEADERS, bundle)
 
@@ -337,20 +330,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             runOnUiThread {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitnessConnectedSuccessfully(true)",
-                    null
+                    "window.googleFitnessConnectedSuccessfully(true)", null
                 )
             }
         }
 
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
-        if (visitApiBaseUrl != null &&
-            authtoken != null &&
-            googleFitLastSync != 0L &&
-            gfHourlyLastSync != 0L &&
-            memberId != null
-        ) {
+        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
                 googleFitUtil.sendDataToServer(
                     visitApiBaseUrl + "/",
@@ -382,9 +369,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         EventBus.getDefault().post(
             MessageEvent(
                 VisitEventType.RequestHealthDataForDetailedGraph(
-                    type,
-                    frequency,
-                    timestamp
+                    type, frequency, timestamp
                 )
             )
         )
@@ -400,8 +385,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         if (url != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 binding.webview.evaluateJavascript(
-                    url,
-                    null
+                    url, null
                 )
             }
         }
@@ -475,8 +459,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 if (locationTrackerUtil.isGPSEnabled()) {
                     runOnUiThread {
                         binding.webview.evaluateJavascript(
-                            "window.checkTheGpsPermission(true)",
-                            null
+                            "window.checkTheGpsPermission(true)", null
                         )
                         Log.d("mytag", "window.checkTheGpsPermission(true) called")
                     }
@@ -502,8 +485,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
             runOnUiThread {
                 binding.webview.evaluateJavascript(
-                    "window.checkTheGpsPermission(true)",
-                    null
+                    "window.checkTheGpsPermission(true)", null
                 )
                 Log.d("mytag", "window.checkTheGpsPermission(true) called")
             }
@@ -511,9 +493,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -551,8 +531,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             .post(MessageEvent(VisitEventType.StartVideoCall(sessionId, consultationId, authToken)))
 
         val intent = Intent(
-            this,
-            TwillioVideoCallActivity::class.java
+            this, TwillioVideoCallActivity::class.java
         )
         intent.putExtra("isDebug", isDebug)
         intent.putExtra("sessionId", sessionId)
@@ -562,13 +541,11 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun hraCompleted() {
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.HRA_Completed()))
+        EventBus.getDefault().post(MessageEvent(VisitEventType.HRA_Completed()))
     }
 
     override fun googleFitConnectedAndSavedInPWA() {
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
+        EventBus.getDefault().post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -579,14 +556,12 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(false)",
-                    null
+                    "window.showConnectToGoogleFit(false)", null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(false) called")
             } else {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(true)",
-                    null
+                    "window.showConnectToGoogleFit(true)", null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(true) called")
             }
@@ -608,14 +583,12 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(true)",
-                    null
+                    "window.googleFitStatus(true)", null
                 )
                 Log.d("mytag", "googleFitStatus(true) called")
             } else {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(false)",
-                    null
+                    "window.googleFitStatus(false)", null
                 )
                 Log.d("mytag", "googleFitStatus(false) called")
             }
@@ -629,14 +602,19 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 KeyEvent.KEYCODE_BACK -> {
                     Log.d(TAG, "webview.canGoBack(): ${binding.webview.canGoBack()}")
 
+//                    Log.d("Webview Url", binding.webview.url.toString())
+
                     if (binding.webview.canGoBack()) {
                         binding.webview.goBack()
-                        Log.d("Webview Url", binding.webview.url.toString())
-                        if (binding.webview.url!!.contains("home")) {
-                            finish()
-                        } else if (binding.webview.url!!.contains("online/preview")) {
+                        if (binding.webview.url!!.endsWith("consultation/online/preview")) {
                             finish()
                         } else if (binding.webview.url!!.endsWith("/weight-management")) {
+                            finish()
+                        } else if (binding.webview.url!!.endsWith("op-benefits")) {
+                            finish()
+                        } else if (binding.webview.url!!.endsWith("/home/rewards")) {
+                            finish()
+                        } else if (binding.webview.url!!.endsWith("/wellness-management")) {
                             finish()
                         }
                     } else {
@@ -705,49 +683,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimeType");
 
         url?.let {
-            pdfDownloader.downloadPdfFile(
-                fileDir = filesDir,
-                pdfUrl = url,
-                onDownloadComplete = {
-                    val shareIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(
-                            Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                applicationContext,
-                                applicationContext.packageName + AUTHORITY_SUFFIX,
-                                it
-                            )
-                        )
-                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        type = "application/pdf"
-                    }
-                    val sendIntent = Intent.createChooser(shareIntent, null)
-                    startActivity(sendIntent)
-                }, onDownloadFailed = {
-                    Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
-                    try {
-                        val uri = Uri.parse(url)
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                })
-        }
-
-    }
-
-    override fun downloadHraLink(url: String) {
-        Log.d("mytag", "downloadHraLink() link:$url")
-
-        pdfDownloader.downloadPdfFile(
-            fileDir = filesDir,
-            pdfUrl = url,
-            onDownloadComplete = {
+            pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
                     putExtra(
                         Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                            applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX,
+                            applicationContext,
+                            applicationContext.packageName + AUTHORITY_SUFFIX,
                             it
                         )
                     )
@@ -757,7 +699,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 val sendIntent = Intent.createChooser(shareIntent, null)
                 startActivity(sendIntent)
             }, onDownloadFailed = {
-                Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+                Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
                 try {
                     val uri = Uri.parse(url)
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -765,6 +707,37 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     e.printStackTrace()
                 }
             })
+        }
+
+    }
+
+    override fun downloadHraLink(url: String) {
+        Log.d("mytag", "downloadHraLink() link:$url")
+
+        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(
+                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                        applicationContext,
+                        applicationContext.packageName + AUTHORITY_SUFFIX,
+                        it
+                    )
+                )
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                type = "application/pdf"
+            }
+            val sendIntent = Intent.createChooser(shareIntent, null)
+            startActivity(sendIntent)
+        }, onDownloadFailed = {
+            Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+            try {
+                val uri = Uri.parse(url)
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        })
     }
 
     override fun openDependentLink(link: String?) {
@@ -774,8 +747,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         customIntent.setShowTitle(false)
         customIntent.setToolbarColor(
             ContextCompat.getColor(
-                this,
-                R.color.tata_aig_brand_color
+                this, R.color.tata_aig_brand_color
             )
         )
         try {
@@ -797,8 +769,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun pendingHraUpdation() {
         runOnUiThread {
             binding.webview.evaluateJavascript(
-                "window.updateHraToAig()",
-                null
+                "window.updateHraToAig()", null
             )
         }
     }
@@ -819,8 +790,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun consultationBooked() {
         runOnUiThread {
-            EventBus.getDefault()
-                .post(MessageEvent(VisitEventType.ConsultationBooked))
+            EventBus.getDefault().post(MessageEvent(VisitEventType.ConsultationBooked))
         }
     }
 
@@ -832,8 +802,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
         runOnUiThread {
             binding.webview.evaluateJavascript(
-                finalString,
-                null
+                finalString, null
             )
         }
     }
