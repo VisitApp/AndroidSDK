@@ -596,13 +596,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> {
                     Log.d(TAG, "webview.canGoBack(): ${binding.webview.canGoBack()}")
 
-//                    Log.d("Webview Url", binding.webview.url.toString())
+                    Log.d(TAG, binding.webview.url.toString())
 
                     if (binding.webview.canGoBack()) {
                         binding.webview.goBack()
@@ -616,6 +617,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                             finish()
                         } else if (binding.webview.url!!.endsWith("/wellness-management")) {
                             finish()
+                        } else if (binding.webview.url!!.endsWith("/health-data")) {
+                            Log.d(TAG,"window.hardwareBackPressed() called")
+                            runOnUiThread {
+                                binding.webview.evaluateJavascript(
+                                    "window.hardwareBackPressed()", null
+                                ) // this is a workaround to close the PWA, when the user lands to the details graph page directly,
+                                // so this event acts as a gateway to check if the user has directly landed on the page, and close the PWA.
+                            }
                         }
                     } else {
                         finish()

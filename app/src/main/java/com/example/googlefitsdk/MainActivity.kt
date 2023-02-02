@@ -149,9 +149,12 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 //            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
 //        val magicLink =
 //            "https://axis-tata.getvisitapp.xyz/sso?userParams=DJsu6SFXLdsSNBuRr2Q83Z9Am1Y3EOEmKY2o4S4hvoYmjZxusiABb7D0nxr3bDtprg0o603IWvmMPOMT-IMuXa5faX64LueVOPmX15BC-WLpWDd8gXPrDUDBD9-w2u-u&clientId=tata-aig-axis-f7b4d3"
+//
+//        val magicLink =
+//            "https://tata-aig.getvisitapp.xyz/sso?userParams=LH53MbTMvD-UcbZxap-i6ZIGapxBTkbeY4g1THvWI3zoRfSxfCNTQCgLO-yQwkwUDS9wqiODbfBV5SVOqNNj3XLe8C25ANZ1Y81cIGkY8kr30MjT_S8_t7ROPNrlln_P03ZdQ9YILQKsHr7XrgEAuCmJu28-8J7s44ZgCR_l-xQ_wiIzlSSyS0pwreczAlOH8suE8pr12NtWdOdu_dnuF8U6RuWBRaS31N6kZ2XIwmJb_9YkGnYzFFAKNoY7GnmHU0eDw9citsC_nUzEjBNnO5Cte_VyQCFWa7ON1DBmkLZb0PfTNxN0ABMlX73fQHhs&clientId=tata-aig-a8b455"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9Hs_wLC77IXuvARXejIBkeEutA679aoq10l_CZvX_YM4XabcH4lgUPh5bxHkhXoE4kr1cTXLlbhj4ESuY_C6InWTl4OAN77-WD8PRMuNOcv85hqvObQOzhDh3UTo4N8mOg&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(
