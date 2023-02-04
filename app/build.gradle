@@ -65,7 +65,6 @@ dependencies {
     implementation 'io.reactivex:rxandroid:1.2.1'
     implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'com.squareup.okhttp3:okhttp:3.8.1'
-    implementation 'com.amitshekhar.android:rx-android-networking:1.0.0'
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
 
 }
