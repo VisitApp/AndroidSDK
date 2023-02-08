@@ -617,7 +617,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                             finish()
                         } else if (binding.webview.url!!.endsWith("/wellness-management")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/health-data")) {
+                        } else if (binding.webview.url!!.endsWith("/health-data")
+                            || binding.webview.url!!.endsWith("/hra/question")
+                        ) {
                             Log.d(TAG, "window.hardwareBackPressed() called")
                             runOnUiThread {
                                 binding.webview.evaluateJavascript(

@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 //            "https://tata-aig.getvisitapp.xyz/sso?userParams=LH53MbTMvD-UcbZxap-i6ZIGapxBTkbeY4g1THvWI3zoRfSxfCNTQCgLO-yQwkwUDS9wqiODbfBV5SVOqNNj3XLe8C25ANZ1Y81cIGkY8kr30MjT_S8_t7ROPNrlln_P03ZdQ9YILQKsHr7XrgEAuCmJu28-8J7s44ZgCR_l-xQ_wiIzlSSyS0pwreczAlOH8suE8pr12NtWdOdu_dnuF8U6RuWBRaS31N6kZ2XIwmJb_9YkGnYzFFAKNoY7GnmHU0eDw9citsC_nUzEjBNnO5Cte_VyQCFWa7ON1DBmkLZb0PfTNxN0ABMlX73fQHhs&clientId=tata-aig-a8b455"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=zw8Ck649KpW0PocCtcALfvAuXOK-NO7lzSfgWRR99upZwg5IzQnURkWDxzMsNwDKC9LCT91j6mhXnNODYQdu3FY7ssE6lMujWrYjLk_wtx6B__kBZozqpNQ8PVATQrIR4lQ0tD7GUVI4S_ac6PFgwrT2TvSYH9fk1xF1FrIGDCDdTiJUbxJcV7unKNxgSTf79WEc-dOOW6XoedzRYQ3a6-rletbNS2XM872ZfLCPSxZ7JAy3QeiPjwgwn9q5o0qsfidqLZrDpzLho2rndjvNug&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(
