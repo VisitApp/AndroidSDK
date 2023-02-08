@@ -31,6 +31,7 @@ import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
+import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
@@ -70,6 +71,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     var googleFitLastSync: Long = 0L
     var gfHourlyLastSync = 0L
     var memberId: String? = null
+    lateinit var locationTrackerUtil: LocationTrackerUtil
 
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
@@ -121,6 +123,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         googleFitStepChecker = GoogleFitAccessChecker(this)
         sharedPrefUtil = SharedPrefUtil(this)
         pdfDownloader = PdfDownloader()
+        locationTrackerUtil = LocationTrackerUtil(this)
+
 
     }
 
@@ -132,6 +136,19 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     override fun onPause() {
         binding.webview.onPause();
         super.onPause()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun onRestart() {
+        super.onRestart()
+        if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
+            runOnUiThread {
+                binding.webview.evaluateJavascript(
+                    "window.checkTheGpsPermission(true)", null
+                )
+                Log.d("mytag", "window.checkTheGpsPermission(true) called")
+            }
+        }
     }
 
 
@@ -309,18 +326,28 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun askForLocationPermission() {
 
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_REQUEST_CODE
-                )
+        runOnUiThread {
+            if (locationTrackerUtil.isLocationPermissionAllowed()) {
+                if (locationTrackerUtil.isGPSEnabled()) {
+                    runOnUiThread {
+                        binding.webview.evaluateJavascript(
+                            "window.checkTheGpsPermission(true)", null
+                        )
+                        Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                    }
+                } else {
+                    locationTrackerUtil.showGPS_NotEnabledDialog()
+                }
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        LOCATION_PERMISSION_REQUEST_CODE
+                    )
+                }
             }
         }
     }
@@ -341,7 +368,20 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                 }
 
             }
-            LOCATION_PERMISSION_REQUEST_CODE -> {}
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty()) {
+                    val locationPermissionGranted =
+                        (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+
+                    if (locationPermissionGranted) {
+                        if (!locationTrackerUtil.isGPSEnabled()) {
+                            locationTrackerUtil.showGPS_NotEnabledDialog()
+                        }
+                    } else {
+                        locationTrackerUtil.showLocationPermissionDeniedAlertDialog()
+                    }
+                }
+            }
         }
     }
 
