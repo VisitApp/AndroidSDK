@@ -27,7 +27,9 @@
         android:theme="@style/Theme.GoogleFitSdk">
 
         <activity android:name=".activity.TwillioVideoCallActivity" />
-        <activity android:name=".activity.SdkWebviewActivity" />
+        <activity
+            android:name=".activity.SdkWebviewActivity"
+            android:configChanges="orientation|screenSize" />
 
         <provider
             android:name="com.getvisitapp.google_fit.util.GoogleFitSdkFileProvider"

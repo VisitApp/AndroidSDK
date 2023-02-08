@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     fun init() {
 
         val magicLink =
-            "https://api.getvisitapp.xyz/care/partners/consult?data=f9af%2Fcwc5hB4oUeJjiqdiqrTKDzIblG7oX2pL6Ql5I2Iz5D2Mt5W7EZLx%2F7AGyzTyQ2JPvBzH%2BJDNZn7JwAqHAgJZ3%2FyidaK2ojJfT5AdXY33aN1R%2F8xBv9waA7kE09KFTwD53bQyaPR0Et7osINIxYjH1TPo6gbNCRcGpR5a6sHa4hTWK2NJsrhZaHJzNUp9fZmc2MUph71aKeyZZIdewFtZQ4JwkA9%2BlvQCujDamFw9Nzf%2FFTx2W5ZNapER%2Bo7"
+            "https://api.samuraijack.xyz/url-shortener/m/JAjYyb70"
 
         IntiateSdk.s(
             this,

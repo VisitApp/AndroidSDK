@@ -6,13 +6,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -31,10 +35,12 @@ import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
+import tvi.webrtc.ContextUtils
 import java.util.*
 
-class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
-    VideoCallListener, GoogleFitStatusListener {
+
+class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoCallListener,
+    GoogleFitStatusListener {
 
     var TAG = "mytag"
 
@@ -70,10 +76,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     companion object {
         fun getIntent(
-            context: Context,
-            isDebug: Boolean,
-            magicLink: String,
-            default_web_client_id: String
+            context: Context, isDebug: Boolean, magicLink: String, default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
@@ -102,12 +105,16 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         binding.webview.setCookiesEnabled(true)
         binding.webview.setThirdPartyCookiesEnabled(true)
 
+        binding.webview.settings.javaScriptEnabled = true
+        binding.webview.webChromeClient = MyChrome()
+        binding.webview.webViewClient = WebViewClient()
+
         binding.webview.loadUrl(magicLink)
 
 
 
-        googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id)
+        googleFitUtil = GoogleFitUtil(this, this, default_web_client_id)
+
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -157,8 +164,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         Log.d(
-            TAG,
-            "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
+            TAG, "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
         )
 
         super.onActivityResult(requestCode, resultCode, intent)
@@ -176,8 +182,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-                != PackageManager.PERMISSION_GRANTED
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACTIVITY_RECOGNITION
+                ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissions(
                     arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
@@ -199,24 +207,15 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
         runOnUiThread {
             binding.webview.evaluateJavascript(
-                "window.googleFitnessConnectedSuccessfully(true)",
-                null
+                "window.googleFitnessConnectedSuccessfully(true)", null
             )
         }
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
-        if (visitApiBaseUrl != null &&
-            authtoken != null &&
-            googleFitLastSync != 0L &&
-            gfHourlyLastSync != 0L &&
-            memberId != null
-        ) {
+        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
                 googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
-                    googleFitLastSync,
-                    gfHourlyLastSync
+                    visitApiBaseUrl + "/", authtoken, googleFitLastSync, gfHourlyLastSync
                 )
                 syncDataWithServer = true
             }
@@ -248,8 +247,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         if (url != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 binding.webview.evaluateJavascript(
-                    url,
-                    null
+                    url, null
                 )
             }
         }
@@ -313,8 +311,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
     override fun askForLocationPermission() {
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(
@@ -326,9 +326,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -351,8 +349,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
 
         val intent = Intent(
-            this,
-            TwillioVideoCallActivity::class.java
+            this, TwillioVideoCallActivity::class.java
         )
         intent.putExtra("isDebug", isDebug)
         intent.putExtra("sessionId", sessionId)
@@ -373,14 +370,12 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(false)",
-                    null
+                    "window.showConnectToGoogleFit(false)", null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(false) called")
             } else {
                 binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(true)",
-                    null
+                    "window.showConnectToGoogleFit(true)", null
                 )
                 Log.d("mytag", "showConnectToGoogleFit(true) called")
             }
@@ -388,8 +383,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     }
 
     override fun hraQuestionAnswered(current: Int, total: Int) {
-        runOnUiThread {
-        }
+        runOnUiThread {}
     }
 
 
@@ -400,14 +394,12 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
 
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(true)",
-                    null
+                    "window.googleFitStatus(true)", null
                 )
                 Log.d("mytag", "googleFitStatus(true) called")
             } else {
                 binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(false)",
-                    null
+                    "window.googleFitStatus(false)", null
                 )
                 Log.d("mytag", "googleFitStatus(false) called")
             }
@@ -483,49 +475,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimeType");
 
         url?.let {
-            pdfDownloader.downloadPdfFile(
-                fileDir = filesDir,
-                pdfUrl = url,
-                onDownloadComplete = {
-                    val shareIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(
-                            Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                applicationContext,
-                                applicationContext.packageName + AUTHORITY_SUFFIX,
-                                it
-                            )
-                        )
-                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        type = "application/pdf"
-                    }
-                    val sendIntent = Intent.createChooser(shareIntent, null)
-                    startActivity(sendIntent)
-                }, onDownloadFailed = {
-                    Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
-                    try {
-                        val uri = Uri.parse(url)
-                        startActivity(Intent(Intent.ACTION_VIEW, uri))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                })
-        }
-
-    }
-
-    override fun downloadHraLink(url: String) {
-        Log.d("mytag", "downloadHraLink() link:$url")
-
-        pdfDownloader.downloadPdfFile(
-            fileDir = filesDir,
-            pdfUrl = url,
-            onDownloadComplete = {
+            pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
                     putExtra(
                         Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                            applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX,
+                            applicationContext,
+                            applicationContext.packageName + AUTHORITY_SUFFIX,
                             it
                         )
                     )
@@ -535,7 +491,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                 val sendIntent = Intent.createChooser(shareIntent, null)
                 startActivity(sendIntent)
             }, onDownloadFailed = {
-                Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+                Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
                 try {
                     val uri = Uri.parse(url)
                     startActivity(Intent(Intent.ACTION_VIEW, uri))
@@ -543,6 +499,37 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
                     e.printStackTrace()
                 }
             })
+        }
+
+    }
+
+    override fun downloadHraLink(url: String) {
+        Log.d("mytag", "downloadHraLink() link:$url")
+
+        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(
+                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                        applicationContext,
+                        applicationContext.packageName + AUTHORITY_SUFFIX,
+                        it
+                    )
+                )
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                type = "application/pdf"
+            }
+            val sendIntent = Intent.createChooser(shareIntent, null)
+            startActivity(sendIntent)
+        }, onDownloadFailed = {
+            Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+            try {
+                val uri = Uri.parse(url)
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        })
     }
 
     override fun openDependentLink(link: String?) {
@@ -552,8 +539,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         customIntent.setShowTitle(false)
         customIntent.setToolbarColor(
             ContextCompat.getColor(
-                this,
-                R.color.tata_aig_brand_color
+                this, R.color.tata_aig_brand_color
             )
         )
         try {
@@ -575,8 +561,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
     override fun pendingHraUpdation() {
         runOnUiThread {
             binding.webview.evaluateJavascript(
-                "window.updateHraToAig()",
-                null
+                "window.updateHraToAig()", null
             )
         }
     }
@@ -601,8 +586,64 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener,
         }
     }
 
+    inner class MyChrome internal constructor() : WebChromeClient() {
+        private var mCustomView: View? = null
+        private var mCustomViewCallback: CustomViewCallback? = null
+        private var mOriginalOrientation = 0
+        private var mOriginalSystemUiVisibility = 0
+        override fun getDefaultVideoPoster(): Bitmap? {
+            return if (mCustomView == null) {
+                null
+            } else BitmapFactory.decodeResource(
+                ContextUtils.getApplicationContext().resources, 2130837573
+            )
+        }
 
+        override fun onHideCustomView() {
+            (window.decorView as FrameLayout).removeView(mCustomView)
+            mCustomView = null
+            window.decorView.systemUiVisibility = mOriginalSystemUiVisibility
+            requestedOrientation = mOriginalOrientation
+            mCustomViewCallback!!.onCustomViewHidden()
+            mCustomViewCallback = null
+        }
+
+        override fun onShowCustomView(
+            paramView: View, paramCustomViewCallback: CustomViewCallback
+        ) {
+            if (mCustomView != null) {
+                onHideCustomView()
+                return
+            }
+            mCustomView = paramView
+            mOriginalSystemUiVisibility = window.decorView.getSystemUiVisibility()
+            mOriginalOrientation = requestedOrientation
+            mCustomViewCallback = paramCustomViewCallback
+            (window.decorView as FrameLayout).addView(
+                mCustomView, FrameLayout.LayoutParams(-1, -1)
+            )
+            window.decorView.systemUiVisibility = 3846 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        binding.webview.saveState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        binding.webview.restoreState(savedInstanceState)
+    }
 }
+
+
+
+
+
+
+
+
 
 
 
