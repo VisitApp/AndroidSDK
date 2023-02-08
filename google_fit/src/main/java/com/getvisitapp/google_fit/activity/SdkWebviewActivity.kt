@@ -618,7 +618,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                         } else if (binding.webview.url!!.endsWith("/wellness-management")) {
                             finish()
                         } else if (binding.webview.url!!.endsWith("/health-data")) {
-                            Log.d(TAG,"window.hardwareBackPressed() called")
+                            Log.d(TAG, "window.hardwareBackPressed() called")
                             runOnUiThread {
                                 binding.webview.evaluateJavascript(
                                     "window.hardwareBackPressed()", null
@@ -819,6 +819,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     override fun disconnectFromFitbit() {
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(false)))
 
+    }
+
+    override fun couponRedeemed() {
+        EventBus.getDefault().post(MessageEvent(VisitEventType.CouponRedeemed))
     }
 
 

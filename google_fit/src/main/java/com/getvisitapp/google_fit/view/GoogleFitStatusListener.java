@@ -50,6 +50,8 @@ public interface GoogleFitStatusListener {
 
     void disconnectFromFitbit();
 
+    void couponRedeemed();
+
 
 
 }

@@ -14,10 +14,10 @@ sealed class VisitEventType {
      * true in case of google fit is connected
      * false is case of fitbit is connected
      */
-    class FitnessPermissionGranted(var isGoogleFit:Boolean) : VisitEventType()
+    class FitnessPermissionGranted(var isGoogleFit: Boolean) : VisitEventType()
 
 
-    class FitnessPermissionRevoked(var isGoogleFit:Boolean) : VisitEventType()
+    class FitnessPermissionRevoked(var isGoogleFit: Boolean) : VisitEventType()
 
     /**
      * Called when the PWA request for health data for certain type.
@@ -51,13 +51,13 @@ sealed class VisitEventType {
 
     class HRA_Completed() : VisitEventType()
 
-    class GoogleFitConnectedAndSavedInPWA():VisitEventType()
+    class GoogleFitConnectedAndSavedInPWA() : VisitEventType()
 
-    class HRAQuestionAnswered(val current:Int,val total:Int):VisitEventType()
+    class HRAQuestionAnswered(val current: Int, val total: Int) : VisitEventType()
 
-    object ConsultationBooked:VisitEventType()
+    object ConsultationBooked : VisitEventType()
 
-
+    object CouponRedeemed : VisitEventType()
 
 
 }

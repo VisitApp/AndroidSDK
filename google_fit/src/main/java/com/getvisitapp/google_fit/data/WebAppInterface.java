@@ -40,7 +40,7 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void disconnectFromFitbit(){
+    public void disconnectFromFitbit() {
         Log.d("mytag", "disconnectFromFitbit() called");
 
         listener.disconnectFromFitbit();
@@ -145,6 +145,12 @@ public class WebAppInterface {
     public void consultationBooked() {
         Log.d("mytag", "consultationBooked called().");
         listener.consultationBooked();
+    }
+
+    @JavascriptInterface
+    public void couponRedeemed() {
+        Log.d("mytag", "couponRedeemed called().");
+        listener.couponRedeemed();
     }
 
 

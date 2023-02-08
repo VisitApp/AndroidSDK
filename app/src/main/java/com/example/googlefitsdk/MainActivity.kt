@@ -135,6 +135,10 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
                 VisitEventType.ConsultationBooked -> {
                     Log.d("mytag", "MainActivity ConsultationBooked event")
                 }
+
+                VisitEventType.CouponRedeemed -> {
+                    Log.d("mytag", "MainActivity CouponRedeemed event")
+                }
             }
 
         }
