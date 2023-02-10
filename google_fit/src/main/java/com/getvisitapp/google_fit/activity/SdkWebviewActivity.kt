@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,7 +16,10 @@ import android.provider.Browser
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -44,6 +48,7 @@ import im.delight.android.webview.AdvancedWebView
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import tvi.webrtc.ContextUtils
 import java.util.*
 
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoCallListener,
@@ -125,6 +130,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         binding.webview.setMixedContentAllowed(true)
         binding.webview.setCookiesEnabled(true)
         binding.webview.setThirdPartyCookiesEnabled(true)
+
+        binding.webview.settings.javaScriptEnabled = true
+        binding.webview.webChromeClient = MyChrome()
+        binding.webview.webViewClient = WebViewClient()
 
         binding.webview.loadUrl(magicLink)
 
@@ -825,6 +834,56 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
     override fun couponRedeemed() {
         EventBus.getDefault().post(MessageEvent(VisitEventType.CouponRedeemed))
+    }
+
+    inner class MyChrome internal constructor() : WebChromeClient() {
+        private var mCustomView: View? = null
+        private var mCustomViewCallback: CustomViewCallback? = null
+        private var mOriginalOrientation = 0
+        private var mOriginalSystemUiVisibility = 0
+        override fun getDefaultVideoPoster(): Bitmap? {
+            return if (mCustomView == null) {
+                null
+            } else BitmapFactory.decodeResource(
+                ContextUtils.getApplicationContext().resources, 2130837573
+            )
+        }
+
+        override fun onHideCustomView() {
+            (window.decorView as FrameLayout).removeView(mCustomView)
+            mCustomView = null
+            window.decorView.systemUiVisibility = mOriginalSystemUiVisibility
+            requestedOrientation = mOriginalOrientation
+            mCustomViewCallback!!.onCustomViewHidden()
+            mCustomViewCallback = null
+        }
+
+        override fun onShowCustomView(
+            paramView: View, paramCustomViewCallback: CustomViewCallback
+        ) {
+            if (mCustomView != null) {
+                onHideCustomView()
+                return
+            }
+            mCustomView = paramView
+            mOriginalSystemUiVisibility = window.decorView.getSystemUiVisibility()
+            mOriginalOrientation = requestedOrientation
+            mCustomViewCallback = paramCustomViewCallback
+            (window.decorView as FrameLayout).addView(
+                mCustomView, FrameLayout.LayoutParams(-1, -1)
+            )
+            window.decorView.systemUiVisibility = 3846 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        binding.webview.saveState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        binding.webview.restoreState(savedInstanceState)
     }
 
 
