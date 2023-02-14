@@ -60,9 +60,9 @@ public class StepsCounter {
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
                         new Scope(Scopes.PLUS_ME),
-                        new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
-                        new Scope(Scopes.FITNESS_LOCATION_READ_WRITE),
-                        new Scope(Scopes.FITNESS_BODY_READ_WRITE))
+                        new Scope(Scopes.FITNESS_ACTIVITY_READ),
+                        new Scope(Scopes.FITNESS_LOCATION_READ),
+                        new Scope(Scopes.FITNESS_BODY_READ))
                 .requestServerAuthCode(defaultWebClientId, false)
                 .requestIdToken(defaultWebClientId)
                 .build();
@@ -84,23 +84,12 @@ public class StepsCounter {
     private void askFitnessPermissions(GoogleSignInAccount googleSignInAccount, boolean isLastSignedIn) {
         if (googleSignInAccount != null) {
             fitnessOptions = FitnessOptions.builder()
-                    .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_WRITE)
                     .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
 
-                    .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_WRITE)
                     .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
 
                     .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                    .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
 
-                    .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                    .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
-
-                    .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_READ)
-                    .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
-
-                    .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_READ)
-                    .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_WRITE)
 
                     .addDataType(DataType.TYPE_DISTANCE_DELTA)
                     .addDataType(DataType.AGGREGATE_DISTANCE_DELTA)
@@ -316,24 +305,13 @@ public class StepsCounter {
         if (GoogleSignIn.getLastSignedInAccount(softContext.get()) != null) {
             FitnessOptions fitnessOptions =
                     FitnessOptions.builder()
-                            .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_WRITE)
                             .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
 
-                            .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_WRITE)
                             .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
 
-
                             .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                            .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
 
-                            .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                            .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
 
-                            .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_READ)
-                            .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
-
-                            .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_READ)
-                            .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_WRITE)
 
                             .addDataType(DataType.TYPE_DISTANCE_DELTA)
                             .addDataType(DataType.AGGREGATE_DISTANCE_DELTA)
