@@ -628,6 +628,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                             finish()
                         } else if (binding.webview.url!!.endsWith("/health-data")
                             || binding.webview.url!!.endsWith("/hra/question")
+                            || binding.webview.url!!.contains("stay-active")
                         ) {
                             Log.d(TAG, "window.hardwareBackPressed() called")
                             runOnUiThread {
