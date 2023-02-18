@@ -21,6 +21,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -51,6 +52,7 @@ import org.greenrobot.eventbus.ThreadMode
 import tvi.webrtc.ContextUtils
 import java.util.*
 
+@Keep
 class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoCallListener,
     GoogleFitStatusListener {
 

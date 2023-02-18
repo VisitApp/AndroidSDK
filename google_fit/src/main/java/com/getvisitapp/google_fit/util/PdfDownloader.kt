@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.util
 
 import android.util.Log
+import androidx.annotation.Keep
 import com.getvisitapp.google_fit.network.RetroServiceInterface
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -10,6 +11,7 @@ import java.io.*
 import java.util.*
 import kotlin.concurrent.thread
 
+@Keep
 class PdfDownloader {
 
     private lateinit var pdfFileName: File

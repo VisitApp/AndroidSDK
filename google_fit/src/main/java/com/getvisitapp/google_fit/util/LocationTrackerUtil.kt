@@ -7,10 +7,12 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.annotation.Keep
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 
 
+@Keep
 class LocationTrackerUtil(
     private var context: Context,
 ) {

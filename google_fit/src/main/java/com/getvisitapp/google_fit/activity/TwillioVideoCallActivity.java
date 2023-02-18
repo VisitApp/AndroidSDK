@@ -29,6 +29,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -87,6 +88,7 @@ import tvi.webrtc.VideoSink;
 
 ;
 
+@Keep
 public class TwillioVideoCallActivity extends AppCompatActivity implements TwillioVideoView {
     public static final String PREF_AUDIO_CODEC = "audio_codec";
     public static final String PREF_AUDIO_CODEC_DEFAULT = OpusCodec.NAME;

@@ -1,8 +1,10 @@
 package com.getvisitapp.google_fit.util
 
+import androidx.annotation.Keep
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+@Keep
 class RetrofitInstance {
 
     companion object {
