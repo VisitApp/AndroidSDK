@@ -10,14 +10,14 @@ plugins {
 android {
     compileSdk 32
 
-    signingConfigs {
-        config {
-            keyAlias 'key0'
-            keyPassword 'visithealth'
-            storeFile file('C:\\Users\\chinm\\AndroidStudioProjects\\GoogleFitSdk\\release.jks')
-            storePassword 'visithealth'
-        }
-    }
+//    signingConfigs {
+//        config {
+//            keyAlias 'key0'
+//            keyPassword 'visithealth'
+//            storeFile file('C:\\Users\\chinm\\AndroidStudioProjects\\GoogleFitSdk\\release.jks')
+//            storePassword 'visithealth'
+//        }
+//    }
 
     defaultConfig {
         applicationId "com.example.googlefitsdk"
@@ -34,11 +34,11 @@ android {
 
     buildTypes {
         release {
+//            signingConfig signingConfigs.config
 //            debuggable true
-            minifyEnabled true
-            shrinkResources true
+//            shrinkResources true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.config
         }
     }
     compileOptions {
