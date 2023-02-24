@@ -60,9 +60,7 @@ public class StepsCounter {
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
                         new Scope(Scopes.PLUS_ME),
-                        new Scope(Scopes.FITNESS_ACTIVITY_READ),
-                        new Scope(Scopes.FITNESS_LOCATION_READ),
-                        new Scope(Scopes.FITNESS_BODY_READ))
+                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .requestServerAuthCode(defaultWebClientId, false)
                 .requestIdToken(defaultWebClientId)
                 .build();
