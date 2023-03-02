@@ -437,9 +437,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                 sharedPrefUtil.setVisitAuthToken(authtoken)
             }
 
-            sharedPrefUtil.setGoogleFitDailyLastSyncTimeStamp(googleFitLastSync)
-            sharedPrefUtil.setGoogleFitHourlyLastSyncTimeStamp(gfHourlyLastSync)
-            sharedPrefUtil.setTataAIGLastSyncTimeStamp(gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
+            sharedPrefUtil.setGoogleFitDailyLastSyncTimeStamp(this.googleFitLastSync)
+            sharedPrefUtil.setGoogleFitHourlyLastSyncTimeStamp(this.gfHourlyLastSync)
+            sharedPrefUtil.setTataAIGLastSyncTimeStamp(this.gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
             // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
 
             memberId?.let {
@@ -450,8 +450,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                 googleFitUtil.sendDataToServer(
                     visitApiBaseUrl + "/",
                     authtoken,
-                    googleFitLastSync,
-                    gfHourlyLastSync,
+                    this.googleFitLastSync,
+                    this.gfHourlyLastSync,
                     memberId,
                     tataAIG_base_url,
                     tataAIG_auth_token
