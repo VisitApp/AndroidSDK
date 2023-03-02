@@ -326,7 +326,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onFitnessPermissionGranted() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(true)))
 
         googleFitUtil.fetchDataFromFit()
         Log.d(
@@ -362,6 +361,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                 syncDataWithServer = true
             }
         }
+
+        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(true)))
 
 
 //        runOnUiThread(Runnable { googleFitUtil.fetchDataFromFit() })

@@ -16,9 +16,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
-
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -70,7 +67,11 @@ public class OkHttpRequests {
 
                         Response response = client.newCall(request).execute();
                         String responseString = response.body().string();
-                        Log.d("Post response ", responseString);
+
+                        Log.d(
+                                "mytag",
+                                "OkHttpRequests postRequest :" + response);
+
                         if (response.isSuccessful()) {
                             return gson.fromJson(responseString, clazz);
                         } else {
@@ -92,7 +93,7 @@ public class OkHttpRequests {
         if (builder == null) return null;
         builder.addHeader("Content-type", "application/json");
         builder.addHeader("Authorization", authToken);
-        builder.addHeader("platform","ANDROID");
+        builder.addHeader("platform", "ANDROID");
         return builder.build();
 
     }
@@ -116,9 +117,15 @@ public class OkHttpRequests {
 
                 String responseString = response.body().string();
 
+                Log.d(
+                        "mytag",
+                        "OkHttpRequests postRequestHandler :" + response + "\n payload:" + payload);
+
+
                 if (response.isSuccessful()) {
                     return new JSONObject(responseString);
                 } else {
+
                     BaseException baseException =
                             new Gson().fromJson(responseString, BaseException.class);
                     if (baseException.message != null) {
@@ -145,6 +152,10 @@ public class OkHttpRequests {
                 Response response = client.newCall(request).execute();
 
                 String responseString = response.body().string();
+
+                Log.d(
+                        "mytag",
+                        "OkHttpRequests putRequestHandler:" + response + "\n payload:" + payload);
 
                 if (response.isSuccessful()) {
                     return new JSONObject(responseString);
