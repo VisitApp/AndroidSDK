@@ -161,19 +161,19 @@ public class SyncStepHelper {
 
         if (googleFitConnector != null) {
             Observable.zip(
-                    googleFitConnector.getWeeklySteps(start, end),
-                    googleFitConnector.getWeeklyDistance(start, end),
-                    googleFitConnector.getWeeklyCalories(start, end),
-                    googleFitConnector.getSleepForWeek(start, GoogleFitConnector.getDifferenceBetweenTwoDays(start, end)),
-                    new Func4<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, ActivitySummaryGoal>() {
-                        @Override
-                        public ActivitySummaryGoal call(HealthDataGraphValues healthDataGraphValues, HealthDataGraphValues healthDataGraphValues2, HealthDataGraphValues healthDataGraphValues3, HealthDataGraphValues healthDataGraphValues4) {
-                            ActivitySummaryGoal activitySummaryGoal = new ActivitySummaryGoal(healthDataGraphValues, healthDataGraphValues2, healthDataGraphValues3, healthDataGraphValues4);
-                            return activitySummaryGoal;
-                        }
+                            googleFitConnector.getWeeklySteps(start, end),
+                            googleFitConnector.getWeeklyDistance(start, end),
+                            googleFitConnector.getWeeklyCalories(start, end),
+                            googleFitConnector.getSleepForWeek(start, GoogleFitConnector.getDifferenceBetweenTwoDays(start, end)),
+                            new Func4<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, ActivitySummaryGoal>() {
+                                @Override
+                                public ActivitySummaryGoal call(HealthDataGraphValues healthDataGraphValues, HealthDataGraphValues healthDataGraphValues2, HealthDataGraphValues healthDataGraphValues3, HealthDataGraphValues healthDataGraphValues4) {
+                                    ActivitySummaryGoal activitySummaryGoal = new ActivitySummaryGoal(healthDataGraphValues, healthDataGraphValues2, healthDataGraphValues3, healthDataGraphValues4);
+                                    return activitySummaryGoal;
+                                }
 
-                    }
-            )
+                            }
+                    )
                     .flatMap(new Func1<ActivitySummaryGoal, Observable<ActivitySummaryGoal>>() {
                         @Override
                         public Observable<ActivitySummaryGoal> call(ActivitySummaryGoal activitySummaryGoal) {
@@ -316,12 +316,37 @@ public class SyncStepHelper {
         Log.d(TAG, "endTimeStamp:" + readableFormat.format(endTimeStamp));
 
 
+        JSONArray jsonArray = new JSONArray();
+
         syncDataForDay(startTimeStamp, endTimeStamp, context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Boolean>() {
+                .subscribe(new Subscriber<JSONObject>() {
                     @Override
                     public void onCompleted() {
+
+
+                        if(!syncWithTataAIGServerOnly){
+                            Log.d(TAG, "jsonArray: " + jsonArray);
+
+                            JSONObject finalJsonObject = new JSONObject();
+                            try {
+                                finalJsonObject.put("data", null);
+                                finalJsonObject.put("bulkHealthData", jsonArray);
+                                finalJsonObject.put("platform", "ANDROID");
+
+                                Log.d(TAG, "Visit Hourly Sync finalRequest: " + finalJsonObject.toString());
+
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            syncHourlyDataWithVisit_Server(finalJsonObject);
+                        }
+
+
+
+
                         Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
                         //this is called after all the steps for the days are synced from startTimeStamp to endTimeStamp
                         //call the tataAIG api here.
@@ -337,6 +362,10 @@ public class SyncStepHelper {
                         }
 
 
+
+
+
+
                     }
 
                     @Override
@@ -345,9 +374,9 @@ public class SyncStepHelper {
                     }
 
                     @Override
-                    public void onNext(Boolean aBoolean) {
-                        Log.d(TAG, "onNext: syncDataForDay: " + aBoolean);
-
+                    public void onNext(JSONObject jsonObject) {
+                        Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
+                        jsonArray.put(jsonObject);
                     }
                 });
 
@@ -357,7 +386,7 @@ public class SyncStepHelper {
 
     }
 
-    private rx.Observable<Boolean> syncDataForDay(long startime, long endTime, Context context) {
+    private rx.Observable<JSONObject> syncDataForDay(long startime, long endTime, Context context) {
 
         // Make a list of observables with responses as true and false and run them serially
         // If any of the observables return false, then end the chain
@@ -376,15 +405,15 @@ public class SyncStepHelper {
         }
 
         return Observable.from(list)
-                .concatMap(new Func1<StartEndDate, Observable<Boolean>>() {
+                .concatMap(new Func1<StartEndDate, Observable<JSONObject>>() {
                     @Override
-                    public Observable<Boolean> call(StartEndDate startEndDate) {
+                    public Observable<JSONObject> call(StartEndDate startEndDate) {
 
-                        return Observable.create(new Action1<Emitter<Boolean>>() {
+                        return Observable.create(new Action1<Emitter<JSONObject>>() {
                             @Override
-                            public void call(Emitter<Boolean> emitter) {
+                            public void call(Emitter<JSONObject> emitter) {
                                 getPayloadForDay(startEndDate.getStartTime(), startEndDate.getEndTime(), context)
-                                        .subscribe(new Subscriber<Boolean>() {
+                                        .subscribe(new Subscriber<JSONObject>() {
                                             @Override
                                             public void onCompleted() {
                                                 Log.d(TAG, "onCompleted: inside creator: completed");
@@ -398,10 +427,10 @@ public class SyncStepHelper {
                                             }
 
                                             @Override
-                                            public void onNext(Boolean aBoolean) {
-                                                Log.d(TAG, "onNext: inside Creator: " + aBoolean);
-                                                if (aBoolean) {
-                                                    emitter.onNext(aBoolean);
+                                            public void onNext(JSONObject jsonObject) {
+                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
+                                                if (jsonObject!=null) {
+                                                    emitter.onNext(jsonObject);
                                                 } else {
                                                     // If the previous API responded with an error, then stop the future API calls.
                                                     // This is required to make sure that the data is synced in order.
@@ -420,81 +449,92 @@ public class SyncStepHelper {
 
     }
 
-    private Observable<Boolean> getPayloadForDay(long start, long end, Context context) {
+    private Observable<JSONObject> getPayloadForDay(long start, long end, Context context) {
 
         Log.d(TAG, "Start: " + start + " End: " + end);
         Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
 
         return Observable.zip(
-                googleFitConnector.getDailySteps(start, end),
-                googleFitConnector.getDailyDistance(start, end),
-                googleFitConnector.getDailyCalories(start, end),
-                new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
-                    @Override
-                    public JSONObject call(HealthDataGraphValues steps, HealthDataGraphValues distance, HealthDataGraphValues calories) {
-                        //Log.d(TAG, "getPayloadForDay: Response: " + readableFormat.format(start) + " to " + readableFormat.format(end));
-                        //Log.d(TAG, "call: steps :" + steps.getValues());
-                        //Log.d(TAG, "call: distance :" + distance.getValues());
-                        //Log.d(TAG, "call: calories :" + calories.getValues());
+                        googleFitConnector.getDailySteps(start, end),
+                        googleFitConnector.getDailyDistance(start, end),
+                        googleFitConnector.getDailyCalories(start, end),
+                        new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
+                            @Override
+                            public JSONObject call(HealthDataGraphValues steps, HealthDataGraphValues distance, HealthDataGraphValues calories) {
+                                //Log.d(TAG, "getPayloadForDay: Response: " + readableFormat.format(start) + " to " + readableFormat.format(end));
+                                //Log.d(TAG, "call: steps :" + steps.getValues());
+                                //Log.d(TAG, "call: distance :" + distance.getValues());
+                                //Log.d(TAG, "call: calories :" + calories.getValues());
 
-                        JSONArray data_TATA_AIG = new JSONArray();
-                        JSONObject payloadTATA_AIG = new JSONObject();
-                        JSONObject jsonObject_TATA_AIG;
+                                JSONArray data_TATA_AIG = new JSONArray();
+                                JSONObject payloadTATA_AIG = new JSONObject();
+                                JSONObject jsonObject_TATA_AIG;
 
-                        JSONArray data = new JSONArray();
-                        JSONObject payload = new JSONObject();
-                        JSONObject jsonObject;
-                        try {
-                            for (int i = 0; i < steps.getValues().size(); i++) {
-                                jsonObject = new JSONObject();
-                                jsonObject.put("st", steps.getValues().get(i));
-                                jsonObject.put("c", calories.getValues().get(i));
-                                jsonObject.put("d", distance.getValues().get(i));
-                                jsonObject.put("h", i);
-                                jsonObject.put("s", steps.getAppContributedToGoogleFitValues().get(i));
+                                JSONArray data = new JSONArray();
+                                JSONObject payload = new JSONObject();
+                                JSONObject jsonObject;
+                                try {
+                                    for (int i = 0; i < steps.getValues().size(); i++) {
+                                        jsonObject = new JSONObject();
+                                        jsonObject.put("st", steps.getValues().get(i));
+                                        jsonObject.put("c", calories.getValues().get(i));
+                                        jsonObject.put("d", distance.getValues().get(i));
+                                        jsonObject.put("h", i);
+                                        jsonObject.put("s", steps.getAppContributedToGoogleFitValues().get(i));
 
-                                jsonObject_TATA_AIG = new JSONObject();
-                                jsonObject_TATA_AIG.put("hour", i);
-                                jsonObject_TATA_AIG.put("steps", steps.getValues().get(i));
-                                jsonObject_TATA_AIG.put("calories", calories.getValues().get(i));
+                                        jsonObject_TATA_AIG = new JSONObject();
+                                        jsonObject_TATA_AIG.put("hour", i);
+                                        jsonObject_TATA_AIG.put("steps", steps.getValues().get(i));
+                                        jsonObject_TATA_AIG.put("calories", calories.getValues().get(i));
 
 
-                                data.put(jsonObject);
+                                        data.put(jsonObject);
 
-                                //for tata_aig
-                                data_TATA_AIG.put(jsonObject_TATA_AIG);
+                                        //for tata_aig
+                                        data_TATA_AIG.put(jsonObject_TATA_AIG);
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                try {
+                                    payload.put("data", data);
+                                    payload.put("dt", start);
+
+
+                                    //for tata_aig
+                                    payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
+                                    payloadTATA_AIG.put("activity_data", data_TATA_AIG);
+                                    tataAIG_sync_data.put(payloadTATA_AIG);
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                return payload;
                             }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
                         }
 
-                        try {
-                            payload.put("data", data);
-                            payload.put("dt", start);
-                            payload.put("platform", "ANDROID");
+                );
+    }
 
-
-                            //for tata_aig
-                            payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
-                            payloadTATA_AIG.put("activity_data", data_TATA_AIG);
-                            tataAIG_sync_data.put(payloadTATA_AIG);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        return payload;
-                    }
-                }
-
-        )
-                .concatMap(new Func1<JSONObject, Observable<Boolean>>() {
+    private void syncHourlyDataWithVisit_Server(JSONObject jsonObject) {
+        mainActivityPresenter.syncDayWithServer(jsonObject).subscribeOn(Schedulers.io())
+                .doOnError(new Action1<Throwable>() {
                     @Override
-                    public Observable<Boolean> call(JSONObject jsonObject) {
-                        if (syncWithTataAIGServerOnly) {
-                            return Observable.just(true);
-                        } else {
-                            return mainActivityPresenter.syncDayWithServer(jsonObject);
-                        }
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        Log.d("mytag", "Visit Hourly Data Sync Status: " + aBoolean);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
                     }
                 });
     }
@@ -528,7 +568,7 @@ public class SyncStepHelper {
 
     }
 
-    public void sendHRAInCompleteStatusToTataAIG(JSONObject jsonObject){
+    public void sendHRAInCompleteStatusToTataAIG(JSONObject jsonObject) {
         mainActivityPresenter.sendHRAInCompleteStatus(jsonObject).subscribeOn(Schedulers.io())
                 .doOnError(new Action1<Throwable>() {
                     @Override
