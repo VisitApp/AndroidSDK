@@ -322,19 +322,6 @@ public class SyncStepHelper {
                 .subscribe(new Subscriber<Boolean>() {
                     @Override
                     public void onCompleted() {
-                        Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
-                        //this is called after all the steps for the days are synced from startTimeStamp to endTimeStamp
-                        //call the tataAIG api here.
-
-                        JSONObject finalRequest = new JSONObject();
-                        try {
-                            finalRequest.put("member_id", String.valueOf(memberId));
-                            finalRequest.put("data", tataAIG_sync_data);
-                            Log.d(TAG, "tata AIG finalRequest: " + finalRequest.toString());
-                            syncDateToTATA_Server(finalRequest);
-                        } catch (Exception e) {
-                            Log.d(TAG, "exception occured:" + e.getMessage());
-                        }
 
 
                     }

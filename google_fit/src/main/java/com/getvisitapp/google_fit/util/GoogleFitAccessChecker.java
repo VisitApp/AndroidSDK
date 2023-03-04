@@ -86,23 +86,13 @@ public class GoogleFitAccessChecker {
 
     FitnessOptions getFitnessOptions() {
         return FitnessOptions.builder()
-                .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
 
-                .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_WRITE)
                 .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
 
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
 
-                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_WEIGHT, FitnessOptions.ACCESS_WRITE)
 
-                .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_HEIGHT, FitnessOptions.ACCESS_WRITE)
-
-                .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_READ)
-                .addDataType(DataType.TYPE_LOCATION_SAMPLE, FitnessOptions.ACCESS_WRITE)
 
                 .addDataType(DataType.TYPE_DISTANCE_DELTA)
                 .addDataType(DataType.AGGREGATE_DISTANCE_DELTA)

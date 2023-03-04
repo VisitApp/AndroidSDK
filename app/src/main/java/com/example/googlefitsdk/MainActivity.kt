@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     fun init() {
 
         val magicLink =
-            "https://api.samuraijack.xyz/url-shortener/m/JAjYyb70"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
 
         IntiateSdk.s(
             this,
