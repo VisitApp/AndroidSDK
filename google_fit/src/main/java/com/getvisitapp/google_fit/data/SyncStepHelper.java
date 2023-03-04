@@ -297,13 +297,30 @@ public class SyncStepHelper {
 
 
 
+        JSONArray jsonArray = new JSONArray();
+
         syncDataForDay(startTimeStamp, endTimeStamp, context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Boolean>() {
+                .subscribe(new Subscriber<JSONObject>() {
                     @Override
                     public void onCompleted() {
                         Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
+                        Log.d(TAG, "jsonArray: " + jsonArray);
+
+                        JSONObject finalJsonObject = new JSONObject();
+                        try {
+                            finalJsonObject.put("data", null);
+                            finalJsonObject.put("bulkHealthData", jsonArray);
+                            finalJsonObject.put("platform", "ANDROID");
+
+                            Log.d(TAG, "Visit Hourly Sync finalRequest: " + finalJsonObject.toString());
+
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        syncHourlyDataWithVisit_Server(finalJsonObject);
                     }
 
                     @Override
@@ -312,9 +329,9 @@ public class SyncStepHelper {
                     }
 
                     @Override
-                    public void onNext(Boolean aBoolean) {
-                        Log.d(TAG, "onNext: syncDataForDay: " + aBoolean);
-
+                    public void onNext(JSONObject jsonObject) {
+                        Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
+                        jsonArray.put(jsonObject);
                     }
                 });
 
@@ -324,7 +341,7 @@ public class SyncStepHelper {
 
     }
 
-    private rx.Observable<Boolean> syncDataForDay(long startime, long endTime, Context context) {
+    private rx.Observable<JSONObject> syncDataForDay(long startime, long endTime, Context context) {
 
         // Make a list of observables with responses as true and false and run them serially
         // If any of the observables return false, then end the chain
@@ -343,15 +360,15 @@ public class SyncStepHelper {
         }
 
         return Observable.from(list)
-                .concatMap(new Func1<StartEndDate, Observable<Boolean>>() {
+                .concatMap(new Func1<StartEndDate, Observable<JSONObject>>() {
                     @Override
-                    public Observable<Boolean> call(StartEndDate startEndDate) {
+                    public Observable<JSONObject> call(StartEndDate startEndDate) {
 
-                        return Observable.create(new Action1<Emitter<Boolean>>() {
+                        return Observable.create(new  Action1<Emitter<JSONObject>>() {
                             @Override
-                            public void call(Emitter<Boolean> emitter) {
+                            public void call(Emitter<JSONObject> emitter) {
                                 getPayloadForDay(startEndDate.getStartTime(), startEndDate.getEndTime(), context)
-                                        .subscribe(new Subscriber<Boolean>() {
+                                        .subscribe(new Subscriber<JSONObject>() {
                                             @Override
                                             public void onCompleted() {
                                                 Log.d(TAG, "onCompleted: inside creator: completed");
@@ -365,10 +382,10 @@ public class SyncStepHelper {
                                             }
 
                                             @Override
-                                            public void onNext(Boolean aBoolean) {
-                                                Log.d(TAG, "onNext: inside Creator: " + aBoolean);
-                                                if (aBoolean) {
-                                                    emitter.onNext(aBoolean);
+                                            public void onNext(JSONObject jsonObject) {
+                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
+                                                if (jsonObject!=null) {
+                                                    emitter.onNext(jsonObject);
                                                 } else {
                                                     // If the previous API responded with an error, then stop the future API calls.
                                                     // This is required to make sure that the data is synced in order.
@@ -387,7 +404,7 @@ public class SyncStepHelper {
 
     }
 
-    private Observable<Boolean> getPayloadForDay(long start, long end, Context context) {
+    private Observable<JSONObject> getPayloadForDay(long start, long end, Context context) {
 
         Log.d(TAG, "Start: " + start + " End: " + end);
         Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
@@ -430,11 +447,27 @@ public class SyncStepHelper {
                     }
                 }
 
-        )
-                .concatMap(new Func1<JSONObject, Observable<Boolean>>() {
+        );
+    }
+
+    private void syncHourlyDataWithVisit_Server(JSONObject jsonObject) {
+        mainActivityPresenter.syncDayWithServer(jsonObject).subscribeOn(Schedulers.io())
+                .doOnError(new Action1<Throwable>() {
                     @Override
-                    public Observable<Boolean> call(JSONObject jsonObject) {
-                        return mainActivityPresenter.syncDayWithServer(jsonObject);
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        Log.d("mytag", "Visit Hourly Data Sync Status: " + aBoolean);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
                     }
                 });
     }
