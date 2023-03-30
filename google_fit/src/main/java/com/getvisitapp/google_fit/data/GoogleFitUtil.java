@@ -82,7 +82,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
                 }
             }
-        });
+        },isLoggingEnabled);
 
         sleepStepsDataSubscriber = new Subscriber<SleepStepsData>() {
             @Override

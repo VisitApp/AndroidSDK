@@ -76,13 +76,14 @@ public class GoogleFitConnector {
     private int SLEEP_END_HOUR = 7;
 
     String authToken;
-    List<String> blacklistedApps= new ArrayList<>();
+    List<String> blacklistedApps = new ArrayList<>();
+    boolean isLoggingEnabled;
 
 
-
-    public GoogleFitConnector(Context context, String webClientId, GoogleConnectorFitListener listener) {
+    public GoogleFitConnector(Context context, String webClientId, GoogleConnectorFitListener listener, boolean isLoggingEnabled) {
         this.context = context;
         this.listener = listener;
+        this.isLoggingEnabled = isLoggingEnabled;
         setFitDataTypes();
     }
 
@@ -139,7 +140,9 @@ public class GoogleFitConnector {
 
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_FIT_PERMISSIONS) {
-                Log.d(TAG, "onActivityResult: REQUEST_FIT_PERMISSIONS");
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onActivityResult: REQUEST_FIT_PERMISSIONS");
+                }
                 if (getLastSignedInGoogleAccount(context).getServerAuthCode() != null) {
                     listener.onComplete();
                 } else {
@@ -147,10 +150,15 @@ public class GoogleFitConnector {
                 }
             }
             if (requestCode == REQUEST_GOOGLE_SIGNIN) {
-                Log.d(TAG, "onActivityResult: REQUEST_GOOGLE_SIGNIN");
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onActivityResult: REQUEST_GOOGLE_SIGNIN");
+                }
             }
         } else {
-            Log.d(TAG, "onActivityResult: RESULT CODE NOT OK PERMISSIONS DENIED");
+            if (isLoggingEnabled) {
+                Log.d(TAG, "onActivityResult: RESULT CODE NOT OK PERMISSIONS DENIED");
+
+            }
         }
     }
 
@@ -253,7 +261,6 @@ public class GoogleFitConnector {
 //            Log.d(TAG, "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
 
 
-
             //checking which app inserted data to google fit store.
             String appContributedToGoogleFitPackageName = dp.getOriginalDataSource().getAppPackageName();
             if (appContributedToGoogleFitPackageName != null && blacklistedApps.contains(appContributedToGoogleFitPackageName)) {
@@ -274,37 +281,37 @@ public class GoogleFitConnector {
 //        Log.d(TAG, "getWeeklySteps: " + readableFormat.format(startTime));
 //        Log.d(TAG, "getWeeklySteps: " + readableFormat.format(endTime));
         return Observable.zip(
-                getWeekStepCountData(startTime, endTime),
-                getAverageActivityInMinutes(startTime, endTime),
-                new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
-                    @Override
-                    public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
-                        HealthDataGraphValues healthDataGraphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, true, HealthDataGraphValues.ACTIVITY_TYPE_STEPS, startTime, endTime);
-                        if (healthDataGraphValues != null) {
+                        getWeekStepCountData(startTime, endTime),
+                        getAverageActivityInMinutes(startTime, endTime),
+                        new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
+                            @Override
+                            public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
+                                HealthDataGraphValues healthDataGraphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, true, HealthDataGraphValues.ACTIVITY_TYPE_STEPS, startTime, endTime);
+                                if (healthDataGraphValues != null) {
 
-                            Calendar calendar = Calendar.getInstance();
-                            if ((activitySessionList.size() - 1) > 0)
-                                calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
-                            calendar.set(Calendar.HOUR_OF_DAY, 0);
-                            calendar.set(Calendar.MINUTE, 0);
-                            calendar.set(Calendar.SECOND, 0);
-                            calendar.set(Calendar.MILLISECOND, 0);
+                                    Calendar calendar = Calendar.getInstance();
+                                    if ((activitySessionList.size() - 1) > 0)
+                                        calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
+                                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                                    calendar.set(Calendar.MINUTE, 0);
+                                    calendar.set(Calendar.SECOND, 0);
+                                    calendar.set(Calendar.MILLISECOND, 0);
 
-                            int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
-                            long totalActivityTime = 0;
-                            for (int i = 0; i < activitySessionList.size(); i++) {
-                                totalActivityTime += activitySessionList.get(i).getValue();
+                                    int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
+                                    long totalActivityTime = 0;
+                                    for (int i = 0; i < activitySessionList.size(); i++) {
+                                        totalActivityTime += activitySessionList.get(i).getValue();
+                                    }
+                                    healthDataGraphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
+                                    healthDataGraphValues.setActivitySessions(activitySessionList);
+                                }
+
+
+                                return healthDataGraphValues;
+
                             }
-                            healthDataGraphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
-                            healthDataGraphValues.setActivitySessions(activitySessionList);
                         }
-
-
-                        return healthDataGraphValues;
-
-                    }
-                }
-        )
+                )
                 .flatMap(new Func1<HealthDataGraphValues, Observable<HealthDataGraphValues>>() {
                     @Override
                     public Observable<HealthDataGraphValues> call(HealthDataGraphValues graphValues) {
@@ -493,33 +500,33 @@ public class GoogleFitConnector {
 
 
         return Observable.zip(
-                getWeekDistanceData(startTime, endTime),
-                getAverageActivityInMinutes(startTime, endTime),
-                new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
-                    @Override
-                    public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
-                        HealthDataGraphValues healthDataGraphValues = null;
-                        healthDataGraphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, false, HealthDataGraphValues.ACTIVITY_TYPE_DISTANCE, startTime, endTime);
-                        if (healthDataGraphValues != null) {
-                            Calendar calendar = Calendar.getInstance();
-                            if ((activitySessionList.size() - 1) > 0)
-                                calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
-                            calendar.set(Calendar.HOUR_OF_DAY, 0);
-                            calendar.set(Calendar.MINUTE, 0);
-                            calendar.set(Calendar.SECOND, 0);
-                            calendar.set(Calendar.MILLISECOND, 0);
+                        getWeekDistanceData(startTime, endTime),
+                        getAverageActivityInMinutes(startTime, endTime),
+                        new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
+                            @Override
+                            public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
+                                HealthDataGraphValues healthDataGraphValues = null;
+                                healthDataGraphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, false, HealthDataGraphValues.ACTIVITY_TYPE_DISTANCE, startTime, endTime);
+                                if (healthDataGraphValues != null) {
+                                    Calendar calendar = Calendar.getInstance();
+                                    if ((activitySessionList.size() - 1) > 0)
+                                        calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
+                                    calendar.set(Calendar.HOUR_OF_DAY, 0);
+                                    calendar.set(Calendar.MINUTE, 0);
+                                    calendar.set(Calendar.SECOND, 0);
+                                    calendar.set(Calendar.MILLISECOND, 0);
 
-                            int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
-                            long totalActivityTime = 0;
-                            for (int i = 0; i < activitySessionList.size(); i++) {
-                                totalActivityTime += activitySessionList.get(i).getValue();
+                                    int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
+                                    long totalActivityTime = 0;
+                                    for (int i = 0; i < activitySessionList.size(); i++) {
+                                        totalActivityTime += activitySessionList.get(i).getValue();
+                                    }
+                                    healthDataGraphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
+                                    healthDataGraphValues.setActivitySessions(activitySessionList);
+                                }
+
+                                return healthDataGraphValues;
                             }
-                            healthDataGraphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
-                            healthDataGraphValues.setActivitySessions(activitySessionList);
-                        }
-
-                        return healthDataGraphValues;
-                    }
 
 //                    @Override
 //                    public HealthDataGraphValues call(DataReadResult dataReadResult, Integer integer) {
@@ -530,8 +537,8 @@ public class GoogleFitConnector {
 //
 //                        return healthDataGraphValues;
 //                    }
-                }
-        )
+                        }
+                )
                 .flatMap(new Func1<HealthDataGraphValues, Observable<HealthDataGraphValues>>() {
                     @Override
                     public Observable<HealthDataGraphValues> call(HealthDataGraphValues graphValues) {
@@ -688,8 +695,11 @@ public class GoogleFitConnector {
                     subscriber.onNext(result2);
                     subscriber.onCompleted();
                 } else {
-                    Log.d(TAG, "call: " + result2.getStatus());
-                    Log.d(TAG, "call: " + result2.getStatus().getStatusMessage());
+                    if (isLoggingEnabled) {
+                        Log.d(TAG, "call: " + result2.getStatus());
+                        Log.d(TAG, "call: " + result2.getStatus().getStatusMessage());
+
+                    }
                     subscriber.onError(new Error("Something went wrong retrieving total distance for the day " + result2.getStatus()));
                 }
             }
@@ -699,78 +709,78 @@ public class GoogleFitConnector {
     public Observable<HealthDataGraphValues> getWeeklyCalories(final long startTime, final long endTime) {
 
         return Observable.zip(
-                getWeekCaloriesData(startTime, endTime),
-                getAverageActivityInMinutes(startTime, endTime),
-                new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
-                    @Override
-                    public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
-                        if (dataReadResponse != null) {
-                            HealthDataGraphValues graphValues = null;
-                            graphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, false, HealthDataGraphValues.ACTIVITY_TYPE_CALORIES_BURNT, startTime, endTime);
-                            if (graphValues != null) {
+                        getWeekCaloriesData(startTime, endTime),
+                        getAverageActivityInMinutes(startTime, endTime),
+                        new Func2<DataReadResponse, List<ActivitySession>, HealthDataGraphValues>() {
+                            @Override
+                            public HealthDataGraphValues call(DataReadResponse dataReadResponse, List<ActivitySession> activitySessionList) {
+                                if (dataReadResponse != null) {
+                                    HealthDataGraphValues graphValues = null;
+                                    graphValues = convertDataReadResultToHealthDataStepsAndActivity(dataReadResponse, false, HealthDataGraphValues.ACTIVITY_TYPE_CALORIES_BURNT, startTime, endTime);
+                                    if (graphValues != null) {
 
-                                Calendar calendar = Calendar.getInstance();
-                                if ((activitySessionList.size() - 1) > 0)
-                                    calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
-                                calendar.set(Calendar.HOUR_OF_DAY, 0);
-                                calendar.set(Calendar.MINUTE, 0);
-                                calendar.set(Calendar.SECOND, 0);
-                                calendar.set(Calendar.MILLISECOND, 0);
+                                        Calendar calendar = Calendar.getInstance();
+                                        if ((activitySessionList.size() - 1) > 0)
+                                            calendar.setTimeInMillis(TimeUnit.SECONDS.toMillis(activitySessionList.get(activitySessionList.size() - 1).getSessionEnd()));
+                                        calendar.set(Calendar.HOUR_OF_DAY, 0);
+                                        calendar.set(Calendar.MINUTE, 0);
+                                        calendar.set(Calendar.SECOND, 0);
+                                        calendar.set(Calendar.MILLISECOND, 0);
 
-                                Calendar rightNow = Calendar.getInstance();
-                                rightNow.setFirstDayOfWeek(Calendar.MONDAY);
-                                int day = rightNow.get(Calendar.DAY_OF_WEEK);
-                                int dayOfMonth = rightNow.get(Calendar.DAY_OF_MONTH);
-                                int diff = getDifferenceBetweenTwoDays(startTime, rightNow.getTimeInMillis());
-                                int diff1 = getDifferenceBetweenTwoDays(startTime, endTime);
-                                if (diff1 > 7) {
-                                    int diff2 = getDifferenceBetweenTwoDays(startTime, rightNow.getTimeInMillis());
-                                    if (diff2 <= 30) {
-                                        ArrayList<Integer> values = new ArrayList<>();
-                                        for (int i = 0; i < graphValues.getValues().size(); i++) {
-                                            if (i < dayOfMonth) {
-                                                values.add(graphValues.getValues().get(i));
-                                            } else {
-                                                values.add(0);
+                                        Calendar rightNow = Calendar.getInstance();
+                                        rightNow.setFirstDayOfWeek(Calendar.MONDAY);
+                                        int day = rightNow.get(Calendar.DAY_OF_WEEK);
+                                        int dayOfMonth = rightNow.get(Calendar.DAY_OF_MONTH);
+                                        int diff = getDifferenceBetweenTwoDays(startTime, rightNow.getTimeInMillis());
+                                        int diff1 = getDifferenceBetweenTwoDays(startTime, endTime);
+                                        if (diff1 > 7) {
+                                            int diff2 = getDifferenceBetweenTwoDays(startTime, rightNow.getTimeInMillis());
+                                            if (diff2 <= 30) {
+                                                ArrayList<Integer> values = new ArrayList<>();
+                                                for (int i = 0; i < graphValues.getValues().size(); i++) {
+                                                    if (i < dayOfMonth) {
+                                                        values.add(graphValues.getValues().get(i));
+                                                    } else {
+                                                        values.add(0);
+                                                    }
+                                                }
+                                                graphValues.setValues(values);
+                                            }
+                                        } else {
+                                            if (diff <= 7) {
+                                                ArrayList<Integer> values = new ArrayList<>();
+                                                for (int i = 0; i < graphValues.getValues().size(); i++) {
+                                                    if (i < day - 1) {
+                                                        values.add(graphValues.getValues().get(i));
+                                                    } else {
+                                                        values.add(0);
+                                                    }
+                                                }
+                                                graphValues.setValues(values);
                                             }
                                         }
-                                        graphValues.setValues(values);
+
+
+                                        int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
+                                        long totalActivityTime = 0;
+                                        for (int i = 0; i < activitySessionList.size(); i++) {
+                                            totalActivityTime += activitySessionList.get(i).getValue();
+                                        }
+                                        graphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
+                                        graphValues.setActivitySessions(activitySessionList);
                                     }
+                                    return graphValues;
                                 } else {
-                                    if (diff <= 7) {
-                                        ArrayList<Integer> values = new ArrayList<>();
-                                        for (int i = 0; i < graphValues.getValues().size(); i++) {
-                                            if (i < day - 1) {
-                                                values.add(graphValues.getValues().get(i));
-                                            } else {
-                                                values.add(0);
-                                            }
-                                        }
-                                        graphValues.setValues(values);
-                                    }
+                                    return new HealthDataGraphValues();
                                 }
-
-
-                                int noOfDays = getDifferenceBetweenTwoDays(startTime, calendar.getTimeInMillis()) + 1;
-                                long totalActivityTime = 0;
-                                for (int i = 0; i < activitySessionList.size(); i++) {
-                                    totalActivityTime += activitySessionList.get(i).getValue();
-                                }
-                                graphValues.setTotalActivityTime((int) (totalActivityTime / noOfDays));// change this, 7 is no of days
-                                graphValues.setActivitySessions(activitySessionList);
                             }
-                            return graphValues;
-                        } else {
-                            return new HealthDataGraphValues();
                         }
+                ).flatMap(new Func1<HealthDataGraphValues, Observable<HealthDataGraphValues>>() {
+                    @Override
+                    public Observable<HealthDataGraphValues> call(HealthDataGraphValues graphValues) {
+                        return Observable.just(graphValues);
                     }
-                }
-        ).flatMap(new Func1<HealthDataGraphValues, Observable<HealthDataGraphValues>>() {
-            @Override
-            public Observable<HealthDataGraphValues> call(HealthDataGraphValues graphValues) {
-                return Observable.just(graphValues);
-            }
-        })
+                })
                 .subscribeOn(Schedulers.io());
 
     }
@@ -830,8 +840,11 @@ public class GoogleFitConnector {
     }
 
     public Observable<HealthDataGraphValues> getDailyCalories(final long startTime, final long endTime) {
-        Log.d(TAG, "getDailyCalories: " + readableFormat.format(startTime));
-        Log.d(TAG, "getDailyCalories: " + readableFormat.format(endTime));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "getDailyCalories: " + readableFormat.format(startTime));
+            Log.d(TAG, "getDailyCalories: " + readableFormat.format(endTime));
+
+        }
 
         return Observable.zip(
                 getDailyCaloriesData(startTime, endTime),
@@ -929,7 +942,10 @@ public class GoogleFitConnector {
     }
 
     public HealthDataGraphValues convertDataReadResultToHealthDataStepsAndActivity(DataReadResponse dataReadResponse, boolean isDataTypeInt, int healthDataGraphType, final long startTime, final long endTime) {
-        Log.d(TAG, "blacklistedApps: " + blacklistedApps.toString());
+        if (isLoggingEnabled) {
+            Log.d(TAG, "blacklistedApps: " + blacklistedApps.toString());
+
+        }
 
         Set<String> fraudApps = new HashSet<>();
 
@@ -984,7 +1000,10 @@ public class GoogleFitConnector {
                     if (blackListedAppInstalled == false) {
                         //user have installed a fraud app to insert data to Google Fit
                     }
-                    Log.d(TAG, "appContributedToGoogleFitDate: " + appContributedToGoogleFitDateString);
+                    if (isLoggingEnabled) {
+                        Log.d(TAG, "appContributedToGoogleFitDate: " + appContributedToGoogleFitDateString);
+
+                    }
 
 
                     // values array fills the y-axis of the graphs
@@ -1143,7 +1162,10 @@ public class GoogleFitConnector {
     }
 
     public Observable<HealthDataGraphValues> getSleepForTheDay(long startTimeOfDay) {
-        Log.d(TAG, "getSleepForToday: ");
+        if (isLoggingEnabled) {
+            Log.d(TAG, "getSleepForToday: ");
+
+        }
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(startTimeOfDay);
         cal.add(Calendar.DATE, -1);
@@ -1152,7 +1174,10 @@ public class GoogleFitConnector {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
         long startSleepTime = cal.getTimeInMillis();
-        Log.d(TAG, "getSleepForTheDay: " + readableFormat.format(startSleepTime));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "getSleepForTheDay: " + readableFormat.format(startSleepTime));
+
+        }
 
         cal.setTimeInMillis(startSleepTime);
         cal.add(Calendar.DATE, 1);
@@ -1168,7 +1193,10 @@ public class GoogleFitConnector {
             }
         }
 
-        Log.d(TAG, "getSleepForTheDay: " + readableFormat.format(endSleepTime));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "getSleepForTheDay: " + readableFormat.format(endSleepTime));
+
+        }
         return getSleepFromFit(startSleepTime, endSleepTime).flatMap(new Func1<SleepCard, Observable<HealthDataGraphValues>>() {
             @Override
             public Observable<HealthDataGraphValues> call(SleepCard sleepCard) {
@@ -1202,7 +1230,10 @@ public class GoogleFitConnector {
             startCalendar.set(Calendar.HOUR_OF_DAY, SLEEP_END_HOUR);
 
             long dayEndSleepRecordTime = startCalendar.getTimeInMillis();
-            Log.d(TAG, "getSleepForWeek: " + readableFormat.format(dayStartSleepRecordTime) + " to " + readableFormat.format(dayEndSleepRecordTime));
+            if (isLoggingEnabled) {
+                Log.d(TAG, "getSleepForWeek: " + readableFormat.format(dayStartSleepRecordTime) + " to " + readableFormat.format(dayEndSleepRecordTime));
+
+            }
             observableList.add(
                     getSleepFromFit(dayStartSleepRecordTime, dayEndSleepRecordTime)
                             .subscribeOn(Schedulers.io()));
@@ -1210,29 +1241,38 @@ public class GoogleFitConnector {
         }
 
         return Observable.zip(observableList, new FuncN<HealthDataGraphValues>() {
-            @Override
-            public HealthDataGraphValues call(Object... args) {
-                Log.d(TAG, "call: ");
+                    @Override
+                    public HealthDataGraphValues call(Object... args) {
+                        if (isLoggingEnabled) {
+                            Log.d(TAG, "call: ");
 
-                // Make a HealthDataGraphValues and return it as an observable
-                HealthDataGraphValues graphValues = new HealthDataGraphValues();
-                graphValues.setActivityType(HealthDataGraphValues.ACTIVITY_TYPE_SLEEP);
-                ArrayList<SleepCard> sleepCards = new ArrayList<>();
-                SleepCard sleepCard;
-                for (Object obj : args) {
-                    sleepCard = (SleepCard) obj;
-                    sleepCards.add(sleepCard);
+                        }
+
+                        // Make a HealthDataGraphValues and return it as an observable
+                        HealthDataGraphValues graphValues = new HealthDataGraphValues();
+                        graphValues.setActivityType(HealthDataGraphValues.ACTIVITY_TYPE_SLEEP);
+                        ArrayList<SleepCard> sleepCards = new ArrayList<>();
+                        SleepCard sleepCard;
+                        for (Object obj : args) {
+                            sleepCard = (SleepCard) obj;
+                            sleepCards.add(sleepCard);
 //                    Log.d(TAG, "call: SleepCard to String: " + sleepCard.toString());
 //                    Log.d(TAG, "call: SleepCard to String: last time: " + readableFormat.format(sleepCard.getEpochOfDay()));
 //                    Log.d(TAG, "call: SleepCard to String: last time: " + dayOfTheWeekFormat.format(sleepCard.getEpochOfDay()));
-                }
-                Log.d(TAG, "call: number of cards: " + sleepCards.size());
-                graphValues.setSleepCards(sleepCards);
-                Log.d(TAG, "call: " + graphValues.getSleepDataForWeeklyGraphInJson());
+                        }
+                        if (isLoggingEnabled) {
+                            Log.d(TAG, "call: number of cards: " + sleepCards.size());
 
-                return graphValues;
-            }
-        })
+                        }
+                        graphValues.setSleepCards(sleepCards);
+                        if (isLoggingEnabled) {
+                            Log.d(TAG, "call: " + graphValues.getSleepDataForWeeklyGraphInJson());
+
+                        }
+
+                        return graphValues;
+                    }
+                })
                 .flatMap(new Func1<HealthDataGraphValues, Observable<HealthDataGraphValues>>() {
                     @Override
                     public Observable<HealthDataGraphValues> call(HealthDataGraphValues values) {
@@ -1249,7 +1289,11 @@ public class GoogleFitConnector {
 
     // Gives total sleep between two timestamps in SECONDS
     private Observable<SleepCard> getSleepFromFit(final long startTime, final long endTime) {
-        Log.d(TAG, "getSleepFromFit: " + readableFormat.format(startTime) + " to " + readableFormat.format(endTime));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "getSleepFromFit: " + readableFormat.format(startTime) + " to " + readableFormat.format(endTime));
+
+        }
+
         return getDailySleepData(startTime, endTime)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
@@ -1335,7 +1379,10 @@ public class GoogleFitConnector {
 
 
         if (tomorrow < sleepEndsAt) {
-            Log.d(TAG, "calculateSleepFromSteps: Future date: No sleep for this day");
+            if (isLoggingEnabled) {
+                Log.d(TAG, "calculateSleepFromSteps: Future date: No sleep for this day");
+
+            }
             SleepCard noSleep = new SleepCard();
             noSleep.setSleepSeconds(0);
             noSleep.setStartSleepTime(0);
@@ -1350,7 +1397,10 @@ public class GoogleFitConnector {
             if (sleepCard.getSleepSeconds() != 0) {
                 return sleepCard;
             } else {
-                Log.d(TAG, "calculateSleepFromSteps: No Sleep recorded found. Moving to resting logic on Fit");
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "calculateSleepFromSteps: No Sleep recorded found. Moving to resting logic on Fit");
+
+                }
                 return isRestingSegment(dataReadResponse.getBuckets());
             }
         } else return new SleepCard();

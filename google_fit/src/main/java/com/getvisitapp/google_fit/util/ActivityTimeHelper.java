@@ -144,14 +144,15 @@ public class ActivityTimeHelper {
         List<ActivitySession> activitySessionsList = new ArrayList<>();
         long totalActivityTime = 0;
         if (dataReadResponse != null && dataReadResponse.getBuckets().size() > 0) {
-            Log.d(
-                    TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
+
+//            Log.d(
+//                    TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
             for (Bucket bucket : dataReadResponse.getBuckets()) {
                 String activityType = bucket.getActivity();
 
 
 
-                Log.d(TAG, "getActivityType: " + bucket.getActivity());
+//                Log.d(TAG, "getActivityType: " + bucket.getActivity());
                 if (activityType.equalsIgnoreCase("walking")
                         || activityType.equalsIgnoreCase("running")
                         || activityType.equalsIgnoreCase("biking")) {
@@ -170,7 +171,7 @@ public class ActivityTimeHelper {
     }
 
     private static long calculateActivityTimeForDataSet(DataSet dataSet) {
-        Log.d(TAG, "calculateActivityTimeForDataSet: Data returned for Data type: " + dataSet.getDataType().getName());
+//        Log.d(TAG, "calculateActivityTimeForDataSet: Data returned for Data type: " + dataSet.getDataType().getName());
         DateFormat dateFormat = getTimeInstance();
         long totalActivityTime = 0;
         for (DataPoint dp : dataSet.getDataPoints()) {
