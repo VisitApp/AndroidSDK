@@ -951,8 +951,8 @@ public class GoogleFitConnector {
 
 
         if (dataReadResponse.getBuckets().size() > 0) {
-            Log.i(
-                    TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
+//            Log.i(
+//                    TAG, "Number of returned buckets of DataSets is: " + dataReadResponse.getBuckets().size());
             HealthDataGraphValues healthDataGraphValues = new HealthDataGraphValues();
             healthDataGraphValues.setActivityType(healthDataGraphType);
 
@@ -1055,8 +1055,8 @@ public class GoogleFitConnector {
 
     public Observable<HealthDataGraphValues> convertDataReadResultToHealthData(DataReadResult dataReadResult) {
         if (dataReadResult.getBuckets().size() > 0) {
-            Log.i(
-                    TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size());
+//            Log.i(
+//                    TAG, "Number of returned buckets of DataSets is: " + dataReadResult.getBuckets().size());
             HealthDataGraphValues healthDataGraphValues = new HealthDataGraphValues();
             ArrayList<Integer> values = new ArrayList<>();
 

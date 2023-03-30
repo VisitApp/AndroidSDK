@@ -50,7 +50,7 @@ public class OkHttpRequests {
     public <P> Observable<P> postRequest(
             final String url, final String postParams, final Class<P> clazz) {
 
-        Log.d("mytag", "postRequest() authToken: " + authToken);
+//        Log.d("mytag", "postRequest() authToken: " + authToken);
         return Observable.fromCallable(
                 new Callable<P>() {
                     @Override
