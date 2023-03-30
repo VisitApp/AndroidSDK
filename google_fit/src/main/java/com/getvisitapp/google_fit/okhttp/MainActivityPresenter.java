@@ -23,7 +23,7 @@ public class MainActivityPresenter {
     }
 
     public Observable<ApiResponse> sendData(JsonObject payload) {
-        Log.d("mytag", "sendData() authToken: " + authToken);
+//        Log.d("mytag", "sendData() authToken: " + authToken);
 
         String url = baseUrl + "users/data-sync";
 
