@@ -277,7 +277,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
                                 String value = "DetailedGraph.updateDailySleep(" + graphValues.getSleepCard().getStartSleepTime() + "," + graphValues.getSleepCard().getEndSleepTime() + ")";
 
-                                Log.d(TAG, "run: getSleep minutes daily: " + value);
+//                                Log.d(TAG, "run: getSleep minutes daily: " + value);
                                 listener.loadGraphData(value);
                                 break;
                             }
@@ -285,7 +285,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
                                 String value = "DetailedGraph.updateSleepData(JSON.stringify(" + graphValues.getSleepDataForWeeklyGraphInJson() + "));";
 
 
-                                Log.d(TAG, "run: getSleep minutes daily: " + value);
+//                                Log.d(TAG, "run: getSleep minutes daily: " + value);
                                 listener.loadGraphData(value);
                                 break;
                             }
@@ -294,19 +294,19 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
                         switch (frequency) {
                             case "day": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]," + graphValues.getValues() + ", '" + type + "', 'day','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-                                Log.d(TAG, "valueString: " + value);
+//                                Log.d(TAG, "valueString: " + value);
                                 listener.loadGraphData(value);
                                 break;
                             }
                             case "week": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7]," + graphValues.getValues() + ",'" + type + "', 'week','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-                                Log.d(TAG, "valueString: " + value);
+//                                Log.d(TAG, "valueString: " + value);
                                 listener.loadGraphData(value);
                                 break;
                             }
                             case "month": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]," + graphValues.getValues() + ",'" + type + "', 'month','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-                                Log.d(TAG, "valueString: " + value);
+//                                Log.d(TAG, "valueString: " + value);
                                 listener.loadGraphData(value);
                                 break;
                             }
