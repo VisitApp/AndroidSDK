@@ -1,6 +1,5 @@
 package com.getvisitapp.google_fit.okhttp;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.JsonObject;
@@ -15,25 +14,35 @@ public class MainActivityPresenter {
     private final String baseUrl;
     private final String authToken;
     OkHttpRequests okHttpRequests;
+    boolean isLoggingEnabled;
 
-    public MainActivityPresenter(String baseUrl, String authToken) {
+    public MainActivityPresenter(String baseUrl, String authToken, boolean isLoggingEnabled) {
         this.baseUrl = baseUrl;
         this.authToken = authToken;
         this.okHttpRequests = new OkHttpRequests(authToken);
+        this.isLoggingEnabled = isLoggingEnabled;
     }
 
     public Observable<ApiResponse> sendData(JsonObject payload) {
-//        Log.d("mytag", "sendData() authToken: " + authToken);
+        if (isLoggingEnabled) {
+            Log.d("mytag", "sendData() authToken: " + authToken);
+        }
 
         String url = baseUrl + "users/data-sync";
 
-        Log.d("mytag", "dataSync URL: " + url);
+        if (isLoggingEnabled) {
+            Log.d("mytag", "dataSync URL: " + url);
+
+        }
         return okHttpRequests.postRequest(url, payload, ApiResponse.class);
     }
 
 
     public Observable<Boolean> syncDayWithServer(JSONObject payload) {
-        Log.d("mytag", "syncDayWithServer: " + payload.toString());
+        if (isLoggingEnabled) {
+            Log.d("mytag", "syncDayWithServer: " + payload.toString());
+
+        }
         String url = baseUrl + "users/embellish-sync";
 
         return okHttpRequests.postRequestHandler(url, payload, "SYNC_FITNESS")
@@ -41,7 +50,9 @@ public class MainActivityPresenter {
                     @Override
                     public Observable<Boolean> call(JSONObject jsonObject) {
                         // If the server returns a positive response
-                        Log.d("mytag", "call: API CALL SUCCESSFULL" + jsonObject);
+                        if (isLoggingEnabled) {
+                            Log.d("mytag", "call: API CALL SUCCESSFULL" + jsonObject);
+                        }
                         try {
                             if (jsonObject.getString("message").equalsIgnoreCase("success")) {
                                 return Observable.just(true);

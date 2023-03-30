@@ -151,7 +151,7 @@ public class ActivityTimeHelper {
 
 
 
-//                Log.d(TAG, "getActivityType: " + bucket.getActivity());
+                Log.d(TAG, "getActivityType: " + bucket.getActivity());
                 if (activityType.equalsIgnoreCase("walking")
                         || activityType.equalsIgnoreCase("running")
                         || activityType.equalsIgnoreCase("biking")) {

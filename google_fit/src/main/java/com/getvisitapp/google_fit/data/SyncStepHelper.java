@@ -4,10 +4,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.getvisitapp.google_fit.GoogleFitConnector;
-import com.getvisitapp.google_fit.GoogleFitExtension;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
-import com.getvisitapp.google_fit.okhttp.OkHttpRequests;
 import com.getvisitapp.google_fit.okhttp.Transformers;
 import com.getvisitapp.google_fit.pojo.ActivitySummaryGoal;
 import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
@@ -26,7 +24,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import rx.Emitter;
@@ -52,12 +49,14 @@ public class SyncStepHelper {
 
     private Context context;
     private SimpleDateFormat readableFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+    boolean isLoggingEnabled;
 
 
-    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken) {
+    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, boolean isLoggingEnabled) {
         this.googleFitConnector = connector;
         this.compositeSubscription = new CompositeSubscription();
-        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken);
+        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, isLoggingEnabled);
+        this.isLoggingEnabled = isLoggingEnabled;
         this.context = context;
     }
 
@@ -78,7 +77,9 @@ public class SyncStepHelper {
 
 
         long startTime = googleFitLastSync;
-        Log.d(TAG, "GoogleFitLastSync: " + startTime);
+        if (isLoggingEnabled) {
+            Log.d(TAG, "GoogleFitLastSync: " + startTime);
+        }
 
         Calendar last30Days;
         last30Days = Calendar.getInstance();
@@ -114,8 +115,12 @@ public class SyncStepHelper {
         }
 
         getSyncData(startTime, endOfDay);
-        Log.d(TAG, "Start Time: " + startTime);
-        Log.d(TAG, "End Of day: " + endOfDay);
+
+        if (isLoggingEnabled) {
+            Log.d(TAG, "Start Time: " + startTime);
+            Log.d(TAG, "End Of day: " + endOfDay);
+
+        }
 
         startSyncTime = startTime;
         endSyncTime = endOfDay;
@@ -124,8 +129,11 @@ public class SyncStepHelper {
     }
 
     private void getSyncData(long start, long end) {
-        Log.d(TAG, "startTime: " + start + ", endTime: " + end);
-        Log.d(TAG, "getSyncData: ");
+        if (isLoggingEnabled) {
+            Log.d(TAG, "startTime: " + start + ", endTime: " + end);
+            Log.d(TAG, "getSyncData: ");
+
+        }
         activitySummarySubscriber = new Subscriber<ActivitySummaryGoal>() {
             @Override
             public void onCompleted() {
@@ -139,7 +147,10 @@ public class SyncStepHelper {
 
             @Override
             public void onNext(ActivitySummaryGoal goals) {
-                Log.d(TAG, "onNext: " + goals.toString());
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onNext: " + goals.toString());
+
+                }
 
 
                 showActivitySummary(goals);
@@ -151,28 +162,19 @@ public class SyncStepHelper {
 
 
         if (googleFitConnector != null) {
-            Observable.zip(
-                    googleFitConnector.getWeeklySteps(start, end),
-                    googleFitConnector.getWeeklyDistance(start, end),
-                    googleFitConnector.getWeeklyCalories(start, end),
-                    googleFitConnector.getSleepForWeek(start, GoogleFitConnector.getDifferenceBetweenTwoDays(start, end)),
-                    new Func4<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, ActivitySummaryGoal>() {
-                        @Override
-                        public ActivitySummaryGoal call(HealthDataGraphValues healthDataGraphValues, HealthDataGraphValues healthDataGraphValues2, HealthDataGraphValues healthDataGraphValues3, HealthDataGraphValues healthDataGraphValues4) {
-                            ActivitySummaryGoal activitySummaryGoal = new ActivitySummaryGoal(healthDataGraphValues, healthDataGraphValues2, healthDataGraphValues3, healthDataGraphValues4);
-                            return activitySummaryGoal;
-                        }
+            Observable.zip(googleFitConnector.getWeeklySteps(start, end), googleFitConnector.getWeeklyDistance(start, end), googleFitConnector.getWeeklyCalories(start, end), googleFitConnector.getSleepForWeek(start, GoogleFitConnector.getDifferenceBetweenTwoDays(start, end)), new Func4<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, ActivitySummaryGoal>() {
+                @Override
+                public ActivitySummaryGoal call(HealthDataGraphValues healthDataGraphValues, HealthDataGraphValues healthDataGraphValues2, HealthDataGraphValues healthDataGraphValues3, HealthDataGraphValues healthDataGraphValues4) {
+                    ActivitySummaryGoal activitySummaryGoal = new ActivitySummaryGoal(healthDataGraphValues, healthDataGraphValues2, healthDataGraphValues3, healthDataGraphValues4);
+                    return activitySummaryGoal;
+                }
 
-                    }
-            )
-                    .flatMap(new Func1<ActivitySummaryGoal, Observable<ActivitySummaryGoal>>() {
-                        @Override
-                        public Observable<ActivitySummaryGoal> call(ActivitySummaryGoal activitySummaryGoal) {
-                            return Observable.just(activitySummaryGoal);
-                        }
-                    })
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(activitySummarySubscriber);
+            }).flatMap(new Func1<ActivitySummaryGoal, Observable<ActivitySummaryGoal>>() {
+                @Override
+                public Observable<ActivitySummaryGoal> call(ActivitySummaryGoal activitySummaryGoal) {
+                    return Observable.just(activitySummaryGoal);
+                }
+            }).observeOn(AndroidSchedulers.mainThread()).subscribe(activitySummarySubscriber);
             compositeSubscription.add(activitySummarySubscriber);
         }
     }
@@ -230,29 +232,31 @@ public class SyncStepHelper {
         }
 
         postBody.add("fitnessData", jsonArray);
-        Log.d(TAG, "data sync api called:" + String.valueOf(postBody));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "data sync api called:" + String.valueOf(postBody));
+
+        }
         sendData1(postBody);
 
     }
 
     private void sendData1(JsonObject payload) {
-        compositeSubscription.add(
-                mainActivityPresenter.sendData(payload)
-                        .compose(Transformers.<ApiResponse>applySchedulers())
-                        .subscribe(
-                                new Action1<ApiResponse>() {
-                                    @Override
-                                    public void call(ApiResponse apiResponse) {
-                                        // success
-                                        Log.d("mytag", "uploaded successfully");
-                                    }
-                                },
-                                new Action1<Throwable>() {
-                                    @Override
-                                    public void call(Throwable throwable) {
-                                        throwable.printStackTrace();
-                                    }
-                                }));
+        compositeSubscription.add(mainActivityPresenter.sendData(payload).compose(Transformers.<ApiResponse>applySchedulers()).subscribe(new Action1<ApiResponse>() {
+            @Override
+            public void call(ApiResponse apiResponse) {
+                // success
+                if (isLoggingEnabled) {
+
+                    Log.d("mytag", "uploaded successfully");
+
+                }
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }));
     }
 
 
@@ -264,8 +268,11 @@ public class SyncStepHelper {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         startTimeStamp = calendar.getTimeInMillis();
-        Log.d(TAG, "onRunJob: " + startTimeStamp);
-        Log.d(TAG, "onRunJob: " + readableFormat.format(startTimeStamp));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "onRunJob: " + startTimeStamp);
+            Log.d(TAG, "onRunJob: " + readableFormat.format(startTimeStamp));
+
+        }
         // If difference between the timestamp and today is over 30 days, then only fetch recent 30 days data from google
         // And mark the job done once the 30 days data is synced
         // Each day needs to be run sequentially
@@ -292,51 +299,62 @@ public class SyncStepHelper {
 
         endTimeStamp = System.currentTimeMillis();
 
-        Log.d(TAG, "startTimeStamp:" + readableFormat.format(startTimeStamp));
-        Log.d(TAG, "endTimeStamp:" + readableFormat.format(endTimeStamp));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "startTimeStamp:" + readableFormat.format(startTimeStamp));
+            Log.d(TAG, "endTimeStamp:" + readableFormat.format(endTimeStamp));
 
+        }
 
 
         JSONArray jsonArray = new JSONArray();
 
-        syncDataForDay(startTimeStamp, endTimeStamp, context)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<JSONObject>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
-                        Log.d(TAG, "jsonArray: " + jsonArray);
+        syncDataForDay(startTimeStamp, endTimeStamp, context).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<JSONObject>() {
+            @Override
+            public void onCompleted() {
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
+                    Log.d(TAG, "jsonArray: " + jsonArray);
 
-                        JSONObject finalJsonObject = new JSONObject();
-                        try {
-                            finalJsonObject.put("data", null);
-                            finalJsonObject.put("bulkHealthData", jsonArray);
-                            finalJsonObject.put("platform", "ANDROID");
+                }
 
-                            Log.d(TAG, "Visit Hourly Sync finalRequest: " + finalJsonObject.toString());
+                JSONObject finalJsonObject = new JSONObject();
+                try {
+                    finalJsonObject.put("data", null);
+                    finalJsonObject.put("bulkHealthData", jsonArray);
+                    finalJsonObject.put("platform", "ANDROID");
 
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
+                    if (isLoggingEnabled) {
+                        Log.d(TAG, "Visit Hourly Sync finalRequest: " + finalJsonObject.toString());
 
-                        syncHourlyDataWithVisit_Server(finalJsonObject);
                     }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
 
-                    @Override
-                    public void onNext(JSONObject jsonObject) {
-                        Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
-                        jsonArray.put(jsonObject);
-                    }
-                });
+                syncHourlyDataWithVisit_Server(finalJsonObject);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onNext(JSONObject jsonObject) {
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
+
+                }
+                jsonArray.put(jsonObject);
+            }
+        });
 
 
-        Log.d(TAG, "onRunJob: Finished");
+        if (isLoggingEnabled) {
+            Log.d(TAG, "onRunJob: Finished");
+
+        }
 
 
     }
@@ -359,61 +377,64 @@ public class SyncStepHelper {
             startime = endDayTimeStamp;
         }
 
-        return Observable.from(list)
-                .concatMap(new Func1<StartEndDate, Observable<JSONObject>>() {
+        return Observable.from(list).concatMap(new Func1<StartEndDate, Observable<JSONObject>>() {
+            @Override
+            public Observable<JSONObject> call(StartEndDate startEndDate) {
+
+                return Observable.create(new Action1<Emitter<JSONObject>>() {
                     @Override
-                    public Observable<JSONObject> call(StartEndDate startEndDate) {
-
-                        return Observable.create(new  Action1<Emitter<JSONObject>>() {
+                    public void call(Emitter<JSONObject> emitter) {
+                        getPayloadForDay(startEndDate.getStartTime(), startEndDate.getEndTime(), context).subscribe(new Subscriber<JSONObject>() {
                             @Override
-                            public void call(Emitter<JSONObject> emitter) {
-                                getPayloadForDay(startEndDate.getStartTime(), startEndDate.getEndTime(), context)
-                                        .subscribe(new Subscriber<JSONObject>() {
-                                            @Override
-                                            public void onCompleted() {
-                                                Log.d(TAG, "onCompleted: inside creator: completed");
-                                                emitter.onCompleted();
-                                            }
+                            public void onCompleted() {
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "onCompleted: inside creator: completed");
 
-                                            @Override
-                                            public void onError(Throwable e) {
-                                                e.printStackTrace();
-                                                emitter.onError(e);
-                                            }
-
-                                            @Override
-                                            public void onNext(JSONObject jsonObject) {
-                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
-                                                if (jsonObject!=null) {
-                                                    emitter.onNext(jsonObject);
-                                                } else {
-                                                    // If the previous API responded with an error, then stop the future API calls.
-                                                    // This is required to make sure that the data is synced in order.
-                                                    emitter.onError(new Throwable("API Responded Incorrectly"));
-                                                }
-
-                                            }
-                                        });
+                                }
+                                emitter.onCompleted();
                             }
-                        }, Emitter.BackpressureMode.BUFFER);
 
+                            @Override
+                            public void onError(Throwable e) {
+                                e.printStackTrace();
+                                emitter.onError(e);
+                            }
 
+                            @Override
+                            public void onNext(JSONObject jsonObject) {
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "onNext: inside Creator: " + jsonObject);
+
+                                }
+                                if (jsonObject != null) {
+                                    emitter.onNext(jsonObject);
+                                } else {
+                                    // If the previous API responded with an error, then stop the future API calls.
+                                    // This is required to make sure that the data is synced in order.
+                                    emitter.onError(new Throwable("API Responded Incorrectly"));
+                                }
+
+                            }
+                        });
                     }
-                });
+                }, Emitter.BackpressureMode.BUFFER);
+
+
+            }
+        });
 
 
     }
 
     private Observable<JSONObject> getPayloadForDay(long start, long end, Context context) {
 
-        Log.d(TAG, "Start: " + start + " End: " + end);
-        Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
+        if (isLoggingEnabled) {
+            Log.d(TAG, "Start: " + start + " End: " + end);
+            Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
 
-        return Observable.zip(
-                googleFitConnector.getDailySteps(start, end),
-                googleFitConnector.getDailyDistance(start, end),
-                googleFitConnector.getDailyCalories(start, end),
-                new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
+        }
+
+        return Observable.zip(googleFitConnector.getDailySteps(start, end), googleFitConnector.getDailyDistance(start, end), googleFitConnector.getDailyCalories(start, end), new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
                     @Override
                     public JSONObject call(HealthDataGraphValues steps, HealthDataGraphValues distance, HealthDataGraphValues calories) {
                         //Log.d(TAG, "getPayloadForDay: Response: " + readableFormat.format(start) + " to " + readableFormat.format(end));
@@ -451,25 +472,25 @@ public class SyncStepHelper {
     }
 
     private void syncHourlyDataWithVisit_Server(JSONObject jsonObject) {
-        mainActivityPresenter.syncDayWithServer(jsonObject).subscribeOn(Schedulers.io())
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean aBoolean) {
-                        Log.d("mytag", "Visit Hourly Data Sync Status: " + aBoolean);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
+        mainActivityPresenter.syncDayWithServer(jsonObject).subscribeOn(Schedulers.io()).doOnError(new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean aBoolean) {
+                if (isLoggingEnabled) {
+                    Log.d("mytag", "Visit Hourly Data Sync Status: " + aBoolean);
+
+                }
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
     }
 
 

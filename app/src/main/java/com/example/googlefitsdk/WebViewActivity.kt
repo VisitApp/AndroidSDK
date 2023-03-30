@@ -42,11 +42,11 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 //        val magicLink =
 //            "https://star-health.getvisitapp.xyz/star-health?token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8&id=8158";
         val magicLink =
-            "https://vsyt.me/m/tV5VeeG3?starHealthUser=true"
+            "https://star-health.getvisitapp.xyz/?mluib7c=cJL64yx2"
         mWebView.loadUrl(magicLink)
 
         googleFitUtil =
-            GoogleFitUtil(this, this, default_web_client_id)
+            GoogleFitUtil(this, this, default_web_client_id,false)
         mWebView.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -157,7 +157,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         googleFitLastSync: Long,
         gfHourlyLastSync: Long
     ) {
-//        Log.d("mytag", "baseUrl: $baseUrl")
+        Log.d("mytag", "baseUrl: $baseUrl")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
             runOnUiThread(Runnable {

@@ -385,7 +385,4 @@ public class FitnessDataHelper {
 
 }
 
-interface FitnessDataHelperListener{
-    void setDailyFitnessDataJSON(String data); //data is in the form of JSON
-    void setHourlyFitnessDataJSON(String data);//data is in the form of JSON
-}
+

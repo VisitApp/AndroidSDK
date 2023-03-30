@@ -31,13 +31,15 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
     private Subscriber<HealthDataGraphValues> healthDataGraphValuesSubscriber;
     private SyncStepHelper syncStepHelper;
     private FitnessDataHelper fitnessDataHelper;
+    boolean isLoggingEnabled;
 
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, boolean isLoggingEnabled) {
         this.context = context;
         this.listener = listener;
         this.webAppInterface = new WebAppInterface(listener);
         this.default_web_client_id = default_web_client_id;
+        this.isLoggingEnabled = isLoggingEnabled;
     }
 
     private FitnessPermissionUtil fitnessPermissionUtil;
@@ -60,17 +62,25 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
         googleFitConnector = new GoogleFitConnector(context, default_web_client_id, new GoogleFitConnector.GoogleConnectorFitListener() {
             @Override
             public void onComplete() {
-                Log.d(TAG, "onComplete() called");
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onComplete() called");
+                }
             }
 
             @Override
             public void onError() {
-                Log.d(TAG, "onError() called");
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "onError() called");
+
+                }
             }
 
             @Override
             public void onServerAuthCodeFound(String s) {
-                Log.d(TAG, "error Occured: " + s);
+                if (isLoggingEnabled) {
+                    Log.d(TAG, "error Occured: " + s);
+
+                }
             }
         });
 
@@ -87,15 +97,21 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
-                Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps ,TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                if (isLoggingEnabled) {
+                    Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
+
+                }
+                listener.loadDailyFitnessData(sleepStepsData.steps, TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
     }
 
     public void askForGoogleFitPermission() {
-        Log.d("mytag", "askForPermission() called");
+        if (isLoggingEnabled) {
+            Log.d("mytag", "askForPermission() called");
+
+        }
         fitnessPermissionUtil.intiateGoogleFitPermission(default_web_client_id);
 
     }
@@ -260,7 +276,10 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
         healthDataGraphValuesSubscriber = new Subscriber<HealthDataGraphValues>() {
             @Override
             public void onCompleted() {
-                Log.d("mytag", "onCompleted: healthDataGraphValuesSubscriber");
+                if (isLoggingEnabled) {
+                    Log.d("mytag", "onCompleted: healthDataGraphValuesSubscriber");
+
+                }
             }
 
             @Override
@@ -277,7 +296,10 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
                                 String value = "DetailedGraph.updateDailySleep(" + graphValues.getSleepCard().getStartSleepTime() + "," + graphValues.getSleepCard().getEndSleepTime() + ")";
 
-//                                Log.d(TAG, "run: getSleep minutes daily: " + value);
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "run: getSleep minutes daily: " + value);
+
+                                }
                                 listener.loadGraphData(value);
                                 break;
                             }
@@ -285,7 +307,10 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
                                 String value = "DetailedGraph.updateSleepData(JSON.stringify(" + graphValues.getSleepDataForWeeklyGraphInJson() + "));";
 
 
-//                                Log.d(TAG, "run: getSleep minutes daily: " + value);
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "run: getSleep minutes daily: " + value);
+
+                                }
                                 listener.loadGraphData(value);
                                 break;
                             }
@@ -294,24 +319,41 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
                         switch (frequency) {
                             case "day": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]," + graphValues.getValues() + ", '" + type + "', 'day','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-//                                Log.d(TAG, "valueString: " + value);
+
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "valueString: " + value);
+
+                                }
                                 listener.loadGraphData(value);
                                 break;
                             }
                             case "week": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7]," + graphValues.getValues() + ",'" + type + "', 'week','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-//                                Log.d(TAG, "valueString: " + value);
+
+                                if (isLoggingEnabled) {
+
+                                    Log.d(TAG, "valueString: " + value);
+
+                                }
                                 listener.loadGraphData(value);
                                 break;
                             }
                             case "month": {
                                 String value = "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]," + graphValues.getValues() + ",'" + type + "', 'month','" + graphValues.getTotalActivityTimeInMinutes() + "')";
-//                                Log.d(TAG, "valueString: " + value);
+
+                                if (isLoggingEnabled) {
+                                    Log.d(TAG, "valueString: " + value);
+
+                                }
                                 listener.loadGraphData(value);
                                 break;
                             }
                         }
-                        Log.d(TAG, "updateGraph() called. " + type + " frequency: " + frequency + " values:" + graphValues.getValues());
+                        if (isLoggingEnabled) {
+
+                            Log.d(TAG, "updateGraph() called. " + type + " frequency: " + frequency + " values:" + graphValues.getValues());
+
+                        }
 
                     }
                 }
@@ -329,7 +371,7 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
     public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
         if (fitnessPermissionUtil.hasAccess()) {
-            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken);
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, isLoggingEnabled);
             syncStepHelper.dailySync(googleFitLastSync);
             syncStepHelper.hourlySync(gfHourlyLastSync);
 
@@ -339,9 +381,9 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
     public void getDailyFitnessJSONData(long timeStamp) {
         if (fitnessPermissionUtil.hasAccess()) {
-            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(), this);
             fitnessDataHelper.dailySync(timeStamp);
-        }else{
+        } else {
             listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
         }
 
@@ -349,29 +391,37 @@ public class GoogleFitUtil implements FitnessPermissionListener, FitnessDataHelp
 
     public void getHourlyFitnessJSONData(long timeStamp) {
         if (fitnessPermissionUtil.hasAccess()) {
-            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(),this);
+            fitnessDataHelper = new FitnessDataHelper(getGoogleFitConnector(), this);
             fitnessDataHelper.hourlySync(timeStamp);
-        }
-        else{
+        } else {
             listener.setDailyFitnessDataJSON("{'errorMessage':'Google Fit is not connected'}");
         }
     }
 
     @Override
     public void onFitnessPermissionGranted() {
-        Log.d("mytag", "onFitnessPermissionGranted()");
+        if (isLoggingEnabled) {
+            Log.d("mytag", "onFitnessPermissionGranted()");
+
+        }
         listener.onFitnessPermissionGranted();
     }
 
     @Override
     public void onFitnessPermissionCancelled() {
-        Log.d("mytag", "onFitnessPermissionCancelled()");
+        if (isLoggingEnabled) {
+            Log.d("mytag", "onFitnessPermissionCancelled()");
+
+        }
         listener.onFitnessPermissionCancelled();
     }
 
     @Override
     public void onFitnessPermissionDenied() {
-        Log.d("mytag", "onFitnessPermissionDenied()");
+        if (isLoggingEnabled) {
+            Log.d("mytag", "onFitnessPermissionDenied()");
+
+        }
         listener.onFitnessPermissionDenied();
     }
 
