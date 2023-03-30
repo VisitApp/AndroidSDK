@@ -157,7 +157,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         googleFitLastSync: Long,
         gfHourlyLastSync: Long
     ) {
-        Log.d("mytag", "baseUrl: $baseUrl")
+//        Log.d("mytag", "baseUrl: $baseUrl")
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
             runOnUiThread(Runnable {

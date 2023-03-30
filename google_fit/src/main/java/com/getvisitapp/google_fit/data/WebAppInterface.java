@@ -27,7 +27,7 @@ public class WebAppInterface {
 
     @JavascriptInterface
     public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync) {
-        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + "NOT SHOWN" + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync);
+        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + "NOT SHOWN"  + ",authtoken: " + "NOT SHOWN" + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync);
         listener.syncDataWithServer(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync);
     }
 
