@@ -31,6 +31,7 @@ import androidx.databinding.DataBindingUtil
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.data.SharedPrefUtil
+import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
@@ -91,6 +92,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         false //this flag acts a check with which we should redirect user to google connected successfully page or not.
 
     lateinit var locationTrackerUtil: LocationTrackerUtil
+    lateinit var visitSyncStepSyncHelper: VisitStepSyncHelper
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
     companion object {
@@ -122,7 +124,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         tataAIG_base_url = intent.extras!!.getString(TATA_AIG_BASE_URL)!!
         tataAIG_auth_token = intent.extras!!.getString(TATA_AIG_AUTH_TOKEN)!!
         default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
-
+        visitSyncStepSyncHelper = VisitStepSyncHelper(this, default_web_client_id)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -171,9 +173,19 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                             )
                             EventBus.getDefault()
                                 .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
+                            Toast.makeText(
+                                applicationContext,
+                                "Fitbit is connected",
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
+                            sharedPrefUtil.setFitBitConnectedStatus(true)
+                            visitSyncStepSyncHelper.syncFitbitSteps(
+                                tataAIG_base_url,
+                                tataAIG_auth_token
+                            )
+
                         }
-                        Toast.makeText(applicationContext, "Fitbit is connected", Toast.LENGTH_LONG)
-                            .show()
 
                     } else if (message != null && message.equals(
                             "failed", ignoreCase = true
@@ -404,12 +416,13 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         dailyDataSynced = true
     }
 
-    override fun syncDataWithServer(
+    override fun updateApiBaseUrlV2(
         visitApiBaseUrl: String?,
         authtoken: String?,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
-        memberId: String
+        memberId: String,
+        isFitBitConnected: Boolean
     ) {
 
         this.visitApiBaseUrl = visitApiBaseUrl
@@ -426,6 +439,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
             this.gfHourlyLastSync = getTodayDateTimeStamp()
         }
 
+        sharedPrefUtil.setFitBitConnectedStatus(isFitBitConnected)
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
@@ -438,27 +452,27 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                 sharedPrefUtil.setVisitAuthToken(authtoken)
             }
 
-            sharedPrefUtil.setGoogleFitDailyLastSyncTimeStamp(this.googleFitLastSync)
-            sharedPrefUtil.setGoogleFitHourlyLastSyncTimeStamp(this.gfHourlyLastSync)
             sharedPrefUtil.setTataAIGLastSyncTimeStamp(this.gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
             // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
 
-            memberId?.let {
-                sharedPrefUtil.setTATA_AIG_MemberId(memberId)
-            }
+            sharedPrefUtil.setTATA_AIG_MemberId(memberId)
 
-            runOnUiThread(Runnable {
-                googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
-                    this.googleFitLastSync,
-                    this.gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
-                )
-                syncDataWithServer = true
-            })
+            if (sharedPrefUtil.getFitBitConnectionStatus()) {
+                visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
+            } else {
+                runOnUiThread(Runnable {
+                    googleFitUtil.sendDataToServer(
+                        visitApiBaseUrl + "/",
+                        authtoken,
+                        this.googleFitLastSync,
+                        this.gfHourlyLastSync,
+                        memberId,
+                        tataAIG_base_url,
+                        tataAIG_auth_token
+                    )
+                    syncDataWithServer = true
+                })
+            }
         }
     }
 
@@ -832,6 +846,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     }
 
     override fun disconnectFromFitbit() {
+        sharedPrefUtil.setFitBitConnectedStatus(false)
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(false)))
 
     }

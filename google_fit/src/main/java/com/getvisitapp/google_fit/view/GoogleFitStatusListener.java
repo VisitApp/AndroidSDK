@@ -18,7 +18,7 @@ public interface GoogleFitStatusListener {
 
     void loadGraphDataUrl(String url);
 
-    void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId);
+    void updateApiBaseUrlV2(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean isFitBitConnected);
 
     void askForLocationPermission();
 

@@ -2,9 +2,12 @@ package com.getvisitapp.google_fit.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
+import com.getvisitapp.google_fit.util.Constants.FITBIT_CONNECTION_STATUS
+import com.getvisitapp.google_fit.util.Constants.FITBIT_LAST_SYNC_TIMESTAMP
 import com.getvisitapp.google_fit.util.Constants.HRA_INCOMPLETE_RESPONSE
 import com.getvisitapp.google_fit.util.Constants.IS_HRA_INCOMPLETE
 
@@ -52,27 +55,6 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getLong(Constants.TATA_AIG_LAST_SYNC_TIME_STAMP, 0L)
     }
 
-    fun setGoogleFitDailyLastSyncTimeStamp(google_fit_last_sync_daily_timestamp: Long) {
-        sharedPreferencesEditor.putLong(
-            Constants.GOOGLE_FIT_LAST_SYNC_DAILY_TIMESTAMP,
-            google_fit_last_sync_daily_timestamp
-        ).commit()
-    }
-
-    fun getGoogleFitDailyLastSyncTimeStamp(): Long {
-        return sharedPreferences.getLong(Constants.GOOGLE_FIT_LAST_SYNC_DAILY_TIMESTAMP, 0L)
-    }
-
-    fun setGoogleFitHourlyLastSyncTimeStamp(google_fit_last_sync_hourly_timestamp: Long) {
-        sharedPreferencesEditor.putLong(
-            Constants.GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP,
-            google_fit_last_sync_hourly_timestamp
-        ).commit()
-    }
-
-    fun getGoogleFitHourlyLastSyncTimeStamp(): Long {
-        return sharedPreferences.getLong(Constants.GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP, 0L)
-    }
 
     fun setHRAIncompleteStatusRequest(jsonObject: String) {
         sharedPreferencesEditor.putString(HRA_INCOMPLETE_RESPONSE, jsonObject).commit();
@@ -90,6 +72,26 @@ class SharedPrefUtil(context: Context) {
         return sharedPreferences.getBoolean(IS_HRA_INCOMPLETE, true)
     }
 
+    fun setFitBitLastSyncTimeStamp(timestamp: Long) {
+        sharedPreferencesEditor.putLong(FITBIT_LAST_SYNC_TIMESTAMP, timestamp).commit()
+    }
+
+    fun getFitbitLastSyncTimestamp(): Long {
+        return sharedPreferences.getLong(FITBIT_LAST_SYNC_TIMESTAMP, 0L);
+    }
+
+    fun setFitBitConnectedStatus(status: Boolean) {
+        sharedPreferencesEditor.putBoolean(FITBIT_CONNECTION_STATUS, status).commit()
+    }
+
+    fun getFitBitConnectionStatus(): Boolean {
+        return sharedPreferences.getBoolean(FITBIT_CONNECTION_STATUS, false)
+    }
+
+
+    fun clear() {
+        sharedPreferencesEditor.clear().commit();
+    }
 
 
 }

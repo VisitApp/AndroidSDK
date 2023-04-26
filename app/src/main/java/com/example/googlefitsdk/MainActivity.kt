@@ -3,12 +3,16 @@ package com.example.googlefitsdk
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Spannable
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.widget.Button
 import android.widget.CompoundButton
-import android.widget.Switch
+import android.widget.CompoundButton.OnCheckedChangeListener
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.IntiateSdk
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
@@ -16,22 +20,25 @@ import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
+import com.google.android.material.switchmaterial.SwitchMaterial
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 
-class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener {
-    var TAG = "mytag10"
+class MainActivity : AppCompatActivity() {
+    private var TAG = "mytag10"
 
-    val default_client_id =
+    private val default_client_id =
         "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
 
-    lateinit var checker: GoogleFitAccessChecker
-    lateinit var switch: Switch
+    private lateinit var googleFitAccessChecker: GoogleFitAccessChecker
+    private lateinit var googleFitSwitch: SwitchMaterial
 
-    val tataAIG_base_url = "https://uathealthvas.tataaig.com"
-    val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
+    private val tataAIG_base_url = "https://uathealthvas.tataaig.com"
+    private val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
+
+    private lateinit var syncStepHelper: VisitStepSyncHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,12 +49,15 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         }
 
 
-        switch = findViewById<Switch>(R.id.switch1)
+        googleFitSwitch = findViewById(R.id.googleFitSwitch)
+        googleFitAccessChecker = GoogleFitAccessChecker(this)
 
-        checker = GoogleFitAccessChecker(this)
+        syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
 
-        val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
-        syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
+
+        findViewById<Button>(R.id.manualSyncStepButton).setOnClickListener {
+            syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
+        }
 
 
         //Open Google Fit if installed else return false.
@@ -63,6 +73,60 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
         findViewById<Button>(R.id.hraIncomplete).setOnClickListener {
             syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
         }
+
+        findViewById<Button>(R.id.revokeFitBitAccessButton).setOnClickListener {
+            syncStepHelper.revokeFitbitAccess()
+        }
+
+    }
+
+    fun setHealthAppStatus(googleFitEnabled: Boolean, fitbitEnabled: Boolean) {
+
+        googleFitSwitch.setText("Google Fit / Fitbit", TextView.BufferType.SPANNABLE)
+
+
+        val spannable = googleFitSwitch.text as Spannable
+
+
+        spannable.setSpan(
+            ForegroundColorSpan(
+                ContextCompat.getColor(
+                    googleFitSwitch.context,
+                    R.color.redColor
+                )
+            ), 0, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        if (googleFitEnabled) {
+            spannable.setSpan(
+                ForegroundColorSpan(
+                    ContextCompat.getColor(
+                        googleFitSwitch.context,
+                        R.color.greenColor
+                    )
+                ), 0, 10, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        if (fitbitEnabled) {
+            spannable.setSpan(
+                ForegroundColorSpan(
+                    ContextCompat.getColor(
+                        googleFitSwitch.context,
+                        R.color.greenColor
+                    )
+                ), 11, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        spannable.setSpan(
+            ForegroundColorSpan(
+                ContextCompat.getColor(
+                    googleFitSwitch.context,
+                    R.color.greyColor
+                )
+            ), 11, 12, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -82,11 +146,11 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
                     Log.d(
                         "mytag",
-                        "MainActivity onMessageEvent() FitnessPermissionGranted called, isGoogleFit: ${data.isGoogleFit}"
+                        "MainActivity onMessageEvent() FitnessPermissionGranted called, isGoogleFit/Fitbit: ${data.isGoogleFit}"
                     )
 
 
-                    data.isGoogleFit
+                    var isGoogleFitConnected = data.isGoogleFit
 
 
                 }
@@ -146,19 +210,9 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
     }
 
     fun init() {
-//        val magicLink = "https://tata-aig.getvisitapp.xyz"
-//        val magicLink ="https://tata-aig.getvisitapp.xyz/weight-management"
-//        val magicLink ="https://star-health.getvisitapp.xyz/?mluib7c=0ZidhSZ1"
-//        val magicLink =
-//            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
-//        val magicLink =
-//            "https://axis-tata.getvisitapp.xyz/sso?userParams=DJsu6SFXLdsSNBuRr2Q83Z9Am1Y3EOEmKY2o4S4hvoYmjZxusiABb7D0nxr3bDtprg0o603IWvmMPOMT-IMuXa5faX64LueVOPmX15BC-WLpWDd8gXPrDUDBD9-w2u-u&clientId=tata-aig-axis-f7b4d3"
-//
-//        val magicLink =
-//            "https://tata-aig.getvisitapp.xyz/sso?userParams=LH53MbTMvD-UcbZxap-i6ZIGapxBTkbeY4g1THvWI3zoRfSxfCNTQCgLO-yQwkwUDS9wqiODbfBV5SVOqNNj3XLe8C25ANZ1Y81cIGkY8kr30MjT_S8_t7ROPNrlln_P03ZdQ9YILQKsHr7XrgEAuCmJu28-8J7s44ZgCR_l-xQ_wiIzlSSyS0pwreczAlOH8suE8pr12NtWdOdu_dnuF8U6RuWBRaS31N6kZ2XIwmJb_9YkGnYzFFAKNoY7GnmHU0eDw9citsC_nUzEjBNnO5Cte_VyQCFWa7ON1DBmkLZb0PfTNxN0ABMlX73fQHhs&clientId=tata-aig-a8b455"
-//
+
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=yuAeVTpF4C3w2cguETyMeZZJBkZCkNt55RRYHIirGDLbzgtW0f4dfYKyUUxMzSaq0IYjOuyavj2nJvfPnyxFHzjmBIA2m2yrMIB2F5l-kO-MZgdl5afhShrepawOSwcavR-ctyzy82303U_FMACWbhEKNPe9hyYGjot8Db0yG9GwyGbtK8ej01NnabNPQ3uffi3vUZ-f1zaH1ub42m5gxISVTd7n3K-gBJF1F4EcaF7_98hzBfk-I9Zr-KZcdSXtt9ZV70IB-JbFSuauZtjLCl3NmGRprLeoYXd1QT3V0aQ&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=nAFZROLNXPCj7xNmss0IW_PVW5fdokQpiE1eGXq-QOt2u5mdob9QzrqloCAtZylQaksv_Ysd022sBP8dM2dHzFU88K-FFt-8YYsg-V_BPeXKx1ehcBEI_OxvVZ3QE4F6K_joR4nKmt2IAHeuxQpDVUHyD4LtoTDfwzFwQBjgkEy15c9v49Gswl55HFgLoETMM7lnWL48CDTQQoW3uNNnLEar-Zs7BsRhkD-Kb6wOl8s42VqT8LPPooBQqlVdxaSZDYjHj0NtLd_AVaSTLv0Y4T7HZz2OekZOejueslkjB5W_egyUCXZvLAYG9yp_cZaBOYYWnJUhqNdvcRQro5-CaA&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(
@@ -184,24 +238,44 @@ class MainActivity : AppCompatActivity(), CompoundButton.OnCheckedChangeListener
 
     override fun onResume() {
         super.onResume()
-        switch.setOnCheckedChangeListener(null)
-        switch.isChecked = checker.checkGoogleFitAccess()
-        switch.setOnCheckedChangeListener(this)
+
+        googleFitSwitch.setOnCheckedChangeListener(null)
+
+        val googleFitAccess = googleFitAccessChecker.checkGoogleFitAccess();
+        val fitBitAccess = syncStepHelper.getFitbitCurrentStatus()
+
+        Log.d("mytag", "googleFitAccess: $googleFitAccess && fitBitAccess:$fitBitAccess")
+
+        googleFitSwitch.isChecked = googleFitAccess || fitBitAccess
+
+        //updating the UI
+        setHealthAppStatus(
+            googleFitAccess, fitBitAccess,
+        )
+
+        googleFitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
     }
-
-
-    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
-        if (isChecked) {
-            init()
-        } else {
-            checker.revokeGoogleFitPermission(default_client_id)
-        }
-    }
-
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
         super.onDestroy()
+    }
+
+    var googleFitCheckChangeListener = object : OnCheckedChangeListener {
+        override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+            if (isChecked) {
+                init()
+            } else {
+                if (syncStepHelper.getFitbitCurrentStatus()) {
+                    syncStepHelper.revokeFitbitAccess()
+                } else {
+                    googleFitAccessChecker.revokeGoogleFitPermission(default_client_id)
+                }
+
+                //updating the UI.
+                setHealthAppStatus(false, false)
+            }
+        }
     }
 }
 

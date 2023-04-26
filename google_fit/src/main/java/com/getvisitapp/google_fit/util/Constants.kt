@@ -14,8 +14,8 @@ object Constants {
     const val TATA_AIG_MEMBER_ID="tata_aig_memberId"
     const val VISIT_AUTH_TOKEN="visit_auth_token"
     const val TATA_AIG_LAST_SYNC_TIME_STAMP="tata_aig_last_sync_time_stamp"
-    const val GOOGLE_FIT_LAST_SYNC_DAILY_TIMESTAMP="google_fit_daily_last_sync_timestamp"
-    const val GOOGLE_FIT_LAST_SYNC_HOURLY_TIMESTAMP="google_fit_hourly_last_sync_timestamp"
+    const val FITBIT_LAST_SYNC_TIMESTAMP="fitbit_last_sync_time_stamp"
     const val HRA_INCOMPLETE_RESPONSE="hra_incomplete_response"
     const val IS_HRA_INCOMPLETE="hra_incomplete"
+    const val FITBIT_CONNECTION_STATUS="fitbit_connection_status"
 }
