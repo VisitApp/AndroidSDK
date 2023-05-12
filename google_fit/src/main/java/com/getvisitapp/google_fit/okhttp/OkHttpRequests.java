@@ -5,7 +5,6 @@ import android.util.Log;
 
 import androidx.annotation.Keep;
 
-import com.chuckerteam.chucker.api.ChuckerInterceptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -38,7 +37,7 @@ public class OkHttpRequests {
 
     public OkHttpRequests(String authToken, Context context) {
         client = new OkHttpClient.Builder()
-                .addInterceptor(new ChuckerInterceptor(context))
+//                .addInterceptor(new ChuckerInterceptor(context))
                 .connectTimeout(20, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(40, TimeUnit.SECONDS)
