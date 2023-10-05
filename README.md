@@ -146,12 +146,12 @@ Use `GoogleFitAccessChecker.java` to check for the state of Google Fit Permissio
 ### To initialize the SDK: 
 ```
 IntiateSdk.s(
-            this,
+            context,
             false, 
             magicLink,
             base_url,
             auth_token,
-            default_client_id
+            google_default_client_id
         )
  ```
  
@@ -185,3 +185,7 @@ For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
 val syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
 syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
 ```
+
+##
+Document to configure Google Fit on your Google Cloud Console:  
+https://drive.google.com/file/d/1uqhlTLWzYlfcDlJa6tfAbhMOS6QNJ94h/view?usp=sharing
