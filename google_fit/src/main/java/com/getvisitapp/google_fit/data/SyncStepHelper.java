@@ -5,6 +5,8 @@ import android.util.Log;
 
 import androidx.annotation.Keep;
 
+import com.getvisitapp.google_fit.event.MessageEvent;
+import com.getvisitapp.google_fit.event.VisitEventType;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
 import com.getvisitapp.google_fit.okhttp.Transformers;
@@ -16,6 +18,7 @@ import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -544,6 +547,8 @@ public class SyncStepHelper {
                 .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        EventBus.getDefault()
+                                .post(new MessageEvent(new VisitEventType.StepSyncError(throwable.getMessage())));
                         throwable.printStackTrace();
                     }
                 })

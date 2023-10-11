@@ -257,7 +257,14 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         super.onActivityResult(requestCode, resultCode, intent)
 
         if (requestCode == 4097 || requestCode == 1900) {
+
             googleFitUtil.onActivityResult(requestCode, resultCode, intent)
+            if (resultCode == 0) {
+                if (requestCode == 1900) {
+                    EventBus.getDefault()
+                        .post(MessageEvent(VisitEventType.FitnessPermissionError("Google SignIn Cancelled")))
+                }
+            }
         } else {
             binding.webview.onActivityResult(requestCode, resultCode, intent);
         }

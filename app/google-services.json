@@ -20,10 +20,10 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
+          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
         },
         {
-          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
+          "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
         }
       ],
       "services": {
@@ -50,7 +50,7 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.googlefitsdk",
-            "certificate_hash": "5cec5bcba7211ce4cd7789b208441069f3dc952e"
+            "certificate_hash": "5f7fc36fcb31ff47a12f3af1aad6f29d58eba6ef"
           }
         },
         {
@@ -60,10 +60,10 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
+          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
         },
         {
-          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
+          "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
         }
       ],
       "services": {

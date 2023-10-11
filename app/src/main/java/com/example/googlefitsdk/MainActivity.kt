@@ -203,6 +203,19 @@ class MainActivity : AppCompatActivity() {
                 VisitEventType.CouponRedeemed -> {
                     Log.d("mytag", "MainActivity CouponRedeemed event")
                 }
+
+                is VisitEventType.FitnessPermissionError -> {
+                    val eventData = event.eventType as VisitEventType.FitnessPermissionError
+
+                    Log.d("mytag", "eventData: ${eventData.message}")
+
+                }
+
+                is VisitEventType.StepSyncError -> {
+                    val eventData = event.eventType as VisitEventType.StepSyncError
+
+                    Log.d("mytag", "eventData: ${eventData.message}")
+                }
             }
 
         }

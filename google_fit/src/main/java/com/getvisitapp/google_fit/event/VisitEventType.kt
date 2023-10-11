@@ -19,6 +19,11 @@ sealed class VisitEventType {
 
     class FitnessPermissionRevoked(var isGoogleFit: Boolean) : VisitEventType()
 
+
+    class FitnessPermissionError(var message: String?) : VisitEventType()
+
+    class StepSyncError(var message: String?) : VisitEventType()
+
     /**
      * Called when the PWA request for health data for certain type.
      * @param type can be 'day' or 'month' or 'week'
