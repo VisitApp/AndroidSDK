@@ -378,7 +378,7 @@ public class SyncStepHelper {
 
                     @Override
                     public void onNext(JSONObject jsonObject) {
-                        Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
+//                        Log.d(TAG, "onNext: syncDataForDay: " + jsonObject);
                         jsonArray.put(jsonObject);
                     }
                 });
@@ -431,7 +431,7 @@ public class SyncStepHelper {
 
                                             @Override
                                             public void onNext(JSONObject jsonObject) {
-                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
+//                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
                                                 if (jsonObject!=null) {
                                                     emitter.onNext(jsonObject);
                                                 } else {
@@ -453,7 +453,7 @@ public class SyncStepHelper {
     }
 
     private Observable<JSONObject> getPayloadForDay(long start, long end, Context context) {
-
+//
         Log.d(TAG, "Start: " + start + " End: " + end);
         Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
 
