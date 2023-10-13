@@ -28,7 +28,10 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.google_fit.R
+import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
+import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.data.SharedPrefUtil
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
@@ -47,6 +50,8 @@ import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import im.delight.android.webview.AdvancedWebView
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -95,6 +100,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     lateinit var visitSyncStepSyncHelper: VisitStepSyncHelper
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
+    lateinit var connectivityObserver: ConnectivityObserver
+
     companion object {
         fun getIntent(
             context: Context,
@@ -118,7 +125,7 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_sdk)
-        binding.infoView.setVisibility(View.GONE)
+        binding.progressBar.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
         tataAIG_base_url = intent.extras!!.getString(TATA_AIG_BASE_URL)!!
@@ -150,6 +157,26 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         sharedPrefUtil = SharedPrefUtil(this)
         pdfDownloader = PdfDownloader()
         locationTrackerUtil = LocationTrackerUtil(this)
+
+        connectivityObserver = NetworkConnectivityObserver(this)
+
+        connectivityObserver.observe().onEach { networkStatus ->
+            when (networkStatus) {
+                ConnectivityObserver.Status.Available -> {
+                    binding.noNetworkConnectionLayout.visibility = View.GONE
+                }
+                ConnectivityObserver.Status.Unavailable -> {
+                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                }
+                ConnectivityObserver.Status.Losing -> {
+                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                }
+                ConnectivityObserver.Status.Lost -> {
+                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                }
+            }
+            Log.d("mytag", "network status: $networkStatus")
+        }.launchIn(lifecycleScope)
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -224,17 +251,17 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
     override fun onPageStarted(url: String?, favicon: Bitmap?) {
         Log.d(TAG, "onPageStarted: $url")
-        binding.infoView.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
     }
 
     override fun onPageFinished(url: String?) {
         Log.d(TAG, "onPageFinished: $url")
-        binding.infoView.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
     }
 
     override fun onPageError(errorCode: Int, description: String?, failingUrl: String?) {
         Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
-        binding.infoView.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
     }
 
 
