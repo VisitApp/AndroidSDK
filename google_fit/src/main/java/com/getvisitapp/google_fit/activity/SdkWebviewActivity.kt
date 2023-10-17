@@ -240,6 +240,10 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                         Toast.LENGTH_LONG
                     ).show()
                 }, 1000)
+            } else if (uri.queryParameterNames.contains("feedback")) {
+
+                Log.d("mytag", "opened the app from feedback")
+
             }
         } else {
             Log.d(
