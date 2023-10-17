@@ -64,5 +64,7 @@ sealed class VisitEventType {
 
     object CouponRedeemed : VisitEventType()
 
+    class NetworkError(val errStatus: Int?, val error: String?) : VisitEventType()
+
 
 }

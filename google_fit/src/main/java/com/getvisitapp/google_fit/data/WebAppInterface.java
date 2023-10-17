@@ -147,6 +147,12 @@ public class WebAppInterface {
         listener.hraInComplete(jsonObject, isIncomplete);
     }
 
+    @JavascriptInterface
+    public void openLink(String url) {
+        Log.d("mytag", "openLink called(). url:" + url);
+        listener.openLink(url);
+    }
+
 
     @JavascriptInterface
     public void consultationBooked() {
@@ -158,6 +164,12 @@ public class WebAppInterface {
     public void couponRedeemed() {
         Log.d("mytag", "couponRedeemed called().");
         listener.couponRedeemed();
+    }
+
+    @JavascriptInterface
+    public void internetErrorHandler(String jsonObject) {
+        Log.d("mytag", "internetErrorHandler called(). jsonObject: " + jsonObject);
+        listener.internetErrorHandler(jsonObject);
     }
 
 

@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.view;
 
 import androidx.annotation.Keep;
+import androidx.annotation.Nullable;
 
 @Keep
 public interface GoogleFitStatusListener {
@@ -8,7 +9,7 @@ public interface GoogleFitStatusListener {
 
     void disconnectFromGoogleFit();
 
-    void connectToFitbit(String url,String authToken);
+    void connectToFitbit(String url, String authToken);
 
     void onFitnessPermissionGranted();
 
@@ -46,12 +47,15 @@ public interface GoogleFitStatusListener {
 
     void consultationBooked();
 
-    void loadDailyFitnessData(long steps,long sleep);
+    void loadDailyFitnessData(long steps, long sleep);
 
     void disconnectFromFitbit();
 
     void couponRedeemed();
 
+    void internetErrorHandler(@Nullable String jsonObject);
+
+    void openLink(String url);
 
 
 }

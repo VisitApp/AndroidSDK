@@ -13,12 +13,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Browser
+import android.text.Html
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.WebChromeClient
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.Keep
@@ -55,6 +54,8 @@ import kotlinx.coroutines.flow.onEach
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.json.JSONException
+import org.json.JSONObject
 import tvi.webrtc.ContextUtils
 import java.util.*
 
@@ -144,7 +145,15 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
         binding.webview.settings.javaScriptEnabled = true
         binding.webview.webChromeClient = MyChrome()
-        binding.webview.webViewClient = WebViewClient()
+        binding.webview.webViewClient = object : WebViewClient() {
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                Log.d("mytag", "onReceivedError")
+            }
+        }
 
         binding.webview.loadUrl(magicLink)
 
@@ -187,8 +196,9 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
             val uri = intent.data
 
             Log.d(
-                TAG, "onNewIntent: Getting URI"
+                TAG, "onNewIntent: Getting URI: $uri"
             )
+
             if (uri!!.queryParameterNames.contains("fitbit")) {
                 val message = uri!!.getQueryParameter("message")
 
@@ -889,6 +899,28 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         EventBus.getDefault().post(MessageEvent(VisitEventType.CouponRedeemed))
     }
 
+    override fun internetErrorHandler(jsonObject: String?) {
+        jsonObject?.let {
+            val decodedObject: JSONObject? = decodeString(jsonObject)
+
+            val errStatus = decodedObject?.getInt("errStatus")
+            val error = decodedObject?.getString("error")
+
+            EventBus.getDefault().post(MessageEvent(VisitEventType.NetworkError(errStatus, error)))
+        }
+    }
+
+    override fun openLink(url: String?) {
+        runOnUiThread {
+            try {
+                val uri = Uri.parse(url)
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     inner class MyChrome internal constructor() : WebChromeClient() {
         private var mCustomView: View? = null
         private var mCustomViewCallback: CustomViewCallback? = null
@@ -937,6 +969,15 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         binding.webview.restoreState(savedInstanceState)
+    }
+
+    @Throws(JSONException::class)
+    private fun decodeString(response: String): JSONObject {
+        return if (Build.VERSION.SDK_INT >= 24) {
+            JSONObject(Html.fromHtml(response, Html.FROM_HTML_MODE_LEGACY).toString())
+        } else {
+            JSONObject(Html.fromHtml(response).toString())
+        }
     }
 
 

@@ -216,6 +216,16 @@ class MainActivity : AppCompatActivity() {
 
                     Log.d("mytag", "eventData: ${eventData.message}")
                 }
+                is VisitEventType.NetworkError -> {
+                    val eventData = event.eventType as VisitEventType.NetworkError
+
+
+                    val errStatus = eventData.errStatus
+                    val error = eventData.error
+
+                    Log.d("mytag", "errStatus: $errStatus, error: $error")
+
+                }
             }
 
         }
@@ -225,7 +235,7 @@ class MainActivity : AppCompatActivity() {
     fun init() {
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=nAFZROLNXPCj7xNmss0IW_PVW5fdokQpiE1eGXq-QOt2u5mdob9QzrqloCAtZylQaksv_Ysd022sBP8dM2dHzFU88K-FFt-8YYsg-V_BPeXKx1ehcBEI_OxvVZ3QE4F6K_joR4nKmt2IAHeuxQpDVUHyD4LtoTDfwzFwQBjgkEy15c9v49Gswl55HFgLoETMM7lnWL48CDTQQoW3uNNnLEar-Zs7BsRhkD-Kb6wOl8s42VqT8LPPooBQqlVdxaSZDYjHj0NtLd_AVaSTLv0Y4T7HZz2OekZOejueslkjB5W_egyUCXZvLAYG9yp_cZaBOYYWnJUhqNdvcRQro5-CaA&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=HWL6LUS5KCTyMIWO2ZHn9Q4MBaLpicpY1tDpmMdC5DgWcT1zbJUZGjGLMzuWqJTxdccAkzvPkX_w4qxBHxJXoUgm0TD81pBQqvL2FmBoetEdWaoxz1-vZYsHC1hH4ylkQxK8kf9P_oegix7j90Hajc54X14hNjJotgGiv6AdO4ZhfjbwcLoDgCqzkq-Ivk9Oo59Jo2jntYzKExy01kjfJ9hLNzHDQb8PP4KzJSDwKaYA0vJ89-_PwuiPurkPVzLVDCyAmpWuYNnI5dQPqUN5iG10cSIR2SZ7RNUOTB9_0ANJenREQTxVO-Wr014HsRSEKOk7Ie8NpJJVVIdBvywKSJEWIsE_sLlErjtS5AEKCagz43iHcH43AN46iONllJFC&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(
