@@ -48,7 +48,6 @@ import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
-import im.delight.android.webview.AdvancedWebView
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.greenrobot.eventbus.EventBus
@@ -60,7 +59,7 @@ import tvi.webrtc.ContextUtils
 import java.util.*
 
 @Keep
-class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoCallListener,
+class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
     GoogleFitStatusListener {
 
     var TAG = "mytag"
@@ -70,6 +69,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
     val ACTIVITY_RECOGNITION_REQUEST_CODE = 490
     val LOCATION_PERMISSION_REQUEST_CODE = 787
+    val REQUEST_CODE_FILE_PICKER = 51426
+
     lateinit var googleFitUtil: GoogleFitUtil
 
     var isDebug: Boolean = false
@@ -102,6 +103,44 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
     lateinit var connectivityObserver: ConnectivityObserver
+    var mFileUploadCallbackSecond: ValueCallback<Array<Uri>>? = null
+
+
+    var webChromeClient: WebChromeClient = MyChrome()
+    var webViewClient: WebViewClient = object : WebViewClient() {
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            Log.d(TAG, "onPageStarted: $url")
+            binding.progressBar.visibility = View.VISIBLE
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            Log.d(TAG, "onPageFinished: $url")
+            binding.progressBar.visibility = View.GONE
+
+        }
+
+
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
+//            Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
+            binding.progressBar.visibility = View.GONE
+            Log.d("mytag", "onReceivedError")
+        }
+
+        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+            Log.d("mytag", "shouldOverrideUrlLoading")
+
+            url?.let {
+                binding.webview.loadUrl(url)
+            }
+            return true;
+
+        }
+    }
+
 
     companion object {
         fun getIntent(
@@ -137,23 +176,66 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        binding.webview.setListener(this, this)
-        binding.webview.setGeolocationEnabled(true)
-        binding.webview.setMixedContentAllowed(true)
-        binding.webview.setCookiesEnabled(true)
-        binding.webview.setThirdPartyCookiesEnabled(true)
-
         binding.webview.settings.javaScriptEnabled = true
-        binding.webview.webChromeClient = MyChrome()
-        binding.webview.webViewClient = object : WebViewClient() {
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
+        binding.webview.settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webview, true)
+        binding.webview.settings.setGeolocationEnabled(true)
+        binding.webview.settings.setDomStorageEnabled(true);
+        binding.webview.settings.setAllowFileAccessFromFileURLs(true)
+        binding.webview.settings.setAllowUniversalAccessFromFileURLs(true)
+
+
+        binding.webview.webChromeClient = webChromeClient
+        binding.webview.webViewClient = webViewClient
+
+        binding.webview.setDownloadListener(object : DownloadListener {
+            override fun onDownloadStart(
+                url: String?,
+                userAgent: String?,
+                contentDisposition: String?,
+                mimetype: String?,
+                contentLength: Long
             ) {
-                Log.d("mytag", "onReceivedError")
+
+                Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimetype");
+
+                url?.let {
+                    pdfDownloader.downloadPdfFile(
+                        fileDir = filesDir,
+                        pdfUrl = url,
+                        onDownloadComplete = {
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(
+                                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                                        applicationContext,
+                                        applicationContext.packageName + AUTHORITY_SUFFIX,
+                                        it
+                                    )
+                                )
+                                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                type = "application/pdf"
+                            }
+                            val sendIntent = Intent.createChooser(shareIntent, null)
+                            startActivity(sendIntent)
+                        },
+                        onDownloadFailed = {
+                            Log.d(
+                                TAG,
+                                "onDownloadRequested() download failed, opening it in chrome"
+                            )
+                            try {
+                                val uri = Uri.parse(url)
+                                startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        })
+                }
+
             }
-        }
+        })
 
         binding.webview.loadUrl(magicLink)
 
@@ -186,6 +268,8 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
             }
             Log.d("mytag", "network status: $networkStatus")
         }.launchIn(lifecycleScope)
+
+
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -263,33 +347,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
     }
 
 
-    override fun onPageStarted(url: String?, favicon: Bitmap?) {
-        Log.d(TAG, "onPageStarted: $url")
-        binding.progressBar.visibility = View.VISIBLE
-    }
-
-    override fun onPageFinished(url: String?) {
-        Log.d(TAG, "onPageFinished: $url")
-        binding.progressBar.visibility = View.GONE
-    }
-
-    override fun onPageError(errorCode: Int, description: String?, failingUrl: String?) {
-        Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
-        binding.progressBar.visibility = View.GONE
-    }
-
-
-    override fun onExternalPageRequest(url: String?) {
-        try {
-            val uri = Uri.parse(url)
-            startActivity(Intent(Intent.ACTION_VIEW, uri))
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         Log.d(
             TAG, "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
@@ -306,8 +363,40 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
                         .post(MessageEvent(VisitEventType.FitnessPermissionError("Google SignIn Cancelled")))
                 }
             }
-        } else {
-            binding.webview.onActivityResult(requestCode, resultCode, intent);
+        } else if (requestCode == 1000 && resultCode == RESULT_OK) {
+            Log.d("mytag", "resultCode: $requestCode")
+
+            binding.webview.webChromeClient = webChromeClient
+            binding.webview.webViewClient = webViewClient
+
+
+        } else if (requestCode == REQUEST_CODE_FILE_PICKER) {
+            if (resultCode == Activity.RESULT_OK) {
+                var dataUris: Array<Uri>? = null
+
+                try {
+                    if (intent!!.dataString != null) {
+                        dataUris = arrayOf(Uri.parse(intent.dataString))
+                    } else {
+                        if (intent.clipData != null) {
+                            val count = intent.clipData!!.itemCount
+                            dataUris = Array(count) { index ->
+                                intent.clipData!!.getItemAt(index).uri
+                            }
+                        }
+                    }
+                } catch (ignored: java.lang.Exception) {
+
+                }
+
+                mFileUploadCallbackSecond!!.onReceiveValue(dataUris)
+                mFileUploadCallbackSecond = null
+            } else {
+                if (mFileUploadCallbackSecond != null) {
+                    mFileUploadCallbackSecond!!.onReceiveValue(null)
+                    mFileUploadCallbackSecond = null
+                }
+            }
         }
     }
 
@@ -425,7 +514,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(true)))
 
 
-//        runOnUiThread(Runnable { googleFitUtil.fetchDataFromFit() })
     }
 
     override fun loadWebUrl(urlString: String?) {
@@ -740,7 +828,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy called")
-        binding.webview.onDestroy();
         super.onDestroy()
     }
 
@@ -758,44 +845,6 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
         return startCalendar.getTimeInMillis()
     }
 
-    override fun onDownloadRequested(
-        url: String?,
-        suggestedFilename: String?,
-        mimeType: String?,
-        contentLength: Long,
-        contentDisposition: String?,
-        userAgent: String?
-    ) {
-        Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimeType");
-
-        url?.let {
-            pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
-                val shareIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(
-                        Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                            applicationContext,
-                            applicationContext.packageName + AUTHORITY_SUFFIX,
-                            it
-                        )
-                    )
-                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    type = "application/pdf"
-                }
-                val sendIntent = Intent.createChooser(shareIntent, null)
-                startActivity(sendIntent)
-            }, onDownloadFailed = {
-                Log.d(TAG, "onDownloadRequested() download failed, opening it in chrome")
-                try {
-                    val uri = Uri.parse(url)
-                    startActivity(Intent(Intent.ACTION_VIEW, uri))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            })
-        }
-
-    }
 
     override fun downloadHraLink(url: String) {
         Log.d("mytag", "downloadHraLink() link:$url")
@@ -936,6 +985,32 @@ class SdkWebviewActivity : AppCompatActivity(), AdvancedWebView.Listener, VideoC
             } else BitmapFactory.decodeResource(
                 ContextUtils.getApplicationContext().resources, 2130837573
             )
+        }
+
+        override fun onShowFileChooser(
+            webView: WebView?,
+            filePathCallback: ValueCallback<Array<Uri>>?,
+            fileChooserParams: FileChooserParams?
+        ): Boolean {
+            if (mFileUploadCallbackSecond != null) {
+                mFileUploadCallbackSecond!!.onReceiveValue(null)
+            }
+            mFileUploadCallbackSecond = filePathCallback
+
+            val i = Intent(Intent.ACTION_GET_CONTENT)
+            i.addCategory(Intent.CATEGORY_OPENABLE)
+
+            i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+
+            i.type = "*/*"
+
+            startActivityForResult(
+                Intent.createChooser(i, "Choose a file"),
+                REQUEST_CODE_FILE_PICKER
+            )
+
+            return true
+
         }
 
         override fun onHideCustomView() {

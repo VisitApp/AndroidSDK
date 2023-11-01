@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.IntiateSdk
+import com.getvisitapp.google_fit.activity.FeedBackActivity
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
 import com.getvisitapp.google_fit.event.ClosePWAEvent
@@ -77,7 +78,6 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.revokeFitBitAccessButton).setOnClickListener {
             syncStepHelper.revokeFitbitAccess()
         }
-
     }
 
     fun setHealthAppStatus(googleFitEnabled: Boolean, fitbitEnabled: Boolean) {
@@ -235,7 +235,10 @@ class MainActivity : AppCompatActivity() {
     fun init() {
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=HWL6LUS5KCTyMIWO2ZHn9Q4MBaLpicpY1tDpmMdC5DgWcT1zbJUZGjGLMzuWqJTxdccAkzvPkX_w4qxBHxJXoUgm0TD81pBQqvL2FmBoetEdWaoxz1-vZYsHC1hH4ylkQxK8kf9P_oegix7j90Hajc54X14hNjJotgGiv6AdO4ZhfjbwcLoDgCqzkq-Ivk9Oo59Jo2jntYzKExy01kjfJ9hLNzHDQb8PP4KzJSDwKaYA0vJ89-_PwuiPurkPVzLVDCyAmpWuYNnI5dQPqUN5iG10cSIR2SZ7RNUOTB9_0ANJenREQTxVO-Wr014HsRSEKOk7Ie8NpJJVVIdBvywKSJEWIsE_sLlErjtS5AEKCagz43iHcH43AN46iONllJFC&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=FQSm_sTXi3QrlRcMOhrIfdFMw4o5oPBi5Y39HbniInPAwR7t-HVbRIWfMV4TMXXaq3cr01dXu_ttelSzZg_Kik5OgZGXYXSf4ES5axNzDI8fDgGNncgkncBFasKoJ_OludD8Pm5GexmGW342RAWHkpeeCXYCrNnp-dNV1nH22C77v6IuTv1MlaMbawxOGZOeDzVkTzHkPcwnVTBQL_RPMUMAk2zMHhVgEpNDipa1YddtrN033JKsjgcJUq4yPl2-5ongTKnRowkEcjeAsIG-sw8lwd_ZTzuI9vMrF2_Pf4XtQsXFbx69iF24qArbwqdQPgMblx9icycgz1oQaCXhZXEueID5r6dB5J4QciAiytPZhZZ1pcL33FjSxKGUdmPqi5-J9o44W43VDHTPziaK6gpLYtkn1M_VJiNv9LXkStpiCeF1aaWPMUYxjAxLF4XSBbAQZhBSPK1L12FvQ33yfyK-GB85X8H3d2ozWcdRubP_Eh4krUBOBv6Wz8iMX3Dw&clientId=tata-aig-a8b455"
+
+//        val magicLink =
+//            "https://tata-aig.getvisitapp.xyz/sso?userParams=FQSm_sTXi3QrlRcMOhrIfdFMw4o5oPBi5Y39HbniInPAwR7t-HVbRIWfMV4TMXXaq3cr01dXu_ttelSzZg_Kik5OgZGXYXSf4ES5axNzDI8fDgGNncgkncBFasKoJ_OludD8Pm5GexmGW342RAWHkpeeCXYCrNnp-dNV1nH22C77v6IuTv1MlaMbawxOGZOeDzVkTzHkPcwnVTBQL_RPMUMAk2zMHhVgEpNDipa1YddtrN033JKsjgcJUq4yPl2-5ongTKnRowkEcjeAsIG-sw8lwd_ZTzuI9vMrF2_Pf4XtQsXFbx69iF24qArbwqdQPgMblx9icycgz1oQaCXhZXEueID5r6dB5J4QciAiytPZhZZ1pcL33FjSxKGUdmPqi5-J9o44W43VDHTPziaK6gpLYtkn1M_VJiNv9LXkStpiCeF1aaWPMUYxjAxLF4XSBbAQZhBSPK1L12FvQ33yfyK-GB85X8H3d2ozWcdRubP_Eh4krUBOBv6Wz8iMX3Dw&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(
