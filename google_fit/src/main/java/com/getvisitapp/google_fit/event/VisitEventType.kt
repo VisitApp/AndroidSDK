@@ -66,5 +66,7 @@ sealed class VisitEventType {
 
     class NetworkError(val errStatus: Int?, val error: String?) : VisitEventType()
 
+    class VisitCallBack(val message: String, val failureReason: String?) : VisitEventType()
+
 
 }

@@ -329,7 +329,7 @@ public class SyncStepHelper {
                     public void onCompleted() {
 
 
-                        if(!syncWithTataAIGServerOnly){
+                        if (!syncWithTataAIGServerOnly) {
                             Log.d(TAG, "jsonArray: " + jsonArray);
 
                             JSONObject finalJsonObject = new JSONObject();
@@ -348,8 +348,6 @@ public class SyncStepHelper {
                         }
 
 
-
-
                         Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
                         //this is called after all the steps for the days are synced from startTimeStamp to endTimeStamp
                         //call the tataAIG api here.
@@ -363,10 +361,6 @@ public class SyncStepHelper {
                         } catch (Exception e) {
                             Log.d(TAG, "exception occured:" + e.getMessage());
                         }
-
-
-
-
 
 
                     }
@@ -432,7 +426,7 @@ public class SyncStepHelper {
                                             @Override
                                             public void onNext(JSONObject jsonObject) {
 //                                                Log.d(TAG, "onNext: inside Creator: " + jsonObject);
-                                                if (jsonObject!=null) {
+                                                if (jsonObject != null) {
                                                     emitter.onNext(jsonObject);
                                                 } else {
                                                     // If the previous API responded with an error, then stop the future API calls.
@@ -458,66 +452,66 @@ public class SyncStepHelper {
         Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
 
         return Observable.zip(
-                        googleFitConnector.getDailySteps(start, end),
-                        googleFitConnector.getDailyDistance(start, end),
-                        googleFitConnector.getDailyCalories(start, end),
-                        new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
-                            @Override
-                            public JSONObject call(HealthDataGraphValues steps, HealthDataGraphValues distance, HealthDataGraphValues calories) {
-                                //Log.d(TAG, "getPayloadForDay: Response: " + readableFormat.format(start) + " to " + readableFormat.format(end));
-                                //Log.d(TAG, "call: steps :" + steps.getValues());
-                                //Log.d(TAG, "call: distance :" + distance.getValues());
-                                //Log.d(TAG, "call: calories :" + calories.getValues());
+                googleFitConnector.getDailySteps(start, end),
+                googleFitConnector.getDailyDistance(start, end),
+                googleFitConnector.getDailyCalories(start, end),
+                new Func3<HealthDataGraphValues, HealthDataGraphValues, HealthDataGraphValues, JSONObject>() {
+                    @Override
+                    public JSONObject call(HealthDataGraphValues steps, HealthDataGraphValues distance, HealthDataGraphValues calories) {
+                        //Log.d(TAG, "getPayloadForDay: Response: " + readableFormat.format(start) + " to " + readableFormat.format(end));
+                        //Log.d(TAG, "call: steps :" + steps.getValues());
+                        //Log.d(TAG, "call: distance :" + distance.getValues());
+                        //Log.d(TAG, "call: calories :" + calories.getValues());
 
-                                JSONArray data_TATA_AIG = new JSONArray();
-                                JSONObject payloadTATA_AIG = new JSONObject();
-                                JSONObject jsonObject_TATA_AIG;
+                        JSONArray data_TATA_AIG = new JSONArray();
+                        JSONObject payloadTATA_AIG = new JSONObject();
+                        JSONObject jsonObject_TATA_AIG;
 
-                                JSONArray data = new JSONArray();
-                                JSONObject payload = new JSONObject();
-                                JSONObject jsonObject;
-                                try {
-                                    for (int i = 0; i < steps.getValues().size(); i++) {
-                                        jsonObject = new JSONObject();
-                                        jsonObject.put("st", steps.getValues().get(i));
-                                        jsonObject.put("c", calories.getValues().get(i));
-                                        jsonObject.put("d", distance.getValues().get(i));
-                                        jsonObject.put("h", i);
-                                        jsonObject.put("s", steps.getAppContributedToGoogleFitValues().get(i));
+                        JSONArray data = new JSONArray();
+                        JSONObject payload = new JSONObject();
+                        JSONObject jsonObject;
+                        try {
+                            for (int i = 0; i < steps.getValues().size(); i++) {
+                                jsonObject = new JSONObject();
+                                jsonObject.put("st", steps.getValues().get(i));
+                                jsonObject.put("c", calories.getValues().get(i));
+                                jsonObject.put("d", distance.getValues().get(i));
+                                jsonObject.put("h", i);
+                                jsonObject.put("s", steps.getAppContributedToGoogleFitValues().get(i));
 
-                                        jsonObject_TATA_AIG = new JSONObject();
-                                        jsonObject_TATA_AIG.put("hour", i);
-                                        jsonObject_TATA_AIG.put("steps", steps.getValues().get(i));
-                                        jsonObject_TATA_AIG.put("calories", calories.getValues().get(i));
-
-
-                                        data.put(jsonObject);
-
-                                        //for tata_aig
-                                        data_TATA_AIG.put(jsonObject_TATA_AIG);
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-
-                                try {
-                                    payload.put("data", data);
-                                    payload.put("dt", start);
+                                jsonObject_TATA_AIG = new JSONObject();
+                                jsonObject_TATA_AIG.put("hour", i);
+                                jsonObject_TATA_AIG.put("steps", steps.getValues().get(i));
+                                jsonObject_TATA_AIG.put("calories", calories.getValues().get(i));
 
 
-                                    //for tata_aig
-                                    payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
-                                    payloadTATA_AIG.put("activity_data", data_TATA_AIG);
-                                    tataAIG_sync_data.put(payloadTATA_AIG);
+                                data.put(jsonObject);
 
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                return payload;
+                                //for tata_aig
+                                data_TATA_AIG.put(jsonObject_TATA_AIG);
                             }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
 
-                );
+                        try {
+                            payload.put("data", data);
+                            payload.put("dt", start);
+
+
+                            //for tata_aig
+                            payloadTATA_AIG.put("activity_date", Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate().toString());
+                            payloadTATA_AIG.put("activity_data", data_TATA_AIG);
+                            tataAIG_sync_data.put(payloadTATA_AIG);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        return payload;
+                    }
+                }
+
+        );
     }
 
     private void syncHourlyDataWithVisit_Server(JSONObject jsonObject) {
@@ -547,8 +541,19 @@ public class SyncStepHelper {
                 .doOnError(new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+
                         EventBus.getDefault()
                                 .post(new MessageEvent(new VisitEventType.StepSyncError(throwable.getMessage())));
+
+                        EventBus.getDefault()
+                                .post(new MessageEvent(
+                                                new VisitEventType.VisitCallBack(
+                                                        "Sync steps and calories api failed",
+                                                        throwable.getMessage()
+                                                )
+                                        )
+                                );
+
                         throwable.printStackTrace();
                     }
                 })
@@ -560,6 +565,15 @@ public class SyncStepHelper {
                         if (aBoolean) {
                             Calendar calendar = Calendar.getInstance();
                             sharedPrefUtil.setTataAIGLastSyncTimeStamp(calendar.getTimeInMillis());
+
+                            EventBus.getDefault()
+                                    .post(new MessageEvent(
+                                                    new VisitEventType.VisitCallBack(
+                                                            "Sync steps and calories api called",
+                                                            null
+                                                    )
+                                            )
+                                    );
                         }
 
                     }

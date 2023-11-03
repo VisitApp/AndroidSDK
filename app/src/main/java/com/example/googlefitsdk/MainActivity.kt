@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.IntiateSdk
-import com.getvisitapp.google_fit.activity.FeedBackActivity
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
 import com.getvisitapp.google_fit.event.ClosePWAEvent
@@ -226,6 +225,16 @@ class MainActivity : AppCompatActivity() {
                     Log.d("mytag", "errStatus: $errStatus, error: $error")
 
                 }
+                is VisitEventType.VisitCallBack -> {
+                    val eventData = event.eventType as VisitEventType.VisitCallBack
+
+                    val message: String = eventData.message
+
+                    val failureReason: String? = eventData.failureReason
+
+                    Log.d("mytag", "VisitCallBack message: $message, failureReason: $failureReason")
+
+                }
             }
 
         }
@@ -234,11 +243,11 @@ class MainActivity : AppCompatActivity() {
 
     fun init() {
 
-        val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=FQSm_sTXi3QrlRcMOhrIfdFMw4o5oPBi5Y39HbniInPAwR7t-HVbRIWfMV4TMXXaq3cr01dXu_ttelSzZg_Kik5OgZGXYXSf4ES5axNzDI8fDgGNncgkncBFasKoJ_OludD8Pm5GexmGW342RAWHkpeeCXYCrNnp-dNV1nH22C77v6IuTv1MlaMbawxOGZOeDzVkTzHkPcwnVTBQL_RPMUMAk2zMHhVgEpNDipa1YddtrN033JKsjgcJUq4yPl2-5ongTKnRowkEcjeAsIG-sw8lwd_ZTzuI9vMrF2_Pf4XtQsXFbx69iF24qArbwqdQPgMblx9icycgz1oQaCXhZXEueID5r6dB5J4QciAiytPZhZZ1pcL33FjSxKGUdmPqi5-J9o44W43VDHTPziaK6gpLYtkn1M_VJiNv9LXkStpiCeF1aaWPMUYxjAxLF4XSBbAQZhBSPK1L12FvQ33yfyK-GB85X8H3d2ozWcdRubP_Eh4krUBOBv6Wz8iMX3Dw&clientId=tata-aig-a8b455"
-
 //        val magicLink =
 //            "https://tata-aig.getvisitapp.xyz/sso?userParams=FQSm_sTXi3QrlRcMOhrIfdFMw4o5oPBi5Y39HbniInPAwR7t-HVbRIWfMV4TMXXaq3cr01dXu_ttelSzZg_Kik5OgZGXYXSf4ES5axNzDI8fDgGNncgkncBFasKoJ_OludD8Pm5GexmGW342RAWHkpeeCXYCrNnp-dNV1nH22C77v6IuTv1MlaMbawxOGZOeDzVkTzHkPcwnVTBQL_RPMUMAk2zMHhVgEpNDipa1YddtrN033JKsjgcJUq4yPl2-5ongTKnRowkEcjeAsIG-sw8lwd_ZTzuI9vMrF2_Pf4XtQsXFbx69iF24qArbwqdQPgMblx9icycgz1oQaCXhZXEueID5r6dB5J4QciAiytPZhZZ1pcL33FjSxKGUdmPqi5-J9o44W43VDHTPziaK6gpLYtkn1M_VJiNv9LXkStpiCeF1aaWPMUYxjAxLF4XSBbAQZhBSPK1L12FvQ33yfyK-GB85X8H3d2ozWcdRubP_Eh4krUBOBv6Wz8iMX3Dw&clientId=tata-aig-a8b455"
+
+        val magicLink =
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=KQEHKC4XcZ4u31zx3lFJA_kGk0Eqt7NYc4rcW4SMdByCNu8djzwF8p83z9YesIXXVYJNrJCFHUqxx7jeCS7Z2UlHvv_17DqAcKZcUq3Xvb1flVK3sNag6uR-MKNV05IBwYKJwcI4UgDSjq2ls2lZ1u07XqletDv-2S7WK32y-voqYxLRbyFkmnRhAE9x7Dl1-0UusFPgs0Zut6HRX2YJAAR1qkhoy5QwUFICSZ3fJauolu7vNRUKme2g3-jIYlz6heOVHY_gQIqFfEXw1MykPEm5w4oUd3-9qDEHW20fvfZ3_OS38Dlb-cf0_gsgDVeXecg90NDK9JaNJsrxrRZPJJO8hncnO6VaVUTk0m09soGlhDSnGNW6blRcFp2f8ngVRZT2l0ZkFnTuyjBHQo3EsBLT3m53xWi2LqEAWWIS5ng1NLgajg4Hqaay2J0EjfO61fwImibFOwxXisoXbBvyQjfr75w93acfB6hSjLoj5wa8XXcrcXwPT5QSTzDqtt4In4MDyPLGaCHOqlpZNywKYw&clientId=tata-aig-a8b455"
 
 
         IntiateSdk.s(

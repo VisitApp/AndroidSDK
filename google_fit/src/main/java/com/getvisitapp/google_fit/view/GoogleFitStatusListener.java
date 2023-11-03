@@ -57,5 +57,10 @@ public interface GoogleFitStatusListener {
 
     void openLink(String url);
 
+    void openExternalLink(String url);
+
+
+    void visitCallback(@Nullable String jsonObject);
+
 
 }

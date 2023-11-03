@@ -38,6 +38,7 @@ import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
+import com.getvisitapp.google_fit.event.VisitEventType.VisitCallBack
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
@@ -58,9 +59,28 @@ import org.json.JSONObject
 import tvi.webrtc.ContextUtils
 import java.util.*
 
+
+/**
+ *
+ *
+1. Fitbit success URL:
+tataaig://visitsdkactivity&message=success&fitbit=true
+
+2.
+These events are there present in the sdk:
+
+Download HRA report clicked (done)
+Download HRA report failed (not possible from sdk)
+Google fit clicked (done)
+Google fit connection failed (done)
+Fitbit clicked (done)
+Fitbit connection failed (done)
+Sync steps and calories api called (done)
+Sync steps and calories api failed (done)
+
+ */
 @Keep
-class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
-    GoogleFitStatusListener {
+class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener {
 
     var TAG = "mytag"
 
@@ -121,9 +141,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
 
 
         override fun onReceivedError(
-            view: WebView?,
-            request: WebResourceRequest?,
-            error: WebResourceError?
+            view: WebView?, request: WebResourceRequest?, error: WebResourceError?
         ) {
 //            Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
             binding.progressBar.visibility = View.GONE
@@ -201,8 +219,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                 Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimetype");
 
                 url?.let {
-                    pdfDownloader.downloadPdfFile(
-                        fileDir = filesDir,
+                    pdfDownloader.downloadPdfFile(fileDir = filesDir,
                         pdfUrl = url,
                         onDownloadComplete = {
                             val shareIntent = Intent().apply {
@@ -222,8 +239,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                         },
                         onDownloadFailed = {
                             Log.d(
-                                TAG,
-                                "onDownloadRequested() download failed, opening it in chrome"
+                                TAG, "onDownloadRequested() download failed, opening it in chrome"
                             )
                             try {
                                 val uri = Uri.parse(url)
@@ -295,15 +311,11 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                             EventBus.getDefault()
                                 .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
                             Toast.makeText(
-                                applicationContext,
-                                "Fitbit is connected",
-                                Toast.LENGTH_LONG
-                            )
-                                .show()
+                                applicationContext, "Fitbit is connected", Toast.LENGTH_LONG
+                            ).show()
                             sharedPrefUtil.setFitBitConnectedStatus(true)
                             visitSyncStepSyncHelper.syncFitbitSteps(
-                                tataAIG_base_url,
-                                tataAIG_auth_token
+                                tataAIG_base_url, tataAIG_auth_token
                             )
 
                         }
@@ -311,18 +323,41 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                     } else if (message != null && message.equals(
                             "failed", ignoreCase = true
                         )
-                    ) Toast.makeText(
-                        applicationContext,
-                        "Failed to connect Fitbit device. Please retry or contact support",
-                        Toast.LENGTH_LONG
-                    ).show() else if (message != null && message.equals(
+                    ) {
+                        Toast.makeText(
+                            applicationContext,
+                            "Failed to connect Fitbit device. Please retry or contact support",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        EventBus.getDefault().post(
+                            MessageEvent(
+                                VisitEventType.VisitCallBack(
+                                    "Fitbit connection failed",
+                                    failureReason = "Failed to connect to Fitbit."
+                                )
+                            )
+                        )
+
+                    } else if (message != null && message.equals(
                             "accessDenied", ignoreCase = true
                         )
-                    ) Toast.makeText(
-                        applicationContext,
-                        "You have denied access to connect to Fitbit",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    ) {
+                        Toast.makeText(
+                            applicationContext,
+                            "You have denied access to connect to Fitbit",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        EventBus.getDefault().post(
+                            MessageEvent(
+                                VisitEventType.VisitCallBack(
+                                    "Fitbit connection failed",
+                                    failureReason = "Failed to connect Fitbit. Access Denied"
+                                )
+                            )
+                        )
+                    }
                 }, 1000)
             } else if (uri.queryParameterNames.contains("feedback")) {
 
@@ -361,6 +396,15 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                 if (requestCode == 1900) {
                     EventBus.getDefault()
                         .post(MessageEvent(VisitEventType.FitnessPermissionError("Google SignIn Cancelled")))
+
+                    EventBus.getDefault().post(
+                        MessageEvent(
+                            VisitEventType.VisitCallBack(
+                                "Google fit connection failed",
+                                failureReason = "Google SignIn Cancelled"
+                            )
+                        )
+                    )
                 }
             }
         } else if (requestCode == 1000 && resultCode == RESULT_OK) {
@@ -425,14 +469,20 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
         }
 
         EventBus.getDefault().post(MessageEvent(VisitEventType.AskForFitnessPermission))
+        EventBus.getDefault().post(
+            MessageEvent(
+                VisitEventType.VisitCallBack(
+                    message = "Google fit clicked", failureReason = null
+                )
+            )
+        )
 
         if (dailyDataSynced) {
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACTIVITY_RECOGNITION
+                    this, Manifest.permission.ACTIVITY_RECOGNITION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissions(
@@ -455,6 +505,14 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
 
     override fun connectToFitbit(url: String, authToken: String) {
 
+
+        EventBus.getDefault().post(
+            MessageEvent(
+                VisitEventType.VisitCallBack(
+                    "Fitbit clicked", failureReason = null
+                )
+            )
+        )
 
         Log.d(TAG, "connectToFitbit: $url, authToken: $authToken")
 
@@ -779,9 +837,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
                             finish()
                         } else if (binding.webview.url!!.endsWith("/wellness-management")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/health-data")
-                            || binding.webview.url!!.endsWith("/hra/question")
-                            || binding.webview.url!!.contains("stay-active")
+                        } else if (binding.webview.url!!.endsWith("/health-data") || binding.webview.url!!.endsWith(
+                                "/hra/question"
+                            ) || binding.webview.url!!.contains("stay-active")
                         ) {
                             Log.d(TAG, "window.hardwareBackPressed() called")
                             runOnUiThread {
@@ -849,14 +907,21 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
     override fun downloadHraLink(url: String) {
         Log.d("mytag", "downloadHraLink() link:$url")
 
+        EventBus.getDefault().post(
+            MessageEvent(
+                VisitCallBack(
+                    "Download HRA report clicked", null
+                )
+            )
+        )
+
+
         pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
             val shareIntent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(
                     Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                        applicationContext,
-                        applicationContext.packageName + AUTHORITY_SUFFIX,
-                        it
+                        applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX, it
                     )
                 )
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -974,6 +1039,31 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
         }
     }
 
+    override fun openExternalLink(url: String?) {
+        runOnUiThread {
+            try {
+                val feedBackActivity = FeedBackActivity.getIntent(this, url!!)
+                startActivity(feedBackActivity)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun visitCallback(jsonObject: String?) {
+        jsonObject?.let {
+            val decodedObject: JSONObject = decodeString(jsonObject)
+
+            val message: String = decodedObject.getString("message")
+            val failureReason: String? =
+                if (decodedObject.has("failureReason")) decodedObject.getString("failureReason") else null
+
+
+            EventBus.getDefault()
+                .post(MessageEvent(VisitEventType.VisitCallBack(message, failureReason)))
+        }
+    }
+
     inner class MyChrome internal constructor() : WebChromeClient() {
         private var mCustomView: View? = null
         private var mCustomViewCallback: CustomViewCallback? = null
@@ -1005,8 +1095,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener,
             i.type = "*/*"
 
             startActivityForResult(
-                Intent.createChooser(i, "Choose a file"),
-                REQUEST_CODE_FILE_PICKER
+                Intent.createChooser(i, "Choose a file"), REQUEST_CODE_FILE_PICKER
             )
 
             return true

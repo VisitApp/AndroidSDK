@@ -153,6 +153,12 @@ public class WebAppInterface {
         listener.openLink(url);
     }
 
+    @JavascriptInterface
+    public void openExternalLink(String url) {
+        Log.d("mytag", "openExternalLink called(). url:" + url);
+        listener.openExternalLink(url);
+    }
+
 
     @JavascriptInterface
     public void consultationBooked() {
@@ -167,9 +173,16 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void internetErrorHandler(String jsonObject) {
+    public void internetErrorHandler(String jsonObject) { //this is used for timeout
         Log.d("mytag", "internetErrorHandler called(). jsonObject: " + jsonObject);
         listener.internetErrorHandler(jsonObject);
+    }
+
+
+    @JavascriptInterface
+    public void visitCallback(String jsonObject) { //this is used for analytics purpose by TATA AIG.
+        Log.d("mytag", "visitCallback called(). jsonObject: " + jsonObject);
+        listener.visitCallback(jsonObject);
     }
 
 
