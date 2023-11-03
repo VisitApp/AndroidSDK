@@ -1044,6 +1044,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             try {
                 val feedBackActivity = FeedBackActivity.getIntent(this, url!!)
                 startActivity(feedBackActivity)
+                overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
             } catch (e: Exception) {
                 e.printStackTrace()
             }

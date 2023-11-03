@@ -32,7 +32,8 @@
         android:theme="@style/Theme.GoogleFitSdk">
         <activity
             android:name=".activity.FeedBackActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:windowSoftInputMode="stateVisible|adjustResize"/>
         <activity android:name=".activity.TwillioVideoCallActivity" />
         <activity
             android:name=".activity.SdkWebviewActivity"
