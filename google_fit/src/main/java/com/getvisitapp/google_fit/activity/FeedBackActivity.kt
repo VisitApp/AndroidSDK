@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.webkit.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -44,6 +45,8 @@ class FeedBackActivity : AppCompatActivity() {
 
                 Log.d("mytag", "onPageStarted called")
 
+                binding.progressBar.visibility = View.VISIBLE
+
                 url?.let {
                     if (url.startsWith("https://www.tataaig.com/")) {
                         destroyWebViewAndGoBack()
@@ -53,6 +56,7 @@ class FeedBackActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 Log.d("mytag", "onPageFinished called")
+                binding.progressBar.visibility = View.GONE
                 super.onPageFinished(view, url)
 
             }
