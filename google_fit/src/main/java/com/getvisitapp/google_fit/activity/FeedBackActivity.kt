@@ -75,6 +75,11 @@ class FeedBackActivity : AppCompatActivity() {
         }
 
         binding.webview.loadUrl(webUrl)
+
+        binding.closeImageView.setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
+        }
     }
 
     override fun onBackPressed() {
@@ -91,9 +96,6 @@ class FeedBackActivity : AppCompatActivity() {
         // NOTE: This can occasionally cause a segfault below API 17 (4.2)
         binding.webview.destroy();
 
-        val intent = Intent()
-        intent.putExtra("fromFeedbackActivity", true)
-        setResult(RESULT_OK, intent);
         finish()
         overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
     }
