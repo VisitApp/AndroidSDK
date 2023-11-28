@@ -1128,6 +1128,21 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             )
             window.decorView.systemUiVisibility = 3846 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         }
+
+        override fun onGeolocationPermissionsShowPrompt(
+            origin: String?,
+            callback: GeolocationPermissions.Callback?
+        ) {
+            Log.d("mytag", "onGeolocationPermissionsShowPrompt called")
+            super.onGeolocationPermissionsShowPrompt(origin, callback);
+            callback?.invoke(origin, true, false);
+        }
+
+        override fun onGeolocationPermissionsHidePrompt() {
+            Log.d("mytag", "onGeolocationPermissionsHidePrompt called")
+            super.onGeolocationPermissionsHidePrompt()
+
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

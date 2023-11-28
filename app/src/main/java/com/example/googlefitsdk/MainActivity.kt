@@ -247,7 +247,11 @@ class MainActivity : AppCompatActivity() {
 //            "https://tata-aig.getvisitapp.xyz/sso?userParams=FQSm_sTXi3QrlRcMOhrIfdFMw4o5oPBi5Y39HbniInPAwR7t-HVbRIWfMV4TMXXaq3cr01dXu_ttelSzZg_Kik5OgZGXYXSf4ES5axNzDI8fDgGNncgkncBFasKoJ_OludD8Pm5GexmGW342RAWHkpeeCXYCrNnp-dNV1nH22C77v6IuTv1MlaMbawxOGZOeDzVkTzHkPcwnVTBQL_RPMUMAk2zMHhVgEpNDipa1YddtrN033JKsjgcJUq4yPl2-5ongTKnRowkEcjeAsIG-sw8lwd_ZTzuI9vMrF2_Pf4XtQsXFbx69iF24qArbwqdQPgMblx9icycgz1oQaCXhZXEueID5r6dB5J4QciAiytPZhZZ1pcL33FjSxKGUdmPqi5-J9o44W43VDHTPziaK6gpLYtkn1M_VJiNv9LXkStpiCeF1aaWPMUYxjAxLF4XSBbAQZhBSPK1L12FvQ33yfyK-GB85X8H3d2ozWcdRubP_Eh4krUBOBv6Wz8iMX3Dw&clientId=tata-aig-a8b455"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=KQEHKC4XcZ4u31zx3lFJA_kGk0Eqt7NYc4rcW4SMdByCNu8djzwF8p83z9YesIXXVYJNrJCFHUqxx7jeCS7Z2UlHvv_17DqAcKZcUq3Xvb1flVK3sNag6uR-MKNV05IBwYKJwcI4UgDSjq2ls2lZ1u07XqletDv-2S7WK32y-voqYxLRbyFkmnRhAE9x7Dl1-0UusFPgs0Zut6HRX2YJAAR1qkhoy5QwUFICSZ3fJauolu7vNRUKme2g3-jIYlz6heOVHY_gQIqFfEXw1MykPEm5w4oUd3-9qDEHW20fvfZ3_OS38Dlb-cf0_gsgDVeXecg90NDK9JaNJsrxrRZPJJO8hncnO6VaVUTk0m09soGlhDSnGNW6blRcFp2f8ngVRZT2l0ZkFnTuyjBHQo3EsBLT3m53xWi2LqEAWWIS5ng1NLgajg4Hqaay2J0EjfO61fwImibFOwxXisoXbBvyQjfr75w93acfB6hSjLoj5wa8XXcrcXwPT5QSTzDqtt4In4MDyPLGaCHOqlpZNywKYw&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.xyz/sso?userParams=LH53MbTMvD-UcbZxap-i6S-h-D2Y0JgBpwJdDPhiJGjGsqYHDbZ0C3hZruy4_7BcCkS5elSq_4Xc3oIaieYs7pvT5dWiaNxdcufcqg-Acuu-IO1-VjiOkyin1I0Ds4p_pHfS4lFl2wi94Tmc3_GMfzz6RyQkI2Gkf3wsGUI3NZU2W3laN-gK2BSnZLAooD1QdtNBfEP-fbp5fiHyl6siqtuID9aIVNrl80iJhqSunvQsYZzP1LZRRY2RSOHjiSRffs_3PCMWGRIxI97dX0NQwf-OaKcpHGYcr1l09z259Jg_9RtfKnfBZdAJkhsl72Tpk08UfL42hWu4AjLblUK_eg&clientId=tata-aig-a8b455"
+
+
+//        val magicLink =
+//            "https://star-health.getvisitapp.com/?mluib7c=QNkg98jB"
 
 
         IntiateSdk.s(
