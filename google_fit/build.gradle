@@ -119,7 +119,7 @@ afterEvaluate {
 
                 groupId = 'com.getvisitapp'
                 artifactId = 'google_fit'
-                version = '1.77'
+                version = '1.79'
             }
         }
     }
