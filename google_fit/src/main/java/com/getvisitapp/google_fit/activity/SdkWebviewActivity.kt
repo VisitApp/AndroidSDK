@@ -480,7 +480,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (dailyDataSynced) {
             return
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(
                     this, Manifest.permission.ACTIVITY_RECOGNITION
                 ) != PackageManager.PERMISSION_GRANTED
@@ -492,6 +492,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             } else {
                 googleFitUtil.askForGoogleFitPermission()
             }
+        } else {
+            googleFitUtil.askForGoogleFitPermission()
         }
     }
 
