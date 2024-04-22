@@ -14,8 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.IntiateSdk
-import com.getvisitapp.google_fit.data.VisitStepSyncHelper
-import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
@@ -33,12 +31,8 @@ class MainActivity : AppCompatActivity() {
         "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
 
     private lateinit var googleFitAccessChecker: GoogleFitAccessChecker
-    private lateinit var googleFitSwitch: SwitchMaterial
 
-    private val tataAIG_base_url = "https://uathealthvas.tataaig.com"
-    private val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
 
-    private lateinit var syncStepHelper: VisitStepSyncHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,85 +42,9 @@ class MainActivity : AppCompatActivity() {
             init()
         }
 
-
-        googleFitSwitch = findViewById(R.id.googleFitSwitch)
-        googleFitAccessChecker = GoogleFitAccessChecker(this)
-
-        syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
-
-
-        findViewById<Button>(R.id.manualSyncStepButton).setOnClickListener {
-            syncStepHelper.syncSteps(tataAIG_base_url, tataAIG_auth_token)
-        }
-
-
-        //Open Google Fit if installed else return false.
-        findViewById<Button>(R.id.openGoogleFitApp).setOnClickListener {
-            val result = openGoogleFit()
-            if (result) {
-                //do nothing
-            } else {
-                Toast.makeText(this, "Google Fit app is not installed.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        findViewById<Button>(R.id.hraIncomplete).setOnClickListener {
-            syncStepHelper.sendHRAInComplete(tataAIG_base_url, tataAIG_auth_token)
-        }
-
-        findViewById<Button>(R.id.revokeFitBitAccessButton).setOnClickListener {
-            syncStepHelper.revokeFitbitAccess()
-        }
     }
 
-    fun setHealthAppStatus(googleFitEnabled: Boolean, fitbitEnabled: Boolean) {
 
-        googleFitSwitch.setText("Google Fit / Fitbit", TextView.BufferType.SPANNABLE)
-
-
-        val spannable = googleFitSwitch.text as Spannable
-
-
-        spannable.setSpan(
-            ForegroundColorSpan(
-                ContextCompat.getColor(
-                    googleFitSwitch.context,
-                    R.color.redColor
-                )
-            ), 0, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-
-        if (googleFitEnabled) {
-            spannable.setSpan(
-                ForegroundColorSpan(
-                    ContextCompat.getColor(
-                        googleFitSwitch.context,
-                        R.color.greenColor
-                    )
-                ), 0, 10, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-
-        if (fitbitEnabled) {
-            spannable.setSpan(
-                ForegroundColorSpan(
-                    ContextCompat.getColor(
-                        googleFitSwitch.context,
-                        R.color.greenColor
-                    )
-                ), 11, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-
-        spannable.setSpan(
-            ForegroundColorSpan(
-                ContextCompat.getColor(
-                    googleFitSwitch.context,
-                    R.color.greyColor
-                )
-            ), 11, 12, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onMessageEvent(event: MessageEvent?) {
@@ -258,8 +176,6 @@ class MainActivity : AppCompatActivity() {
             this,
             false,
             magicLink,
-            tataAIG_base_url,
-            tataAIG_auth_token,
             default_client_id
         )
     }
@@ -277,44 +193,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        googleFitSwitch.setOnCheckedChangeListener(null)
-
-        val googleFitAccess = googleFitAccessChecker.checkGoogleFitAccess();
-        val fitBitAccess = syncStepHelper.getFitbitCurrentStatus()
-
-        Log.d("mytag", "googleFitAccess: $googleFitAccess && fitBitAccess:$fitBitAccess")
-
-        googleFitSwitch.isChecked = googleFitAccess || fitBitAccess
-
-        //updating the UI
-        setHealthAppStatus(
-            googleFitAccess, fitBitAccess,
-        )
-
-        googleFitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
     }
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
         super.onDestroy()
-    }
-
-    var googleFitCheckChangeListener = object : OnCheckedChangeListener {
-        override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
-            if (isChecked) {
-                init()
-            } else {
-                if (syncStepHelper.getFitbitCurrentStatus()) {
-                    syncStepHelper.revokeFitbitAccess()
-                } else {
-                    googleFitAccessChecker.revokeGoogleFitPermission(default_client_id)
-                }
-
-                //updating the UI.
-                setHealthAppStatus(false, false)
-            }
-        }
     }
 }
 

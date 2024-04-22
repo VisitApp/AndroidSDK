@@ -33,7 +33,6 @@ import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
 import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.data.SharedPrefUtil
-import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
@@ -41,8 +40,6 @@ import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.event.VisitEventType.VisitCallBack
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
-import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
-import com.getvisitapp.google_fit.util.Constants.TATA_AIG_BASE_URL
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.LocationTrackerUtil
@@ -102,8 +99,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     var syncDataWithServer = false
 
     private lateinit var googleFitStepChecker: GoogleFitAccessChecker
-    private lateinit var tataAIG_base_url: String
-    private lateinit var tataAIG_auth_token: String
 
     lateinit var sharedPrefUtil: SharedPrefUtil
     lateinit var pdfDownloader: PdfDownloader
@@ -113,13 +108,11 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     var authtoken: String? = null
     var googleFitLastSync: Long = 0L
     var gfHourlyLastSync = 0L
-    var memberId: String? = null
 
     var redirectUserToGoogleFitStatusPage: Boolean =
         false //this flag acts a check with which we should redirect user to google connected successfully page or not.
 
     lateinit var locationTrackerUtil: LocationTrackerUtil
-    lateinit var visitSyncStepSyncHelper: VisitStepSyncHelper
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
 
     lateinit var connectivityObserver: ConnectivityObserver
@@ -165,15 +158,11 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             context: Context,
             isDebug: Boolean,
             magicLink: String,
-            tataAIG_base_url: String,
-            tataAIG_auth_token: String,
             default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
             intent.putExtra(WEB_URL, magicLink)
-            intent.putExtra(TATA_AIG_BASE_URL, tataAIG_base_url)
-            intent.putExtra(TATA_AIG_AUTH_TOKEN, tataAIG_auth_token)
             intent.putExtra(DEFAULT_CLIENT_ID, default_web_client_id)
             return intent
         }
@@ -186,10 +175,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         binding.progressBar.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
-        tataAIG_base_url = intent.extras!!.getString(TATA_AIG_BASE_URL)!!
-        tataAIG_auth_token = intent.extras!!.getString(TATA_AIG_AUTH_TOKEN)!!
         default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
-        visitSyncStepSyncHelper = VisitStepSyncHelper(this, default_web_client_id)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -314,9 +300,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                                 applicationContext, "Fitbit is connected", Toast.LENGTH_LONG
                             ).show()
                             sharedPrefUtil.setFitBitConnectedStatus(true)
-                            visitSyncStepSyncHelper.syncFitbitSteps(
-                                tataAIG_base_url, tataAIG_auth_token
-                            )
 
                         }
 
@@ -556,16 +539,13 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
-        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
+        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L) {
             runOnUiThread {
                 googleFitUtil.sendDataToServer(
                     visitApiBaseUrl + "/",
                     authtoken,
                     googleFitLastSync,
-                    gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
+                    gfHourlyLastSync
                 )
                 syncDataWithServer = true
             }
@@ -617,7 +597,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         authtoken: String?,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
-        memberId: String,
         isFitBitConnected: Boolean
     ) {
 
@@ -625,7 +604,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         this.authtoken = authtoken
         this.googleFitLastSync = googleFitLastSync
         this.gfHourlyLastSync = gfHourlyLastSync
-        this.memberId = memberId
 
         //For the first time, when the logs in the PWA, this will comes zero, so in that case just make it today's date
         if (this.googleFitLastSync == 0L) {
@@ -637,7 +615,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         sharedPrefUtil.setFitBitConnectedStatus(isFitBitConnected)
 
-        Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
+        Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl")
+
         if (!syncDataWithServer) {
             Log.d(TAG, "syncDataWithServer() called")
 
@@ -651,20 +630,16 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             sharedPrefUtil.setTataAIGLastSyncTimeStamp(this.gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
             // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
 
-            sharedPrefUtil.setTATA_AIG_MemberId(memberId)
 
             if (sharedPrefUtil.getFitBitConnectionStatus()) {
-                visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
+                //don't do anything
             } else {
                 runOnUiThread(Runnable {
                     googleFitUtil.sendDataToServer(
                         visitApiBaseUrl + "/",
                         authtoken,
                         this.googleFitLastSync,
-                        this.gfHourlyLastSync,
-                        memberId,
-                        tataAIG_base_url,
-                        tataAIG_auth_token
+                        this.gfHourlyLastSync
                     )
                     syncDataWithServer = true
                 })

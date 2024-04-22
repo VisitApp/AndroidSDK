@@ -5,8 +5,6 @@ import android.util.Log;
 
 import androidx.annotation.Keep;
 
-import com.getvisitapp.google_fit.event.MessageEvent;
-import com.getvisitapp.google_fit.event.VisitEventType;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
 import com.getvisitapp.google_fit.okhttp.Transformers;
@@ -18,7 +16,6 @@ import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,17 +56,15 @@ public class SyncStepHelper {
     private SimpleDateFormat readableFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
 
     JSONArray tataAIG_sync_data = new JSONArray();
-    private String memberId;
     private boolean syncWithTataAIGServerOnly;
 
     private SharedPrefUtil sharedPrefUtil;
 
-    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, String tata_aig_baseURL, String tata_aig_authToken, String memberId, Context context) {
+    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken,Context context) {
         this.googleFitConnector = connector;
         this.compositeSubscription = new CompositeSubscription();
-        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, tata_aig_baseURL, tata_aig_authToken, context);
+        this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, context);
         this.context = context;
-        this.memberId = memberId;
         this.sharedPrefUtil = new SharedPrefUtil(context);
     }
 
@@ -349,19 +344,6 @@ public class SyncStepHelper {
 
 
                         Log.d(TAG, "********onCompleted**********: syncDataForDay: ");
-                        //this is called after all the steps for the days are synced from startTimeStamp to endTimeStamp
-                        //call the tataAIG api here.
-
-                        JSONObject finalRequest = new JSONObject();
-                        try {
-                            finalRequest.put("member_id", String.valueOf(memberId));
-                            finalRequest.put("data", tataAIG_sync_data);
-                            Log.d(TAG, "tata AIG finalRequest: " + finalRequest.toString());
-                            syncDateToTATA_Server(finalRequest);
-                        } catch (Exception e) {
-                            Log.d(TAG, "exception occured:" + e.getMessage());
-                        }
-
 
                     }
 
@@ -527,80 +509,6 @@ public class SyncStepHelper {
                     @Override
                     public void call(Boolean aBoolean) {
                         Log.d("mytag", "Visit Hourly Data Sync Status: " + aBoolean);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
-    private void syncDateToTATA_Server(JSONObject jsonObject) {
-        mainActivityPresenter.syncDayWithTATA_AIG_Server(jsonObject).subscribeOn(Schedulers.io())
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-
-                        EventBus.getDefault()
-                                .post(new MessageEvent(new VisitEventType.StepSyncError(throwable.getMessage())));
-
-                        EventBus.getDefault()
-                                .post(new MessageEvent(
-                                                new VisitEventType.VisitCallBack(
-                                                        "Sync steps and calories api failed",
-                                                        throwable.getMessage()
-                                                )
-                                        )
-                                );
-
-                        throwable.printStackTrace();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean aBoolean) {
-                        Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
-                        if (aBoolean) {
-                            Calendar calendar = Calendar.getInstance();
-                            sharedPrefUtil.setTataAIGLastSyncTimeStamp(calendar.getTimeInMillis());
-
-                            EventBus.getDefault()
-                                    .post(new MessageEvent(
-                                                    new VisitEventType.VisitCallBack(
-                                                            "Sync steps and calories api called",
-                                                            null
-                                                    )
-                                            )
-                                    );
-                        }
-
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
-
-
-    }
-
-    public void sendHRAInCompleteStatusToTataAIG(JSONObject jsonObject) {
-        mainActivityPresenter.sendHRAInCompleteStatus(jsonObject).subscribeOn(Schedulers.io())
-                .doOnError(new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Boolean>() {
-                    @Override
-                    public void call(Boolean aBoolean) {
-                        Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
-
                     }
                 }, new Action1<Throwable>() {
                     @Override

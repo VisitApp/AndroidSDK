@@ -111,21 +111,21 @@ public class GoogleFitUtil implements GenericListener {
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps , TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                listener.loadDailyFitnessData(sleepStepsData.steps, TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
         Observable.zip(googleFitConnector.getTotalStepsForToday(),
-                googleFitConnector.getSleepForToday(),
-                (integers, sleepCard) -> {
-                    SleepStepsData sleepStepsData;
-                    if (!integers.isEmpty()) {
-                        sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
-                    } else {
-                        sleepStepsData = new SleepStepsData(sleepCard, 0);
-                    }
-                    return sleepStepsData;
-                })
+                        googleFitConnector.getSleepForToday(),
+                        (integers, sleepCard) -> {
+                            SleepStepsData sleepStepsData;
+                            if (!integers.isEmpty()) {
+                                sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
+                            } else {
+                                sleepStepsData = new SleepStepsData(sleepCard, 0);
+                            }
+                            return sleepStepsData;
+                        })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(sleepStepsDataSubscriber);
@@ -355,14 +355,14 @@ public class GoogleFitUtil implements GenericListener {
         }
     }
 
-    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync, String memberId, String tataAIG_base_url, String tata_aig_authToken) {
+    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
         if (stepsCounter.hasAccess()) {
-            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, tataAIG_base_url, tata_aig_authToken, memberId, context);
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, context);
             if (googleFitLastSync != 0) {
                 syncStepHelper.dailySync(googleFitLastSync);
             }
             if (gfHourlyLastSync != 0) {
-                syncStepHelper.hourlySync(gfHourlyLastSync,false);
+                syncStepHelper.hourlySync(gfHourlyLastSync, false);
             }
 
 

@@ -2,7 +2,6 @@ package com.getvisitapp.google_fit.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
@@ -25,14 +24,6 @@ class SharedPrefUtil(context: Context) {
 
     fun getVisitBaseUrl(): String {
         return sharedPreferences.getString(Constants.VISIT_BASE_URL, "")!!;
-    }
-
-    fun setTATA_AIG_MemberId(memberId: String) {
-        sharedPreferencesEditor.putString(Constants.TATA_AIG_MEMBER_ID, memberId).commit()
-    }
-
-    fun getTATA_AIG_MemberId(): String {
-        return sharedPreferences.getString(Constants.TATA_AIG_MEMBER_ID, "")!!
     }
 
     fun setVisitAuthToken(authToken: String) {

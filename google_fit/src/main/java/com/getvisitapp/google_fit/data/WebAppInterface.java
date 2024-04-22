@@ -71,7 +71,7 @@ public class WebAppInterface {
     @JavascriptInterface
     public void updateApiBaseUrlV2(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected) {
         Log.d("mytag", "updateApiBaseUrlV2() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected);
-        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId, fitbitConnected);
+        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, fitbitConnected);
     }
 
     @JavascriptInterface
