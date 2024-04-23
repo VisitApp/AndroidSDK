@@ -65,7 +65,7 @@ dependencies {
 IntiateSdk.s(
             context,
             false, 
-            magicLink,
+            ssoLink,
             google_default_client_id
         )
 ```
