@@ -31,6 +31,13 @@ dependencies {
     implementation 'com.twilio:video-android:7.1.2'
     implementation 'com.twilio:audioswitch:1.1.5'
 
+    implementation('com.getkeepsafe.relinker:relinker:1.4.4') {
+        version {
+            strictly '1.4.4'
+        }
+    }
+    
+
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2'
 
@@ -46,14 +53,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
-    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.0.0'
-
-    implementation('com.getkeepsafe.relinker:relinker:1.4.4') {
-        version {
-            strictly '1.4.4'
-        }
-    }
-    
+   
     implementation("org.greenrobot:eventbus:3.3.1")
     
     implementation  "androidx.browser:browser:1.3.0"
