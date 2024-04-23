@@ -101,9 +101,6 @@ dependencies {
         }
     }
 
-    implementation("org.greenrobot:eventbus:3.3.1")
-
-
     //Chucker
     debugApi "com.github.chuckerteam.chucker:library:3.5.2"
     releaseApi "com.github.chuckerteam.chucker:library-no-op:3.5.2"

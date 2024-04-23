@@ -34,10 +34,6 @@ import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
 import com.getvisitapp.google_fit.data.GoogleFitUtil
 import com.getvisitapp.google_fit.data.SharedPrefUtil
 import com.getvisitapp.google_fit.databinding.SdkWebView
-import com.getvisitapp.google_fit.event.ClosePWAEvent
-import com.getvisitapp.google_fit.event.MessageEvent
-import com.getvisitapp.google_fit.event.VisitEventType
-import com.getvisitapp.google_fit.event.VisitEventType.VisitCallBack
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
@@ -48,9 +44,6 @@ import com.getvisitapp.google_fit.view.GoogleFitStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONException
 import org.json.JSONObject
 import tvi.webrtc.ContextUtils
@@ -294,8 +287,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                             binding.webview.evaluateJavascript(
                                 "window.fitbitConnectSuccessfully(true)", null
                             )
-                            EventBus.getDefault()
-                                .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
                             Toast.makeText(
                                 applicationContext, "Fitbit is connected", Toast.LENGTH_LONG
                             ).show()
@@ -313,15 +304,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                             Toast.LENGTH_LONG
                         ).show()
 
-                        EventBus.getDefault().post(
-                            MessageEvent(
-                                VisitEventType.VisitCallBack(
-                                    "Fitbit connection failed",
-                                    failureReason = "Failed to connect to Fitbit."
-                                )
-                            )
-                        )
-
                     } else if (message != null && message.equals(
                             "accessDenied", ignoreCase = true
                         )
@@ -332,14 +314,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                             Toast.LENGTH_LONG
                         ).show()
 
-                        EventBus.getDefault().post(
-                            MessageEvent(
-                                VisitEventType.VisitCallBack(
-                                    "Fitbit connection failed",
-                                    failureReason = "Failed to connect Fitbit. Access Denied"
-                                )
-                            )
-                        )
                     }
                 }, 1000)
             } else if (uri.queryParameterNames.contains("feedback")) {
@@ -375,21 +349,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (requestCode == 4097 || requestCode == 1900) {
 
             googleFitUtil.onActivityResult(requestCode, resultCode, intent)
-            if (resultCode == 0) {
-                if (requestCode == 1900) {
-                    EventBus.getDefault()
-                        .post(MessageEvent(VisitEventType.FitnessPermissionError("Google SignIn Cancelled")))
-
-                    EventBus.getDefault().post(
-                        MessageEvent(
-                            VisitEventType.VisitCallBack(
-                                "Google fit connection failed",
-                                failureReason = "Google SignIn Cancelled"
-                            )
-                        )
-                    )
-                }
-            }
         } else if (requestCode == 1000 && resultCode == RESULT_OK) {
             Log.d("mytag", "resultCode: $requestCode")
 
@@ -451,15 +410,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             return
         }
 
-        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForFitnessPermission))
-        EventBus.getDefault().post(
-            MessageEvent(
-                VisitEventType.VisitCallBack(
-                    message = "Google fit clicked", failureReason = null
-                )
-            )
-        )
-
         if (dailyDataSynced) {
             return
         }
@@ -484,20 +434,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
 
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(true)))
-
     }
 
     override fun connectToFitbit(url: String, authToken: String) {
-
-
-        EventBus.getDefault().post(
-            MessageEvent(
-                VisitEventType.VisitCallBack(
-                    "Fitbit clicked", failureReason = null
-                )
-            )
-        )
 
         Log.d(TAG, "connectToFitbit: $url, authToken: $authToken")
 
@@ -551,8 +490,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             }
         }
 
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionGranted(true)))
-
 
     }
 
@@ -565,14 +502,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
         Log.d(TAG, "requestActivityData() called.")
-
-        EventBus.getDefault().post(
-            MessageEvent(
-                VisitEventType.RequestHealthDataForDetailedGraph(
-                    type, frequency, timestamp
-                )
-            )
-        )
 
         runOnUiThread(Runnable {
             if (type != null && frequency != null) {
@@ -649,7 +578,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun askForLocationPermission() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.AskForLocationPermission))
 
         runOnUiThread {
             if (locationTrackerUtil.isLocationPermissionAllowed()) {
@@ -724,8 +652,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     override fun startVideoCall(sessionId: Int, consultationId: Int, authToken: String?) {
 
-        EventBus.getDefault()
-            .post(MessageEvent(VisitEventType.StartVideoCall(sessionId, consultationId, authToken)))
 
         val intent = Intent(
             this, TwillioVideoCallActivity::class.java
@@ -738,11 +664,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun hraCompleted() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.HRA_Completed()))
     }
 
     override fun googleFitConnectedAndSavedInPWA() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.GoogleFitConnectedAndSavedInPWA()))
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -766,10 +690,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun hraQuestionAnswered(current: Int, total: Int) {
-        runOnUiThread {
-            EventBus.getDefault()
-                .post(MessageEvent(VisitEventType.HRAQuestionAnswered(current, total)))
-        }
+
     }
 
 
@@ -836,26 +757,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         return super.onKeyDown(keyCode, event)
     }
 
-
-    override fun onStart() {
-        super.onStart()
-        EventBus.getDefault().register(this)
-    }
-
-
-    override fun onStop() {
-        EventBus.getDefault().unregister(this)
-        super.onStop()
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onMessageEvent(PWAEvent: ClosePWAEvent?) {
-        Log.d("mytag", "onMessageEvent pwa close event triggered.")
-        if (!this.isFinishing) {
-            closePWA()
-        }
-    }
-
     fun closePWA() {
         finish()
         overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
@@ -883,14 +784,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     override fun downloadHraLink(url: String) {
         Log.d("mytag", "downloadHraLink() link:$url")
-
-        EventBus.getDefault().post(
-            MessageEvent(
-                VisitCallBack(
-                    "Download HRA report clicked", null
-                )
-            )
-        )
 
 
         pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
@@ -966,9 +859,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun consultationBooked() {
-        runOnUiThread {
-            EventBus.getDefault().post(MessageEvent(VisitEventType.ConsultationBooked))
-        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -986,12 +877,10 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     override fun disconnectFromFitbit() {
         sharedPrefUtil.setFitBitConnectedStatus(false)
-        EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(false)))
 
     }
 
     override fun couponRedeemed() {
-        EventBus.getDefault().post(MessageEvent(VisitEventType.CouponRedeemed))
     }
 
     override fun internetErrorHandler(jsonObject: String?) {
@@ -1001,7 +890,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             val errStatus = decodedObject?.getInt("errStatus")
             val error = decodedObject?.getString("error")
 
-            EventBus.getDefault().post(MessageEvent(VisitEventType.NetworkError(errStatus, error)))
         }
     }
 
@@ -1037,8 +925,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 if (decodedObject.has("failureReason")) decodedObject.getString("failureReason") else null
 
 
-            EventBus.getDefault()
-                .post(MessageEvent(VisitEventType.VisitCallBack(message, failureReason)))
         }
     }
 
