@@ -58,7 +58,7 @@ dependencies {
     
     implementation  "androidx.browser:browser:1.3.0"
 
-
+```
 
 ### To initialize the SDK: 
 ```
@@ -68,7 +68,7 @@ IntiateSdk.s(
             magicLink,
             google_default_client_id
         )
- ```
+```
  
 #### Proguard rule
 For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
