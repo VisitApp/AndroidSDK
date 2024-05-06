@@ -69,6 +69,16 @@ IntiateSdk.s(
             google_default_client_id
         )
 ```
+
+###Example
+```
+IntiateSdk.s(
+            this,
+            false,
+            "\"https://abhi.getvisitapp.net/sso?userParams=t1Q8E-aBzmU2_Y7xi17gjrMzTGsvH32N9GeePukIc-KjG6bmMrfsLpmrzpqNiKFkgfSB3NMF0SPeQMXITQ6QXBLpUzc7fLrgsdyF8MOw46_02_YH7ogZH_oekVYByGaQ-qSIyP3P8aCxGq5tIZ7QRxImqGtQxeV4pJXJCddGihL7-eIbe5ivM-cNQMM3iHkoNGR7ximmaCOK6iXVQVfxLMyuSFL5O7VCild5iphHX1s&clientId=abhi-58fd14\"",
+            "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
+        )
+```
  
 #### Proguard rule
 For progaurd rule copy the rules from `google-fit/progaurd-rules.pro` file
