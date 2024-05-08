@@ -5,8 +5,6 @@ import android.content.SharedPreferences
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
-import com.getvisitapp.google_fit.util.Constants.FITBIT_CONNECTION_STATUS
-import com.getvisitapp.google_fit.util.Constants.FITBIT_LAST_SYNC_TIMESTAMP
 import com.getvisitapp.google_fit.util.Constants.HRA_INCOMPLETE_RESPONSE
 import com.getvisitapp.google_fit.util.Constants.IS_HRA_INCOMPLETE
 
@@ -51,33 +49,13 @@ class SharedPrefUtil(context: Context) {
         sharedPreferencesEditor.putString(HRA_INCOMPLETE_RESPONSE, jsonObject).commit();
     }
 
-    fun getHRAInCompleteStatusResponse(): String? {
-        return sharedPreferences.getString(HRA_INCOMPLETE_RESPONSE, null);
-    }
 
     fun setHRAIncompleteStatus(isInComplete: Boolean) {
         sharedPreferencesEditor.putBoolean(IS_HRA_INCOMPLETE, isInComplete).commit()
     }
 
-    fun getHRAIncompleteStatus(): Boolean {
-        return sharedPreferences.getBoolean(IS_HRA_INCOMPLETE, true)
-    }
 
-    fun setFitBitLastSyncTimeStamp(timestamp: Long) {
-        sharedPreferencesEditor.putLong(FITBIT_LAST_SYNC_TIMESTAMP, timestamp).commit()
-    }
 
-    fun getFitbitLastSyncTimestamp(): Long {
-        return sharedPreferences.getLong(FITBIT_LAST_SYNC_TIMESTAMP, 0L);
-    }
-
-    fun setFitBitConnectedStatus(status: Boolean) {
-        sharedPreferencesEditor.putBoolean(FITBIT_CONNECTION_STATUS, status).commit()
-    }
-
-    fun getFitBitConnectionStatus(): Boolean {
-        return sharedPreferences.getBoolean(FITBIT_CONNECTION_STATUS, false)
-    }
 
 
     fun clear() {

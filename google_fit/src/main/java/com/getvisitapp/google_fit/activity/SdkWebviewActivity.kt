@@ -267,67 +267,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-
-        if (intent!!.data != null) {
-            val uri = intent.data
-
-            Log.d(
-                TAG, "onNewIntent: Getting URI: $uri"
-            )
-
-            if (uri!!.queryParameterNames.contains("fitbit")) {
-                val message = uri!!.getQueryParameter("message")
-
-                Handler(Looper.getMainLooper()).postDelayed({ //Do something here
-                    if (message != null && message.equals("success", ignoreCase = true)) {
-                        runOnUiThread {
-                            binding.webview.evaluateJavascript(
-                                "window.fitbitConnectSuccessfully(true)", null
-                            )
-                            Toast.makeText(
-                                applicationContext, "Fitbit is connected", Toast.LENGTH_LONG
-                            ).show()
-                            sharedPrefUtil.setFitBitConnectedStatus(true)
-
-                        }
-
-                    } else if (message != null && message.equals(
-                            "failed", ignoreCase = true
-                        )
-                    ) {
-                        Toast.makeText(
-                            applicationContext,
-                            "Failed to connect Fitbit device. Please retry or contact support",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                    } else if (message != null && message.equals(
-                            "accessDenied", ignoreCase = true
-                        )
-                    ) {
-                        Toast.makeText(
-                            applicationContext,
-                            "You have denied access to connect to Fitbit",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                    }
-                }, 1000)
-            } else if (uri.queryParameterNames.contains("feedback")) {
-
-                Log.d("mytag", "opened the app from feedback")
-
-            }
-        } else {
-            Log.d(
-                TAG, "onNewIntent: getData is null"
-            )
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         binding.webview.onResume();
@@ -464,18 +403,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             "onFitnessPermissionGranted() called , redirectUserToGoogleFitPage: $redirectUserToGoogleFitStatusPage"
         )
 
-        //here i am not calling "window.googleFitnessConnectedSuccessfully(true)" because
-        // i don't want to user to redirect to separate page,
-        if (redirectUserToGoogleFitStatusPage) {
-            Log.d(TAG, "window.googleFitnessConnectedSuccessfully() called")
-
-            runOnUiThread {
-                binding.webview.evaluateJavascript(
-                    "window.googleFitnessConnectedSuccessfully(true)", null
-                )
-            }
-        }
-
 
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
         if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L) {
@@ -521,12 +448,11 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         dailyDataSynced = true
     }
 
-    override fun updateApiBaseUrlV2(
+    override fun updateApiBaseUrl(
         visitApiBaseUrl: String?,
         authtoken: String?,
         googleFitLastSync: Long,
-        gfHourlyLastSync: Long,
-        isFitBitConnected: Boolean
+        gfHourlyLastSync: Long
     ) {
 
         this.visitApiBaseUrl = visitApiBaseUrl
@@ -541,8 +467,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (this.gfHourlyLastSync == 0L) {
             this.gfHourlyLastSync = getTodayDateTimeStamp()
         }
-
-        sharedPrefUtil.setFitBitConnectedStatus(isFitBitConnected)
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl")
 
@@ -560,19 +484,15 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
 
 
-            if (sharedPrefUtil.getFitBitConnectionStatus()) {
-                //don't do anything
-            } else {
-                runOnUiThread(Runnable {
-                    googleFitUtil.sendDataToServer(
-                        visitApiBaseUrl + "/",
-                        authtoken,
-                        this.googleFitLastSync,
-                        this.gfHourlyLastSync
-                    )
-                    syncDataWithServer = true
-                })
-            }
+            runOnUiThread(Runnable {
+                googleFitUtil.sendDataToServer(
+                    visitApiBaseUrl + "/",
+                    authtoken,
+                    this.googleFitLastSync,
+                    this.gfHourlyLastSync
+                )
+                syncDataWithServer = true
+            })
         }
     }
 
@@ -876,7 +796,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun disconnectFromFitbit() {
-        sharedPrefUtil.setFitBitConnectedStatus(false)
 
     }
 

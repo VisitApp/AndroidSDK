@@ -61,17 +61,10 @@ public class WebAppInterface {
         listener.requestActivityData(type, frequency, timestamp);
     }
 
-    @Deprecated(since = "1.69")
     @JavascriptInterface
-    public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId) {
-        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId);
-//        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId);
-    }
-
-    @JavascriptInterface
-    public void updateApiBaseUrlV2(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected) {
-        Log.d("mytag", "updateApiBaseUrlV2() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected);
-        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, fitbitConnected);
+    public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync) {
+        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync);
+        listener.updateApiBaseUrl(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync);
     }
 
     @JavascriptInterface

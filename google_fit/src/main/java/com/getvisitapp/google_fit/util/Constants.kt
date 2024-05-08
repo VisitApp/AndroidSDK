@@ -14,5 +14,4 @@ object Constants {
     const val FITBIT_LAST_SYNC_TIMESTAMP="fitbit_last_sync_time_stamp"
     const val HRA_INCOMPLETE_RESPONSE="hra_incomplete_response"
     const val IS_HRA_INCOMPLETE="hra_incomplete"
-    const val FITBIT_CONNECTION_STATUS="fitbit_connection_status"
 }
