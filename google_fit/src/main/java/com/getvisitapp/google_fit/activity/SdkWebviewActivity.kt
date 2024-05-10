@@ -221,6 +221,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 url?.let {
                     pdfDownloader.downloadPdfFile(fileDir = filesDir,
                         pdfUrl = url,
+                        authorization = authtoken!!,
                         onDownloadComplete = {
                             val shareIntent = Intent().apply {
                                 action = Intent.ACTION_SEND
@@ -906,7 +907,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
 
-    override fun downloadHraLink(url: String) {
+    override fun downloadHraLink(url: String,toShare:Boolean) {
         Log.d("mytag", "downloadHraLink() link:$url")
 
         EventBus.getDefault().post(
@@ -918,28 +919,53 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         )
 
 
-        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
-            val shareIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(
-                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                        applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX, it
-                    )
-                )
-                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                type = "application/pdf"
-            }
-            val sendIntent = Intent.createChooser(shareIntent, null)
-            startActivity(sendIntent)
-        }, onDownloadFailed = {
-            Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
-            try {
-                val uri = Uri.parse(url)
-                startActivity(Intent(Intent.ACTION_VIEW, uri))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        })
+        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url,
+            authorization = authtoken!!,
+            onDownloadComplete = {
+                if(toShare){
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_VIEW
+                        putExtra(
+                            Intent.EXTRA_STREAM, FileProvider.getUriForFile(
+                                applicationContext,
+                                applicationContext.packageName + AUTHORITY_SUFFIX,
+                                it
+                            )
+                        )
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        type = "application/pdf"
+                    }
+                    val sendIntent = Intent.createChooser(shareIntent, null)
+                    startActivity(sendIntent)
+                }else{
+                    try {
+                        val uri = FileProvider.getUriForFile(
+                            applicationContext,
+                            applicationContext.packageName + AUTHORITY_SUFFIX,
+                            it
+                        )
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setDataAndType(uri, "application/pdf")
+                        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+
+
+
+
+            }, onDownloadFailed = {
+                Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
+                try {
+                    val uri = Uri.parse(url)
+                    startActivity(Intent(Intent.ACTION_VIEW, uri))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            })
     }
 
     override fun openDependentLink(link: String?) {
@@ -1066,6 +1092,17 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 .post(MessageEvent(VisitEventType.VisitCallBack(message, failureReason)))
         }
     }
+
+    override fun downloadPdf(link: String) {
+        Log.d("mytag","downloadPdf called(): $link")
+        downloadHraLink(link,false)
+    }
+
+    override fun setAuthToken(authToken: String) {
+
+        this.authtoken = authToken
+    }
+
 
     inner class MyChrome internal constructor() : WebChromeClient() {
         private var mCustomView: View? = null

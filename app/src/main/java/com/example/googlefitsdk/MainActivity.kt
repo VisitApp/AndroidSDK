@@ -247,7 +247,7 @@ class MainActivity : AppCompatActivity() {
 //            "https://web.getvisitapp.xyz/"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.xyz/sso?userParams=LH53MbTMvD-UcbZxap-i6S-h-D2Y0JgBpwJdDPhiJGjGsqYHDbZ0C3hZruy4_7BcCkS5elSq_4Xc3oIaieYs7pvT5dWiaNxdcufcqg-Acuu-IO1-VjiOkyin1I0Ds4p_pHfS4lFl2wi94Tmc3_GMfzz6RyQkI2Gkf3wsGUI3NZU2W3laN-gK2BSnZLAooD1QdtNBfEP-fbp5fiHyl6siqtuID9aIVNrl80iJhqSunvQsYZzP1LZRRY2RSOHjiSRffs_3PCMWGRIxI97dX0NQwf-OaKcpHGYcr1l09z259Jg_9RtfKnfBZdAJkhsl72Tpk08UfL42hWu4AjLblUK_eg&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.net/sso?userParams=HWL6LUS5KCTyMIWO2ZHn9Q4MBaLpicpY1tDpmMdC5DgWcT1zbJUZGjGLMzuWqJTxdccAkzvPkX_w4qxBHxJXoUgm0TD81pBQqvL2FmBoetEdWaoxz1-vZYsHC1hH4ylkQxK8kf9P_oegix7j90Hajc54X14hNjJotgGiv6AdO4ZhfjbwcLoDgCqzkq-Ivk9Oo59Jo2jntYzKExy01kjfJ9hLNzHDQb8PP4KzJSDwKaYA0vJ89-_PwuiPurkPVzLVDCyAmpWuYNnI5dQPqUN5iA9ipRrK90q5WE9e2hnjL3SXdrwXnDX1lDxkDRmw2AVIi0fYsogkgzKecaCZcC0wk2XpTMbycC00hxwlixFis9B82XCKxqdgqx7mUeM84qGk&clientId=tata-aig-a8b455"
 
 
 //        val magicLink =

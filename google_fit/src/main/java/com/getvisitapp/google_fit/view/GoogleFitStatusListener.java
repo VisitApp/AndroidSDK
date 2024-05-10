@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.view;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 @Keep
@@ -33,7 +34,7 @@ public interface GoogleFitStatusListener {
 
     void hraQuestionAnswered(int current, int total);
 
-    void downloadHraLink(String link);
+    void downloadHraLink(String link,boolean toShare);
 
     void inFitSelectScreen();
 
@@ -62,5 +63,8 @@ public interface GoogleFitStatusListener {
 
     void visitCallback(@Nullable String jsonObject);
 
+    void downloadPdf(@NonNull String link);
+
+    void setAuthToken(@NonNull String authToken);
 
 }

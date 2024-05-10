@@ -4,6 +4,7 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
@@ -114,7 +115,7 @@ public class WebAppInterface {
     @JavascriptInterface
     public void downloadHraLink(String link) {
         Log.d("mytag", "downloadHraLink() called");
-        listener.downloadHraLink(link);
+        listener.downloadHraLink(link,true);
     }
 
     @JavascriptInterface
@@ -183,6 +184,18 @@ public class WebAppInterface {
     public void visitCallback(String jsonObject) { //this is used for analytics purpose by TATA AIG.
         Log.d("mytag", "visitCallback called(). jsonObject: " + jsonObject);
         listener.visitCallback(jsonObject);
+    }
+
+    @JavascriptInterface
+    public void downloadPdf(@NonNull String link) {
+        Log.d("mytag", "downloadPdf called(): " + link);
+        listener.downloadPdf(link);
+    }
+
+    @JavascriptInterface
+    public void setAuthToken(@NonNull String authToken) {
+        Log.d("mytag", "setUserAuthToken called(): " + authToken);
+        listener.setAuthToken(authToken);
     }
 
 

@@ -22,6 +22,7 @@ class PdfDownloader {
     fun downloadPdfFile(
         fileDir: File,
         pdfUrl: String,
+        authorization:String,
         onDownloadComplete: (file: File) -> Unit,
         onDownloadFailed: () -> Unit
     ) {
@@ -41,7 +42,7 @@ class PdfDownloader {
             val retroServiceInterface = RetrofitInstance.getRetroInstance().create(
                 RetroServiceInterface::class.java
             )
-            retroServiceInterface.downloadPdfFile(pdfUrl).enqueue(object : Callback<ResponseBody> {
+            retroServiceInterface.downloadPdfFile(pdfUrl, authorization = authorization).enqueue(object : Callback<ResponseBody> {
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                     onDownloadFailed()
                 }
