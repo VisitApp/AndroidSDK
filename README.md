@@ -4,7 +4,7 @@
 
 ``` 
 dependencies {  
-    implementation 'com.github.VisitApp:AndroidSDK:abhi-1.6'
+   implementation 'com.github.VisitApp:AndroidSDK:abhi-2.0'
  }  
  
 ```
