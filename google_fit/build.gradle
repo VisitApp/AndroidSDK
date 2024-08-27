@@ -106,6 +106,10 @@ dependencies {
 
     implementation  "androidx.browser:browser:1.8.0"
 
+    //Chucker
+    debugApi "com.github.chuckerteam.chucker:library:4.0.0"
+    releaseApi "com.github.chuckerteam.chucker:library-no-op:4.0.0"
+
 
 }
 
