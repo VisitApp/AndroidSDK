@@ -6,7 +6,6 @@ import android.util.Log;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
-import com.getvisitapp.google_fit.data.SharedPrefUtil;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.Scopes;
@@ -41,8 +40,7 @@ public class GoogleFitAccessChecker {
                         GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                                 .requestScopes(new Scope(Scopes.EMAIL),
                                         new Scope(Scopes.PROFILE),
-                                        new Scope(Scopes.PLUS_ME),
-                                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                                        new Scope(Scopes.PLUS_ME))
                                 .requestServerAuthCode(default_client_id, false)
                                 .requestIdToken(default_client_id)
                                 .addExtension(getFitnessOptions())
@@ -90,7 +88,6 @@ public class GoogleFitAccessChecker {
                 .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
 
                 .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-
 
 
                 .addDataType(DataType.TYPE_DISTANCE_DELTA)

@@ -1377,7 +1377,7 @@ public class GoogleFitConnector {
                     boolean sleeping = false;
 
                     for (Field field : dp.getDataType().getFields()) {
-//                        Log.d(TAG, "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+//                        Log.d("sleep test", "\tField: " + field.getName() + " Value: " + dp.getValue(field));
 
                         if (field.getName().equals("activity") && (
                                 dp.getValue(field).asInt() == 72 ||

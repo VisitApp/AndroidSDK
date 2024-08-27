@@ -42,7 +42,6 @@ public class StepsCounter {
     FitnessOptions fitnessOptions;
 
 
-
     private StepsCounter(Activity activity) {
         this.softContext = new SoftReference<>(activity);
     }
@@ -59,8 +58,7 @@ public class StepsCounter {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
-                        new Scope(Scopes.PLUS_ME),
-                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                        new Scope(Scopes.PLUS_ME))
                 .requestServerAuthCode(defaultWebClientId, false)
                 .requestIdToken(defaultWebClientId)
                 .build();
@@ -278,8 +276,6 @@ public class StepsCounter {
                 });
 
 
-
-
         Fitness.getRecordingClient(softContext.get(), GoogleSignIn.getAccountForExtension(softContext.get(), fitnessOptions))
                 .subscribe(DataType.TYPE_ACTIVITY_SEGMENT)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -308,7 +304,6 @@ public class StepsCounter {
                             .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
 
                             .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
-
 
 
                             .addDataType(DataType.TYPE_DISTANCE_DELTA)
