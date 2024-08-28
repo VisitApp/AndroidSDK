@@ -6,7 +6,6 @@ import androidx.annotation.Keep
 data class FitbitDataResponse(
     val `data`: List<Data>,
     val status: Boolean,
-    val message:String,
-    val errorMessage:String?,
+    val message: String,
+    val errorMessage: String?,
 )
-

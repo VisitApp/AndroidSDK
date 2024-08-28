@@ -1,5 +1,6 @@
 package com.example.googlefitsdk
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -19,11 +20,13 @@ import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleF
 import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectActivity
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.google.android.material.switchmaterial.SwitchMaterial
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import timber.log.Timber
 
 
 class MainActivity : AppCompatActivity() {
@@ -43,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        Timber.plant(Timber.DebugTree())
 
         findViewById<Button>(R.id.button).setOnClickListener {
             init()
@@ -76,6 +81,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.revokeFitBitAccessButton).setOnClickListener {
             syncStepHelper.revokeFitbitAccess()
+        }
+
+        findViewById<Button>(R.id.openHealthConnectButton).setOnClickListener {
+            val intent = Intent(this, HealthConnectActivity::class.java)
+            startActivity(intent)
         }
     }
 
@@ -136,10 +146,12 @@ class MainActivity : AppCompatActivity() {
                 VisitEventType.AskForFitnessPermission -> {
 
                 }
+
                 VisitEventType.AskForLocationPermission -> {
 
 
                 }
+
                 is VisitEventType.FitnessPermissionGranted -> {
                     val data = event.eventType as VisitEventType.FitnessPermissionGranted
 
@@ -163,22 +175,26 @@ class MainActivity : AppCompatActivity() {
                     )
 
                 }
+
                 is VisitEventType.RequestHealthDataForDetailedGraph -> {
 
                     val graphEvent =
                         event.eventType as VisitEventType.RequestHealthDataForDetailedGraph
 
                 }
+
                 is VisitEventType.StartVideoCall -> {
                     val callEvent =
                         event.eventType as VisitEventType.StartVideoCall
 
 
                 }
+
                 is VisitEventType.HRA_Completed -> {
 
 
                 }
+
                 is VisitEventType.GoogleFitConnectedAndSavedInPWA -> {
                     Handler(Looper.getMainLooper()).postDelayed({
                         //passing event to Visit PWA to close itself
@@ -187,6 +203,7 @@ class MainActivity : AppCompatActivity() {
 
                     }, 200)
                 }
+
                 is VisitEventType.HRAQuestionAnswered -> {
                     // can be used for analytics events
                     val hraQuestionEvent = event.eventType as VisitEventType.HRAQuestionAnswered
@@ -195,6 +212,7 @@ class MainActivity : AppCompatActivity() {
                         "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
                     )
                 }
+
                 VisitEventType.ConsultationBooked -> {
                     Log.d("mytag", "MainActivity ConsultationBooked event")
                 }
@@ -215,6 +233,7 @@ class MainActivity : AppCompatActivity() {
 
                     Log.d("mytag", "eventData: ${eventData.message}")
                 }
+
                 is VisitEventType.NetworkError -> {
                     val eventData = event.eventType as VisitEventType.NetworkError
 
@@ -225,6 +244,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("mytag", "errStatus: $errStatus, error: $error")
 
                 }
+
                 is VisitEventType.VisitCallBack -> {
                     val eventData = event.eventType as VisitEventType.VisitCallBack
 
