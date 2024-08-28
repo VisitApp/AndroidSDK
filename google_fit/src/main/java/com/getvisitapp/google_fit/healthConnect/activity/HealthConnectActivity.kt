@@ -40,7 +40,7 @@ class HealthConnectActivity : AppCompatActivity() {
     val TAG = "HealthConnectActivity"
     lateinit var binding: HealthConnectActivityBinding
 
-    val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(healthConnectClient) }
+    val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
 
 
     enum class HealthConnectConnectionState {
@@ -57,7 +57,6 @@ class HealthConnectActivity : AppCompatActivity() {
     )
 
     val scope = CoroutineScope(Dispatchers.IO)
-    lateinit var healthConnectClient: HealthConnectClient
 
 
     val requestPermissionActivityContract: ActivityResultContract<Set<String>, Set<String>> =
@@ -150,8 +149,8 @@ class HealthConnectActivity : AppCompatActivity() {
 
         binding.removeHealthConnectPermission.setOnClickListener {
             scope.launch {
-                if (this@HealthConnectActivity::healthConnectClient.isInitialized) {
-                    healthConnectClient.permissionController.revokeAllPermissions()
+                if (healthConnectClient != null) {
+                    healthConnectClient!!.permissionController.revokeAllPermissions()
                     checkAvailability()
                 } else {
                     Handler(Looper.getMainLooper()).post {
@@ -223,9 +222,24 @@ class HealthConnectActivity : AppCompatActivity() {
     }
 
 
+    @Volatile
+    private var healthConnectClient: HealthConnectClient? = null
+
+    private fun getHealthConnectClient(): HealthConnectClient {
+        return healthConnectClient ?: synchronized(this) {
+            healthConnectClient ?: HealthConnectClient.getOrCreate(this)
+                .also { healthConnectClient = it }
+        }
+    }
+
+
     private suspend fun checkPermissionsAndRun() {
-        healthConnectClient = HealthConnectClient.getOrCreate(this)
-        val granted = healthConnectClient.permissionController.getGrantedPermissions()
+
+        healthConnectClient = getHealthConnectClient()
+
+        Timber.d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}")
+
+        val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
         if (granted.containsAll(PERMISSIONS)) {
 
             updateButtonState(HealthConnectConnectionState.CONNECTED)
@@ -238,10 +252,10 @@ class HealthConnectActivity : AppCompatActivity() {
 
             scope.launch {
 
-//                getDailyStepAndSleepData()
+                getDailyStepAndSleepData()
 
 //                getActivityData(type = "steps", frequency = "days", timeStamp = timeStamp)
-                getActivityData(type = "steps", frequency = "week", timeStamp = timeStamp)
+//                getActivityData(type = "steps", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "steps", frequency = "month", timeStamp = timeStamp)
 //
 //                getActivityData(type = "distance", frequency = "days", timeStamp = timeStamp)
@@ -256,7 +270,7 @@ class HealthConnectActivity : AppCompatActivity() {
 //                getActivityData(type = "sleep", frequency = "week", timeStamp = timeStamp)
             }
         } else {
-            Timber.d("Permission Not present: $granted")
+            Timber.d("Permission Not present")
             updateButtonState(HealthConnectConnectionState.NOT_CONNECTED)
         }
     }
@@ -267,7 +281,7 @@ class HealthConnectActivity : AppCompatActivity() {
         scope.launch {
             try {
                 val resultString =
-                    graphDataOperationsHelper.getTodayStepsAndSleepData(healthConnectClient)
+                    graphDataOperationsHelper.getTodayStepsAndSleepData(getHealthConnectClient())
 
 
             } catch (e: Exception) {
@@ -455,7 +469,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
     suspend fun uploadDailySyncDate(timeStamp: Long) {
 
-        val dailySyncManager = DailySyncManager(healthConnectClient)
+        val dailySyncManager = DailySyncManager(getHealthConnectClient())
         val dailySyncData: List<DailySyncHealthMetric> =
             dailySyncManager.getDailySyncData(timeStamp)
         val requestBody =

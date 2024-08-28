@@ -60,7 +60,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
             "Steps: ${stepsAndSleep.steps}, formattedSleepDuration: ${stepsAndSleep.sleepMetric.formattedSleepDuration}, sleepDuration: ${stepsAndSleep.sleepMetric.sleepDuration.toMinutes()} "
         )
         val finalString =
-            "window.updateFitnessPermissions(true,${stepsAndSleep.steps},${stepsAndSleep.sleepMetric.sleepDuration.toMinutes()})"
+            "window.updateFitnessPermissions(true,${stepsAndSleep.steps ?: 0},${stepsAndSleep.sleepMetric.sleepDuration.toMinutes()})"
 
         Timber.d(finalString)
 
