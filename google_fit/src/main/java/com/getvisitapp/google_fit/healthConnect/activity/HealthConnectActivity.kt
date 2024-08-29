@@ -35,6 +35,10 @@ import timber.log.Timber
 
 //https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/package-summary#classes
 
+enum class HealthConnectConnectionState {
+    NOT_SUPPORTED, NOT_INSTALLED, CONNECTED, INSTALLED, NONE,
+}
+
 class HealthConnectActivity : AppCompatActivity() {
 
     val TAG = "HealthConnectActivity"
@@ -43,9 +47,7 @@ class HealthConnectActivity : AppCompatActivity() {
     val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
 
 
-    enum class HealthConnectConnectionState {
-        NOT_SUPPORTED, NOT_INSTALLED, CONNECTED, NOT_CONNECTED, NONE,
-    }
+
 
     private val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
@@ -68,7 +70,7 @@ class HealthConnectActivity : AppCompatActivity() {
             if (granted.containsAll(PERMISSIONS)) {
                 Timber.d("Permissions successfully granted")
 
-                updateHealthConnectConnectionState(HealthConnectConnectionState.CONNECTED)
+                updateButtonState(HealthConnectConnectionState.CONNECTED)
                 scope.launch {
                     checkPermissionsAndRun()
                 }
@@ -94,12 +96,16 @@ class HealthConnectActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_health_connect)
 
-        updateHealthConnectConnectionState(HealthConnectConnectionState.NONE)
+        updateButtonState(HealthConnectConnectionState.NONE)
 
 
-        checkAvailability()
+
+        binding.checkHealthConnectAvailabilityStatus.setOnClickListener {
+            checkAvailability()
+        }
 
         binding.initialHealthConnect.setOnClickListener {
+
             when (healthConnectConnectionState) {
                 HealthConnectConnectionState.NOT_INSTALLED -> {
                     try {
@@ -120,7 +126,7 @@ class HealthConnectActivity : AppCompatActivity() {
                 }
 
 
-                HealthConnectConnectionState.NOT_CONNECTED -> {
+                HealthConnectConnectionState.INSTALLED -> {
                     requestPermissions.launch(PERMISSIONS)
                 }
 
@@ -169,12 +175,12 @@ class HealthConnectActivity : AppCompatActivity() {
 
             HealthConnectClient.SDK_UNAVAILABLE -> {
                 Timber.d("SDK_UNAVAILABLE")
-                updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_SUPPORTED)
+                updateButtonState(HealthConnectConnectionState.NOT_SUPPORTED)
             }
 
             HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
                 Timber.d("SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED")
-                updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_INSTALLED)
+                updateButtonState(HealthConnectConnectionState.NOT_INSTALLED)
             }
 
             HealthConnectClient.SDK_AVAILABLE -> {
@@ -200,14 +206,14 @@ class HealthConnectActivity : AppCompatActivity() {
 
     }
 
-    fun updateHealthConnectConnectionState(healthConnectConnectionState: HealthConnectConnectionState): String {
+    fun updateButtonState(healthConnectConnectionState: HealthConnectConnectionState): String {
         this.healthConnectConnectionState = healthConnectConnectionState
 
         val text = when (healthConnectConnectionState) {
             HealthConnectConnectionState.NOT_SUPPORTED -> "Not Supported"
             HealthConnectConnectionState.NOT_INSTALLED -> "Install Health Connect"
             HealthConnectConnectionState.CONNECTED -> "Connected"
-            HealthConnectConnectionState.NOT_CONNECTED -> "Not Connected"
+            HealthConnectConnectionState.INSTALLED -> "Not Connected"
             else -> "Unknown"
         }
 
@@ -239,7 +245,7 @@ class HealthConnectActivity : AppCompatActivity() {
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
         if (granted.containsAll(PERMISSIONS)) {
 
-            updateHealthConnectConnectionState(HealthConnectConnectionState.CONNECTED)
+            updateButtonState(HealthConnectConnectionState.CONNECTED)
 
             // Permissions already granted; proceed with inserting or reading data
 
@@ -268,7 +274,7 @@ class HealthConnectActivity : AppCompatActivity() {
             }
         } else {
             Timber.d("Permission Not present")
-            updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_CONNECTED)
+            updateButtonState(HealthConnectConnectionState.INSTALLED)
         }
     }
 
@@ -492,7 +498,6 @@ class HealthConnectActivity : AppCompatActivity() {
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-
 
 
 
