@@ -68,7 +68,7 @@ class HealthConnectActivity : AppCompatActivity() {
             if (granted.containsAll(PERMISSIONS)) {
                 Timber.d("Permissions successfully granted")
 
-                updateButtonState(HealthConnectConnectionState.CONNECTED)
+                updateHealthConnectConnectionState(HealthConnectConnectionState.CONNECTED)
                 scope.launch {
                     checkPermissionsAndRun()
                 }
@@ -94,13 +94,10 @@ class HealthConnectActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_health_connect)
 
-        updateButtonState(HealthConnectConnectionState.NONE)
+        updateHealthConnectConnectionState(HealthConnectConnectionState.NONE)
 
 
-
-        binding.checkHealthConnectAvailabilityStatus.setOnClickListener {
-            checkAvailability()
-        }
+        checkAvailability()
 
         binding.initialHealthConnect.setOnClickListener {
             when (healthConnectConnectionState) {
@@ -172,12 +169,12 @@ class HealthConnectActivity : AppCompatActivity() {
 
             HealthConnectClient.SDK_UNAVAILABLE -> {
                 Timber.d("SDK_UNAVAILABLE")
-                updateButtonState(HealthConnectConnectionState.NOT_SUPPORTED)
+                updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_SUPPORTED)
             }
 
             HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
                 Timber.d("SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED")
-                updateButtonState(HealthConnectConnectionState.NOT_INSTALLED)
+                updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_INSTALLED)
             }
 
             HealthConnectClient.SDK_AVAILABLE -> {
@@ -203,7 +200,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
     }
 
-    fun updateButtonState(healthConnectConnectionState: HealthConnectConnectionState): String {
+    fun updateHealthConnectConnectionState(healthConnectConnectionState: HealthConnectConnectionState): String {
         this.healthConnectConnectionState = healthConnectConnectionState
 
         val text = when (healthConnectConnectionState) {
@@ -242,7 +239,7 @@ class HealthConnectActivity : AppCompatActivity() {
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
         if (granted.containsAll(PERMISSIONS)) {
 
-            updateButtonState(HealthConnectConnectionState.CONNECTED)
+            updateHealthConnectConnectionState(HealthConnectConnectionState.CONNECTED)
 
             // Permissions already granted; proceed with inserting or reading data
 
@@ -271,7 +268,7 @@ class HealthConnectActivity : AppCompatActivity() {
             }
         } else {
             Timber.d("Permission Not present")
-            updateButtonState(HealthConnectConnectionState.NOT_CONNECTED)
+            updateHealthConnectConnectionState(HealthConnectConnectionState.NOT_CONNECTED)
         }
     }
 
