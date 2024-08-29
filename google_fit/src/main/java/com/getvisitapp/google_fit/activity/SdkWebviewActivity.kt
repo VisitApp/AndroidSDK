@@ -39,6 +39,8 @@ import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.event.VisitEventType.VisitCallBack
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectConnectionState
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN
@@ -48,6 +50,7 @@ import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
+import com.getvisitapp.google_fit.view.HealthConnectListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -79,8 +82,15 @@ Sync steps and calories api called (done)
 Sync steps and calories api failed (done)
 
  */
+
+
+//1. SDK Not Available.
+//2. SDK Available, not connected
+//3. SDK Available and connected
+
 @Keep
-class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener {
+class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener,
+    HealthConnectListener {
 
     var TAG = "mytag"
 
@@ -124,6 +134,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     lateinit var connectivityObserver: ConnectivityObserver
     var mFileUploadCallbackSecond: ValueCallback<Array<Uri>>? = null
+    lateinit var healthConnectUtil: HealthConnectUtil
 
 
     var webChromeClient: WebChromeClient = MyChrome()
@@ -268,17 +279,23 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         connectivityObserver = NetworkConnectivityObserver(this)
 
+        healthConnectUtil = HealthConnectUtil(this, this)
+        healthConnectUtil.initialize()
+
         connectivityObserver.observe().onEach { networkStatus ->
             when (networkStatus) {
                 ConnectivityObserver.Status.Available -> {
                     binding.noNetworkConnectionLayout.visibility = View.GONE
                 }
+
                 ConnectivityObserver.Status.Unavailable -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Losing -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Lost -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
@@ -458,7 +475,19 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             "redirectUserToGoogleFitStatusPage: $redirectUserToGoogleFitStatusPage, googleFitStepChecker.checkGoogleFitAccess() :  " + googleFitStepChecker.checkGoogleFitAccess()
         )
 
-        if (!redirectUserToGoogleFitStatusPage && !googleFitStepChecker.checkGoogleFitAccess()) {
+//        if (!redirectUserToGoogleFitStatusPage && !googleFitStepChecker.checkGoogleFitAccess()) {
+//            Log.d(TAG, "window.googleFitStatus(false) called")
+//
+//            runOnUiThread {
+//                binding.webview.evaluateJavascript(
+//                    "window.googleFitStatus(false)", null
+//                )
+//            }
+//            return
+//        }
+
+        //For Health Connect
+        if (!redirectUserToGoogleFitStatusPage && healthConnectUtil.healthConnectConnectionState != HealthConnectConnectionState.CONNECTED) {
             Log.d(TAG, "window.googleFitStatus(false) called")
 
             runOnUiThread {
@@ -481,26 +510,35 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (dailyDataSynced) {
             return
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.ACTIVITY_RECOGNITION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                    ACTIVITY_RECOGNITION_REQUEST_CODE
-                )
-            } else {
-                googleFitUtil.askForGoogleFitPermission()
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            if (ContextCompat.checkSelfPermission(
+//                    this, Manifest.permission.ACTIVITY_RECOGNITION
+//                ) != PackageManager.PERMISSION_GRANTED
+//            ) {
+//                requestPermissions(
+//                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+//                    ACTIVITY_RECOGNITION_REQUEST_CODE
+//                )
+//            } else {
+//                googleFitUtil.askForGoogleFitPermission()
+//            }
+//        } else {
+//            googleFitUtil.askForGoogleFitPermission()
+//        }
+
+        if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
+            healthConnectUtil.getVisitDashboardGraph()
         } else {
-            googleFitUtil.askForGoogleFitPermission()
+            healthConnectUtil.requestPermission()
         }
     }
 
     override fun disconnectFromGoogleFit() {
 
-        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
+//        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
+
+        //Health Connect Implementation
+        healthConnectUtil.revokeHealthConnectAccess()
 
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(true)))
 
@@ -595,11 +633,16 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             )
         )
 
-        runOnUiThread(Runnable {
-            if (type != null && frequency != null) {
-                googleFitUtil.getActivityData(type, frequency, timestamp)
-            }
-        })
+
+//        runOnUiThread(Runnable {
+//            if (type != null && frequency != null) {
+//                googleFitUtil.getActivityData(type, frequency, timestamp)
+//            }
+//        })
+
+        //Health Connect Implementation
+        healthConnectUtil.getActivityData(type, frequency, timestamp)
+
     }
 
     override fun loadGraphDataUrl(url: String?) {
@@ -731,6 +774,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 }
 
             }
+
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty()) {
                     val locationPermissionGranted =
@@ -803,8 +847,21 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     override fun inFitSelectScreen() {
         runOnUiThread {
             //check for google fit has access and call this event
+//
+//            if (googleFitStepChecker.checkGoogleFitAccess()) {
+//                binding.webview.evaluateJavascript(
+//                    "window.googleFitStatus(true)", null
+//                )
+//                Log.d("mytag", "googleFitStatus(true) called")
+//            } else {
+//                binding.webview.evaluateJavascript(
+//                    "window.googleFitStatus(false)", null
+//                )
+//                Log.d("mytag", "googleFitStatus(false) called")
+//            }
 
-            if (googleFitStepChecker.checkGoogleFitAccess()) {
+            //Health Connect Implementation.
+            if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
                 binding.webview.evaluateJavascript(
                     "window.googleFitStatus(true)", null
                 )
@@ -815,6 +872,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 )
                 Log.d("mytag", "googleFitStatus(false) called")
             }
+
         }
     }
 
@@ -907,7 +965,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
 
-    override fun downloadHraLink(url: String,toShare:Boolean) {
+    override fun downloadHraLink(url: String, toShare: Boolean) {
         Log.d("mytag", "downloadHraLink() link:$url")
 
         EventBus.getDefault().post(
@@ -922,7 +980,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url,
             authorization = authtoken!!,
             onDownloadComplete = {
-                if(toShare){
+                if (toShare) {
                     val shareIntent = Intent().apply {
                         action = Intent.ACTION_VIEW
                         putExtra(
@@ -937,7 +995,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                     }
                     val sendIntent = Intent.createChooser(shareIntent, null)
                     startActivity(sendIntent)
-                }else{
+                } else {
                     try {
                         val uri = FileProvider.getUriForFile(
                             applicationContext,
@@ -952,9 +1010,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                         e.printStackTrace()
                     }
                 }
-
-
-
 
 
             }, onDownloadFailed = {
@@ -1094,8 +1149,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun downloadPdf(link: String) {
-        Log.d("mytag","downloadPdf called(): $link")
-        downloadHraLink(link,false)
+        Log.d("mytag", "downloadPdf called(): $link")
+        downloadHraLink(link, false)
     }
 
     override fun setAuthToken(authToken: String) {
@@ -1200,6 +1255,59 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             JSONObject(Html.fromHtml(response, Html.FROM_HTML_MODE_LEGACY).toString())
         } else {
             JSONObject(Html.fromHtml(response).toString())
+        }
+    }
+
+
+    //Health Connect Permission Callbacks
+
+    override fun updateHealthConnectConnectionStatus(
+        status: HealthConnectConnectionState,
+        text: String
+    ) {
+
+        Log.d("mytag", "updateHealthConnectConnectionStatus: $status")
+
+        when (status) {
+            HealthConnectConnectionState.CONNECTED -> {
+                if (redirectUserToGoogleFitStatusPage) {
+                    Handler(Looper.getMainLooper()).post {
+                        runOnUiThread {
+                            Log.d(TAG, "window.googleFitnessConnectedSuccessfully() called")
+
+                            binding.webview.evaluateJavascript(
+                                "window.googleFitnessConnectedSuccessfully(true)", null
+                            )
+                        }
+                    }
+                }
+            }
+
+            HealthConnectConnectionState.NOT_SUPPORTED -> {
+
+            }
+
+            HealthConnectConnectionState.NOT_INSTALLED -> {
+
+            }
+
+            HealthConnectConnectionState.INSTALLED -> {
+                //don't do anything here for the webView.
+            }
+
+            HealthConnectConnectionState.NONE -> {
+
+            }
+        }
+    }
+
+    override fun loadVisitWebViewGraphData(webUrl: String) {
+        Log.d(TAG, "loadVisitDashboardData: $webUrl")
+
+        runOnUiThread {
+            binding.webview.evaluateJavascript(
+                webUrl, null
+            )
         }
     }
 

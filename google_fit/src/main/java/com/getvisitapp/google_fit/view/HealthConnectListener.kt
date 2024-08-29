@@ -1,0 +1,10 @@
+package com.getvisitapp.google_fit.view
+
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectConnectionState
+
+interface HealthConnectListener {
+    fun updateHealthConnectConnectionStatus(status: HealthConnectConnectionState, text: String)
+
+    //This callback is used for both dashboard graph and detailed graph.
+    fun loadVisitWebViewGraphData(webUrl: String)
+}

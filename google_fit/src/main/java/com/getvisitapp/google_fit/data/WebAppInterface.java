@@ -65,7 +65,7 @@ public class WebAppInterface {
     @Deprecated(since = "1.69")
     @JavascriptInterface
     public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId) {
-        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId);
+//        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId);
 //        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId);
     }
 
