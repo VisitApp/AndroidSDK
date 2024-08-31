@@ -1,7 +1,9 @@
-package com.getvisitapp.google_fit.healthConnect.model
+package com.getvisitapp.google_fit.healthConnect.model.internal
 
+import androidx.annotation.Keep
 import java.time.Duration
 
+@Keep
 data class SleepMetric(
     val sleepDuration: Duration,
     val formattedSleepDuration: String,

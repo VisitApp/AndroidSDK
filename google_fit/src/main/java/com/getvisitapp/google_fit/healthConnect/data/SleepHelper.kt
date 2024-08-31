@@ -8,8 +8,8 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertInstantToEpochMillis
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertLocalDateTimeToEpochMillis
-import com.getvisitapp.google_fit.healthConnect.model.SleepMetric
-import com.getvisitapp.google_fit.healthConnect.model.SleepModel
+import com.getvisitapp.google_fit.healthConnect.model.internal.SleepMetric
+import com.getvisitapp.google_fit.healthConnect.model.internal.SleepModel
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant

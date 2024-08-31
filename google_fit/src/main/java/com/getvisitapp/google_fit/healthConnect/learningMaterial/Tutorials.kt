@@ -27,9 +27,9 @@ import java.time.LocalTime
 import java.time.Period
 import java.time.ZoneId
 
-class Tutorials {
+class Tutorials(val healthConnectClient: HealthConnectClient) {
 
-    private fun fetchData() {
+    fun fetchData() {
 
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -40,15 +40,17 @@ class Tutorials {
 //            Timber.d("Instant.now(): $now, zoneId: $zoneId")
 //
             val startTime =
-                LocalDateTime.of(LocalDate.now(), LocalTime.MIN).atZone(ZoneId.systemDefault())
+                LocalDateTime.of(LocalDate.parse("2024-08-25"), LocalTime.MIN)
+                    .atZone(ZoneId.systemDefault())
                     .toInstant()
 
             val endTime =
-                LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
+                LocalDateTime.of(LocalDate.parse("2024-08-25"), LocalTime.MAX)
+                    .atZone(ZoneId.systemDefault())
                     .toInstant()
 
 
-//            Timber.d("startTime: $startTime, endTime: $endTime")
+            Timber.d("startTime: $startTime, endTime: $endTime")
 
 
             //Common function to explore how Health Connect works.
@@ -59,11 +61,11 @@ class Tutorials {
 //                endTime = endTime,
 //            )
 
-//            aggregateSteps(
-//                healthConnectClient = healthConnectClient,
-//                startTime = startTime,
-//                endTime = endTime
-//            )
+            aggregateSteps(
+                healthConnectClient = healthConnectClient,
+                startTime = startTime,
+                endTime = endTime
+            )
 
 //            readExerciseSessionByTimeRange(
 //                healthConnectClient = healthConnectClient,

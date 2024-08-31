@@ -5,9 +5,9 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertEpochMillisToLocalDateTime
-import com.getvisitapp.google_fit.healthConnect.model.HealthMetricData
-import com.getvisitapp.google_fit.healthConnect.model.SleepModel
-import com.getvisitapp.google_fit.healthConnect.model.StepsAndSleep
+import com.getvisitapp.google_fit.healthConnect.model.internal.HealthMetricData
+import com.getvisitapp.google_fit.healthConnect.model.internal.SleepModel
+import com.getvisitapp.google_fit.healthConnect.model.internal.StepsAndSleep
 import com.google.gson.Gson
 import timber.log.Timber
 import java.time.LocalDate
@@ -467,7 +467,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
 
         val sleepMetric = sleepHelper.getDailySleepData(requestedTimeStamp.toLocalDate())
 
-        Timber.d("getDailySleepData() sleepDuration: ${sleepMetric?.sleepDuration?.toMinutes()}")
+        Timber.d("getDailySleepData() sleepDuration: ${sleepMetric?.sleepDuration?.toHoursPart()}::${sleepMetric?.sleepDuration?.toMinutesPart()}")
 
         val webString =
             "DetailedGraph.updateDailySleep(${sleepMetric?.sleepStartTimeMillis},${sleepMetric?.sleepEndTimeMillis})"

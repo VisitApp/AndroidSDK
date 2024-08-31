@@ -1,4 +1,15 @@
-package com.getvisitapp.google_fit.healthConnect.model
+package com.getvisitapp.google_fit.healthConnect.model.apiRequestModel
+
+import androidx.annotation.Keep
+
+
+@Keep
+data class DailyStepSyncRequest(
+    val fitnessData: List<DailySyncHealthMetric>,
+    val platform: String
+)
+
+
 
 /**
  * {
@@ -21,8 +32,3 @@ package com.getvisitapp.google_fit.healthConnect.model
  *   ]
  * }
  */
-
-data class DailyStepSyncRequestBody(
-    val fitnessData: List<DailySyncHealthMetric>,
-    val platform: String
-)

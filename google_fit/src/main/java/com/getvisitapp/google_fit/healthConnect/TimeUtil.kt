@@ -1,6 +1,6 @@
 package com.getvisitapp.google_fit.healthConnect
 
-import com.getvisitapp.google_fit.healthConnect.model.MonthProperties
+import com.getvisitapp.google_fit.healthConnect.model.internal.MonthProperties
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.Instant

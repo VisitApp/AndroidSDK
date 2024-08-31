@@ -1,5 +1,6 @@
-package com.getvisitapp.google_fit.healthConnect.model
+package com.getvisitapp.google_fit.healthConnect.model.internal
 
+import androidx.annotation.Keep
 import java.time.Duration
 
 
@@ -8,6 +9,8 @@ import java.time.Duration
  * HealthMetricData will contain the summation of the health data for the time period
  * and `healthMetricWithDateTime` will contain the entries of the things that contributed to that summation
  */
+
+@Keep
 data class HealthMetricData(
     var healthMetricWithDateTime: List<HealthMetricsWithDateTime>? = null,
 

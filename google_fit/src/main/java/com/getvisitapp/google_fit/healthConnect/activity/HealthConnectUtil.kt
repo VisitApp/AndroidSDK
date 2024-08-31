@@ -20,9 +20,10 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.helper.DailySyncManager
-import com.getvisitapp.google_fit.healthConnect.model.DailyStepSyncRequestBody
-import com.getvisitapp.google_fit.healthConnect.model.DailySyncHealthMetric
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import com.getvisitapp.google_fit.view.HealthConnectListener
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -473,7 +474,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         val dailySyncData: List<DailySyncHealthMetric> =
             dailySyncManager.getDailySyncData(timeStamp)
         val requestBody =
-            DailyStepSyncRequestBody(fitnessData = dailySyncData, platform = "ANDROID")
+            DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
 
         Timber.d("dailySyncData: ${Gson().toJson(requestBody)}")
     }

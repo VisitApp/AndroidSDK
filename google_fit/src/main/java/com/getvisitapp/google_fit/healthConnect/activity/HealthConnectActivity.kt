@@ -23,21 +23,20 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.databinding.HealthConnectActivityBinding
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.helper.DailySyncManager
-import com.getvisitapp.google_fit.healthConnect.model.DailyStepSyncRequestBody
-import com.getvisitapp.google_fit.healthConnect.model.DailySyncHealthMetric
+import com.getvisitapp.google_fit.healthConnect.helper.HourlySyncManager
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
+
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-
 //https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/package-summary#classes
-
-enum class HealthConnectConnectionState {
-    NOT_SUPPORTED, NOT_INSTALLED, CONNECTED, INSTALLED, NONE,
-}
 
 class HealthConnectActivity : AppCompatActivity() {
 
@@ -45,8 +44,6 @@ class HealthConnectActivity : AppCompatActivity() {
     lateinit var binding: HealthConnectActivityBinding
 
     val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
-
-
 
 
     private val PERMISSIONS = setOf(
@@ -251,25 +248,31 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1724866509000L
+            var timeStamp = 1724582306000L //current time
+//            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
 
-                getDailyStepAndSleepData()
+//                Tutorials(healthConnectClient!!).fetchData()
 
-//                getActivityData(type = "steps", frequency = "days", timeStamp = timeStamp)
+//                getDailySyncData(timeStamp)
+                getHourlySyncData(timeStamp)
+
+//                getDailyStepAndSleepData()
+
+//                getActivityData(type = "steps", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "steps", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "steps", frequency = "month", timeStamp = timeStamp)
 //
-//                getActivityData(type = "distance", frequency = "days", timeStamp = timeStamp)
+//                getActivityData(type = "distance", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "distance", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "distance", frequency = "month", timeStamp = timeStamp)
 //
-//                getActivityData(type = "calories", frequency = "days", timeStamp = timeStamp)
+//                getActivityData(type = "calories", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "calories", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "calories", frequency = "month", timeStamp = timeStamp)
 //
-//                getActivityData(type = "sleep", frequency = "days", timeStamp = timeStamp)
+//                getActivityData(type = "sleep", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "sleep", frequency = "week", timeStamp = timeStamp)
             }
         } else {
@@ -300,7 +303,7 @@ class HealthConnectActivity : AppCompatActivity() {
             when (type) {
                 "steps" -> {
                     when (frequency) {
-                        "days" -> {
+                        "day" -> {
                             scope.launch {
                                 try {
                                     val resultString =
@@ -345,7 +348,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
                 "distance" -> {
                     when (frequency) {
-                        "days" -> {
+                        "day" -> {
                             scope.launch {
                                 try {
                                     val resultString =
@@ -390,7 +393,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
                 "calories" -> {
                     when (frequency) {
-                        "days" -> {
+                        "day" -> {
 
                             scope.launch {
                                 try {
@@ -435,7 +438,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
                 "sleep" -> {
                     when (frequency) {
-                        "days" -> {
+                        "day" -> {
                             scope.launch {
                                 try {
 
@@ -470,15 +473,31 @@ class HealthConnectActivity : AppCompatActivity() {
     }
 
 
-    suspend fun uploadDailySyncDate(timeStamp: Long) {
+    suspend fun getDailySyncData(timeStamp: Long): DailyStepSyncRequest {
 
         val dailySyncManager = DailySyncManager(getHealthConnectClient())
         val dailySyncData: List<DailySyncHealthMetric> =
             dailySyncManager.getDailySyncData(timeStamp)
-        val requestBody =
-            DailyStepSyncRequestBody(fitnessData = dailySyncData, platform = "ANDROID")
+        val requestBody = DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
 
-        Timber.d("dailySyncData: ${Gson().toJson(requestBody)}")
+        Timber.d("getDailySyncData: requestBody: ${Gson().toJson(requestBody)}")
+
+        return requestBody
+    }
+
+    suspend fun getHourlySyncData(timeStamp: Long): HourlyDataSyncRequest {
+
+        val hourlySyncManager = HourlySyncManager(getHealthConnectClient())
+
+        val hourlyRecords = hourlySyncManager.getHourlySyncData(hourlyLastSyncTimestamp = timeStamp)
+
+        val requestBody =
+            HourlyDataSyncRequest(bulkHealthData = hourlyRecords, platform = "ANDROID")
+
+
+        Timber.d("getHourlySyncData: requestBody: ${Gson().toJson(requestBody)}")
+
+        return requestBody
     }
 
 

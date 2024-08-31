@@ -39,8 +39,8 @@ import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.event.VisitEventType.VisitCallBack
-import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.TATA_AIG_AUTH_TOKEN

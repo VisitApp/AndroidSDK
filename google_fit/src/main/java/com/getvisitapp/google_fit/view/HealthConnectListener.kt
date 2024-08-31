@@ -1,6 +1,7 @@
 package com.getvisitapp.google_fit.view
 
-import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectConnectionState
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
+
 
 interface HealthConnectListener {
     fun updateHealthConnectConnectionStatus(status: HealthConnectConnectionState, text: String)

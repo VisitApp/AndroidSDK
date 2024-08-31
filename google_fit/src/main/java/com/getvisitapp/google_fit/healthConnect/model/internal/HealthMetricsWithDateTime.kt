@@ -1,7 +1,9 @@
-package com.getvisitapp.google_fit.healthConnect.model
+package com.getvisitapp.google_fit.healthConnect.model.internal
 
+import androidx.annotation.Keep
 import java.time.LocalDateTime
 
+@Keep
 data class HealthMetricsWithDateTime(
     var steps: Long? = null,
     var distance: Double? = null,

@@ -12,7 +12,7 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertLocalDateTimeToEpochMillis
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertToLocalDateTime
 import com.getvisitapp.google_fit.healthConnect.data.SleepHelper
-import com.getvisitapp.google_fit.healthConnect.model.DailySyncHealthMetric
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
@@ -29,19 +29,19 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
     private val sleepHelper = SleepHelper(healthConnectClient)
 
 
-    suspend fun getDailySyncData(googleFitLastSync: Long): List<DailySyncHealthMetric> {
+    suspend fun getDailySyncData(dailyLastSyncTimeStamp: Long): List<DailySyncHealthMetric> {
 
         val normalizedDateTime: LocalDateTime =
-            Instant.ofEpochMilli(googleFitLastSync).convertToLocalDateTime().withHour(0)
+            Instant.ofEpochMilli(dailyLastSyncTimeStamp).convertToLocalDateTime().withHour(0)
                 .withMinute(0).withSecond(0).withNano(0)
 
 
-        //Monday
+
         val startTime: Instant =
             LocalDateTime.of(normalizedDateTime.toLocalDate().minusDays(1), LocalTime.MIN)
                 .atZone(ZoneId.systemDefault()).toInstant()
 
-        //Sunday
+
         val endTime: Instant =
             LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
                 .toInstant()

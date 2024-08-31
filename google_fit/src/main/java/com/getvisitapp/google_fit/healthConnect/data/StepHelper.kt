@@ -8,9 +8,9 @@ import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil
 import com.getvisitapp.google_fit.healthConnect.helper.ActivityTimeHelper
-import com.getvisitapp.google_fit.healthConnect.model.HealthMetricData
-import com.getvisitapp.google_fit.healthConnect.model.HealthMetricsWithDateTime
-import com.getvisitapp.google_fit.healthConnect.model.MonthProperties
+import com.getvisitapp.google_fit.healthConnect.model.internal.HealthMetricData
+import com.getvisitapp.google_fit.healthConnect.model.internal.HealthMetricsWithDateTime
+import com.getvisitapp.google_fit.healthConnect.model.internal.MonthProperties
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant

@@ -1,7 +1,9 @@
-package com.getvisitapp.google_fit.healthConnect.model
+package com.getvisitapp.google_fit.healthConnect.model.apiRequestModel
 
+import androidx.annotation.Keep
 import java.time.LocalDateTime
 
+@Keep
 data class DailySyncHealthMetric(
     var steps: Long = 0,
     var calorie: Long = 0,
