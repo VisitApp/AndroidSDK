@@ -26,19 +26,36 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
 
     suspend fun getHourlySyncData(hourlyLastSyncTimestamp: Long): List<BulkHealthData> {
 
+        //Case 1: If the timestamp is 0, then take last 15day timestamp and sync it from there.
+        //Case 2: If the timestamp is older then 15 days, then only sync the data for last 15 days.
+        //Case 3: else sync from the hourlyLastSyncTimestamp
 
-        val normalizedStartDateTime: LocalDateTime = LocalDateTime.of(
-            Instant.ofEpochMilli(hourlyLastSyncTimestamp).convertToLocalDateTime().toLocalDate(),
-            LocalTime.MIN
-        )
+        //Case 1:
+        val normalizedStartDateTime: LocalDateTime = if (hourlyLastSyncTimestamp == 0L) {
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+        } else {
+            LocalDateTime.of(
+                Instant.ofEpochMilli(hourlyLastSyncTimestamp).convertToLocalDateTime()
+                    .toLocalDate(),
+                LocalTime.MIN
+            )
+        }
 
         val normalizedEndDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.MAX)
 
 
-        val startDate = normalizedStartDateTime
+        var startDate = normalizedStartDateTime
         val endDate = normalizedEndDateTime
 
-        val daysInBetween = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
+        var daysInBetween = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
+
+        //Case 2:
+        if (daysInBetween > 15) {
+            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+
+            daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
+                .toInt() + 1 // "+1" because current days is not included
+        }
 
         Timber.d("startTime: $startDate, endTime: $endDate, normalizedDateTime: $normalizedStartDateTime, daysBetween: $daysInBetween")
 

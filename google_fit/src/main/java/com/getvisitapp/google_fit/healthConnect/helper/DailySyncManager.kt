@@ -31,36 +31,54 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
 
     suspend fun getDailySyncData(dailyLastSyncTimeStamp: Long): List<DailySyncHealthMetric> {
 
-        val normalizedDateTime: LocalDateTime =
+        //Case 1: If the timestamp is 0, then take last 15day timestamp and sync it from there.
+        //Case 2: If the timestamp is older then 15 days, then only sync the data for last 15 days.
+        //Case 3: else sync from the dailyLastSyncTimeStamp
+
+
+        //Case 1:
+        val normalizedDateTime: LocalDateTime = if (dailyLastSyncTimeStamp == 0L) {
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+        } else {
             Instant.ofEpochMilli(dailyLastSyncTimeStamp).convertToLocalDateTime().withHour(0)
                 .withMinute(0).withSecond(0).withNano(0)
+        }
 
 
-
-        val startTime: Instant =
+        var startDate: Instant =
             LocalDateTime.of(normalizedDateTime.toLocalDate().minusDays(1), LocalTime.MIN)
                 .atZone(ZoneId.systemDefault()).toInstant()
 
 
-        val endTime: Instant =
+        val endDate: Instant =
             LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
                 .toInstant()
 
-        val daysBetween = ChronoUnit.DAYS.between(startTime, endTime)
+        var daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
             .toInt() + 1 // "+1" because current days is not included
 
-        Timber.d("startTime: $startTime, endTime: $endTime")
+        Timber.d("startDate: $startDate, endDate: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween")
 
 
-        Timber.d("normalizedDateTime: $normalizedDateTime, daysBetween: $daysBetween")
+        //Case 2:
+        if (daysInBetween > 15) {
+            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+                .atZone(ZoneId.systemDefault()).toInstant()
+
+            daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
+                .toInt() + 1 // "+1" because current days is not included
+        }
+
+
+        Timber.d("startTime: $startDate, endTime: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween")
 
 
         val dailyHealthMetric: List<DailySyncHealthMetric> = aggregateHealthMetricBasedOnDuration(
-            startDateInstant = startTime,
-            endDateInstant = endTime,
-            daysInBetween = daysBetween,
-            startDateTime = startTime.convertToLocalDateTime(),
-            endDateTime = endTime.convertToLocalDateTime()
+            startDateInstant = startDate,
+            endDateInstant = endDate,
+            daysInBetween = daysInBetween,
+            startDateTime = startDate.convertToLocalDateTime(),
+            endDateTime = endDate.convertToLocalDateTime()
         )
 
         return dailyHealthMetric
