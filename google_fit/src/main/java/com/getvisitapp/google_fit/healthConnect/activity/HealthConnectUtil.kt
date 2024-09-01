@@ -19,6 +19,7 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import com.getvisitapp.google_fit.healthConnect.contants.Contants
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.helper.DailySyncManager
@@ -42,11 +43,6 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     private val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
 
-    //This variable stores the information if the user have revoked the permission in android 14 and above,
-    //because android 14, has a bug where even after revoking the permission is give the status of Health Connect as connected.
-    //This prevent the Stay Active Page (where Google Fit and FitBit option comes) from showing Health Connect is connected
-    //after user have revoke the permission and come back to that page.
-    var previouslyRevoked = false
 
     private val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
@@ -69,7 +65,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
             //Note: don't put updateButtonState(HealthConnectConnectionState.*) here. it is the job of checkPermissionsAndRun()
 
             if (granted.containsAll(PERMISSIONS)) {
-                previouslyRevoked = false
+                Contants.previouslyRevoked = false
 
                 Timber.d("Permissions successfully granted")
                 scope.launch {
@@ -110,7 +106,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
                 healthConnectClient!!.permissionController.revokeAllPermissions()
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    previouslyRevoked = true
+                    Contants.previouslyRevoked = true
                 }
 
                 checkAvailability()
@@ -256,7 +252,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
         if (granted.containsAll(PERMISSIONS)) {
 
-            if (previouslyRevoked) { //special case only happens in android 14
+            if (Contants.previouslyRevoked) { //special case only happens in android 14
                 updateButtonState(HealthConnectConnectionState.INSTALLED)
             } else {
                 updateButtonState(HealthConnectConnectionState.CONNECTED)

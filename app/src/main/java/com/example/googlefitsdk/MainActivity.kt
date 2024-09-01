@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.getvisitapp.google_fit.HealthConnectAccessChecker
 import com.getvisitapp.google_fit.IntiateSdk
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper.Companion.openGoogleFit
@@ -21,8 +22,11 @@ import com.getvisitapp.google_fit.event.ClosePWAEvent
 import com.getvisitapp.google_fit.event.MessageEvent
 import com.getvisitapp.google_fit.event.VisitEventType
 import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectActivity
-import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.google.android.material.switchmaterial.SwitchMaterial
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -35,13 +39,16 @@ class MainActivity : AppCompatActivity() {
     private val default_client_id =
         "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
 
-    private lateinit var googleFitAccessChecker: GoogleFitAccessChecker
-    private lateinit var googleFitSwitch: SwitchMaterial
+    private lateinit var healthConnectAccessChecker: HealthConnectAccessChecker
+    private lateinit var healthConnectAndFitBitSwitch: SwitchMaterial
 
     private val tataAIG_base_url = "https://uathealthvas.tataaig.com"
     private val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
 
     private lateinit var syncStepHelper: VisitStepSyncHelper
+
+    val job = Job()
+    var coroutineScope = CoroutineScope(Dispatchers.Main + job)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +61,8 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        googleFitSwitch = findViewById(R.id.googleFitSwitch)
-        googleFitAccessChecker = GoogleFitAccessChecker(this)
+        healthConnectAndFitBitSwitch = findViewById(R.id.googleFitSwitch)
+        healthConnectAccessChecker = HealthConnectAccessChecker(this)
 
         syncStepHelper = VisitStepSyncHelper(context = this, default_client_id)
 
@@ -89,31 +96,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun setHealthAppStatus(googleFitEnabled: Boolean, fitbitEnabled: Boolean) {
+    fun setHealthAppStatus(healthConnectEnabled: Boolean, fitbitEnabled: Boolean) {
 
-        googleFitSwitch.setText("Google Fit / Fitbit", TextView.BufferType.SPANNABLE)
+        healthConnectAndFitBitSwitch.setText(
+            "Health Connect / Fitbit",
+            TextView.BufferType.SPANNABLE
+        )
 
 
-        val spannable = googleFitSwitch.text as Spannable
+        val spannable = healthConnectAndFitBitSwitch.text as Spannable
 
 
         spannable.setSpan(
             ForegroundColorSpan(
                 ContextCompat.getColor(
-                    googleFitSwitch.context,
+                    healthConnectAndFitBitSwitch.context,
                     R.color.redColor
                 )
-            ), 0, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            ), 0, healthConnectAndFitBitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
 
-        if (googleFitEnabled) {
+        if (healthConnectEnabled) {
             spannable.setSpan(
                 ForegroundColorSpan(
                     ContextCompat.getColor(
-                        googleFitSwitch.context,
+                        healthConnectAndFitBitSwitch.context,
                         R.color.greenColor
                     )
-                ), 0, 10, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                ), 0, 14, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
 
@@ -121,20 +131,20 @@ class MainActivity : AppCompatActivity() {
             spannable.setSpan(
                 ForegroundColorSpan(
                     ContextCompat.getColor(
-                        googleFitSwitch.context,
+                        healthConnectAndFitBitSwitch.context,
                         R.color.greenColor
                     )
-                ), 11, googleFitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                ), 11, healthConnectAndFitBitSwitch.text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
 
         spannable.setSpan(
             ForegroundColorSpan(
                 ContextCompat.getColor(
-                    googleFitSwitch.context,
+                    healthConnectAndFitBitSwitch.context,
                     R.color.greyColor
                 )
-            ), 11, 12, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            ), 16, 17, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
     }
 
@@ -298,25 +308,38 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        googleFitSwitch.setOnCheckedChangeListener(null)
+        healthConnectAndFitBitSwitch.setOnCheckedChangeListener(null)
 
-        val googleFitAccess = googleFitAccessChecker.checkGoogleFitAccess();
-        val fitBitAccess = syncStepHelper.getFitbitCurrentStatus()
+        coroutineScope.launch {
+            try {
+                val healthConnectAccess = healthConnectAccessChecker.checkAccess();
+                val fitBitAccess = syncStepHelper.getFitbitCurrentStatus()
 
-        Log.d("mytag", "googleFitAccess: $googleFitAccess && fitBitAccess:$fitBitAccess")
+                Log.d(
+                    "mytag",
+                    "healthConnectAccess: $healthConnectAccess && fitBitAccess:$fitBitAccess"
+                )
 
-        googleFitSwitch.isChecked = googleFitAccess || fitBitAccess
+                healthConnectAndFitBitSwitch.isChecked = healthConnectAccess || fitBitAccess
 
-        //updating the UI
-        setHealthAppStatus(
-            googleFitAccess, fitBitAccess,
-        )
+                //updating the UI
+                setHealthAppStatus(
+                    healthConnectAccess, fitBitAccess,
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
-        googleFitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
+
+
+
+        healthConnectAndFitBitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
     }
 
     override fun onDestroy() {
         EventBus.getDefault().unregister(this)
+        job.cancel()
         super.onDestroy()
     }
 
@@ -328,7 +351,9 @@ class MainActivity : AppCompatActivity() {
                 if (syncStepHelper.getFitbitCurrentStatus()) {
                     syncStepHelper.revokeFitbitAccess()
                 } else {
-                    googleFitAccessChecker.revokeGoogleFitPermission(default_client_id)
+                    coroutineScope.launch {
+                        healthConnectAccessChecker.revokeHealthConnectAccess()
+                    }
                 }
 
                 //updating the UI.
@@ -336,5 +361,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 }
 
