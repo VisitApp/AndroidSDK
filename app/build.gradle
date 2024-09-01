@@ -9,12 +9,12 @@ localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
 
 android {
-    compileSdk 31
 
     defaultConfig {
         applicationId "com.example.googlefitsdk"
-        minSdk 21
-        targetSdk 31
+        minSdk 23
+        compileSdk 34
+        targetSdk 34
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -40,7 +40,10 @@ android {
     }
     buildFeatures{
         dataBinding true
+        buildConfig true
     }
+
+    namespace 'com.example.googlefitsdk'
 }
 
 dependencies {
