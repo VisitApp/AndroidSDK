@@ -3,6 +3,11 @@ package com.getvisitapp.google_fit.data
 import android.content.Context
 import android.util.Log
 import androidx.annotation.Keep
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.SyncResponse
 import com.getvisitapp.google_fit.model.TataAIGFitnessPayload
 import com.getvisitapp.google_fit.network.APIServiceInstance
 import com.getvisitapp.google_fit.network.ApiService
@@ -15,7 +20,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.util.*
+import timber.log.Timber
+import java.util.Calendar
+import java.util.Date
 
 @Keep
 class VisitStepSyncHelper(var context: Context, var default_web_client_id: String) {
@@ -335,6 +342,77 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
     fun getFitbitCurrentStatus(): Boolean {
         return sharedPrefUtil.getFitBitConnectionStatus()
+    }
+
+
+    fun sendDataToVisitServer(
+        healthConnectUtil: HealthConnectUtil,
+        googleFitLastSync: Long,
+        gfHourlyLastSync: Long
+    ) {
+
+        Timber.d("sendDataToVisitServer: googleFitLastSync: $googleFitLastSync, gfHourlyLastSync: $gfHourlyLastSync")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
+                    val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)
+                    val dailySyncResponse = syncDailyHealthData(dailySyncRequestBody)
+
+                    Timber.d("dailySyncResponse: $dailySyncResponse")
+
+                    if (dailySyncResponse?.message == "success") {
+
+                    } else {
+
+                    }
+
+                    val hourlyDataSyncRequestBody =
+                        healthConnectUtil.getHourlySyncData(gfHourlyLastSync)
+                    val hourlySyncResponse = syncHourlyHealthData(hourlyDataSyncRequestBody)
+
+                    Timber.d("hourlySyncResponse: $hourlySyncResponse")
+
+                    if (hourlySyncResponse?.message == "success") {
+
+                    } else {
+
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
+
+
+    }
+
+
+    private suspend fun syncDailyHealthData(dailyStepSyncRequest: DailyStepSyncRequest): SyncResponse? {
+
+        val visitBaseUrl = sharedPrefUtil.getVisitBaseUrl()
+
+        val visitAuthToken = sharedPrefUtil.getVisitAuthToken()
+        val visitApiService = getVisitApiService(visitBaseUrl, visitAuthToken)
+        val response =
+            visitApiService.uploadDailyHealthData(requestBody = dailyStepSyncRequest)
+
+        return response
+    }
+
+    private suspend fun syncHourlyHealthData(hourlyDataSyncRequest: HourlyDataSyncRequest): SyncResponse? {
+
+        val visitBaseUrl = sharedPrefUtil.getVisitBaseUrl()
+
+        val visitAuthToken = sharedPrefUtil.getVisitAuthToken()
+        val visitApiService = getVisitApiService(visitBaseUrl, visitAuthToken)
+
+        val response =
+            visitApiService.uploadHourlyHealthData(requestBody = hourlyDataSyncRequest)
+
+        return response
     }
 
 

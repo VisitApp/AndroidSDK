@@ -597,15 +597,22 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
         if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
-                googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
+
+                visitSyncStepSyncHelper.sendDataToVisitServer(
+                    healthConnectUtil,
                     googleFitLastSync,
-                    gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
+                    gfHourlyLastSync
                 )
+
+//                googleFitUtil.sendDataToServer(
+//                    visitApiBaseUrl + "/",
+//                    authtoken,
+//                    googleFitLastSync,
+//                    gfHourlyLastSync,
+//                    memberId,
+//                    tataAIG_base_url,
+//                    tataAIG_auth_token
+//                )
                 syncDataWithServer = true
             }
         }
@@ -700,18 +707,27 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             if (sharedPrefUtil.getFitBitConnectionStatus()) {
                 visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
             } else {
-                runOnUiThread(Runnable {
-                    googleFitUtil.sendDataToServer(
-                        visitApiBaseUrl + "/",
-                        authtoken,
-                        this.googleFitLastSync,
-                        this.gfHourlyLastSync,
-                        memberId,
-                        tataAIG_base_url,
-                        tataAIG_auth_token
-                    )
-                    syncDataWithServer = true
-                })
+
+                visitSyncStepSyncHelper.sendDataToVisitServer(
+                    healthConnectUtil,
+                    googleFitLastSync,
+                    gfHourlyLastSync
+                )
+
+//                runOnUiThread(Runnable {
+//                    googleFitUtil.sendDataToServer(
+//                        visitApiBaseUrl + "/",
+//                        authtoken,
+//                        this.googleFitLastSync,
+//                        this.gfHourlyLastSync,
+//                        memberId,
+//                        tataAIG_base_url,
+//                        tataAIG_auth_token
+//                    )
+//                })
+
+                syncDataWithServer = true
+
             }
         }
     }

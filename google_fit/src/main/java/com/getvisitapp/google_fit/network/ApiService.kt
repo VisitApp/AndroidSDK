@@ -1,6 +1,9 @@
 package com.getvisitapp.google_fit.network
 
 import androidx.annotation.Keep
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.SyncResponse
 import com.getvisitapp.google_fit.model.FitBitRevokeResponse
 import com.getvisitapp.google_fit.model.FitbitDataResponse
 import com.getvisitapp.google_fit.model.SessionRoom
@@ -32,7 +35,19 @@ interface ApiService {
     suspend fun pushDataToTataAIG(@Body tataAIGFitnessPayload: TataAIGFitnessPayload): JsonObject
 
     @POST("wearables/fitbit/revoke")
-    suspend fun revokeFitBitAccess():FitBitRevokeResponse
+    suspend fun revokeFitBitAccess(): FitBitRevokeResponse
 
+
+    @POST("users/data-sync")
+    suspend fun uploadDailyHealthData(
+        @Query("isPWA") isPWA: String = "yes",
+        @Body requestBody: DailyStepSyncRequest
+    ): SyncResponse?
+
+    @POST(" users/embellish-sync")
+    suspend fun uploadHourlyHealthData(
+        @Query("isPWA") isPWA: String = "yes",
+        @Body requestBody: HourlyDataSyncRequest
+    ): SyncResponse?
 
 }

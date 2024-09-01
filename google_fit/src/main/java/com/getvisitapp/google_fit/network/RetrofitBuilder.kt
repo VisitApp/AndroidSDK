@@ -43,6 +43,8 @@ object RetrofitBuilder {
                 val newRequest: Request.Builder = originalRequest.newBuilder()
                     .addHeader("Content-type", "application/json")
                     .addHeader("Cache-Control", "no-cache")
+                    .addHeader("platform", "ANDROID");
+
                 if (authToken.isNotEmpty()) {
                     newRequest.addHeader("Authorization", authToken)
                 }

@@ -10,7 +10,6 @@ data class DailyStepSyncRequest(
 )
 
 
-
 /**
  * {
  *   "fitnessData": [

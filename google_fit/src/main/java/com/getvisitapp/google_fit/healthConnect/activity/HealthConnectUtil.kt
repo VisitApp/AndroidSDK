@@ -22,8 +22,10 @@ import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.helper.DailySyncManager
+import com.getvisitapp.google_fit.healthConnect.helper.HourlySyncManager
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
+import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
 import com.getvisitapp.google_fit.view.HealthConnectListener
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -468,17 +470,34 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     }
 
 
-    suspend fun uploadDailySyncDate(timeStamp: Long) {
+    suspend fun getDailySyncData(timeStamp: Long): DailyStepSyncRequest {
 
         val dailySyncManager = DailySyncManager(getHealthConnectClient())
         val dailySyncData: List<DailySyncHealthMetric> =
             dailySyncManager.getDailySyncData(timeStamp)
-        val requestBody =
-            DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
 
-        Timber.d("dailySyncData: ${Gson().toJson(requestBody)}")
+        val requestBody = DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
+
+        Timber.d("getDailySyncData: requestBody: ${Gson().toJson(requestBody)}")
+
+        return requestBody
     }
 
+
+    suspend fun getHourlySyncData(timeStamp: Long): HourlyDataSyncRequest {
+
+        val hourlySyncManager = HourlySyncManager(getHealthConnectClient())
+
+        val hourlyRecords = hourlySyncManager.getHourlySyncData(hourlyLastSyncTimestamp = timeStamp)
+
+        val requestBody =
+            HourlyDataSyncRequest(bulkHealthData = hourlyRecords, platform = "ANDROID")
+
+
+        Timber.d("getHourlySyncData: requestBody: ${Gson().toJson(requestBody)}")
+
+        return requestBody
+    }
 
 }
 /** aggregateActivityByBucketBasedOnDuration
