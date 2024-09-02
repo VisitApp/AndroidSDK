@@ -187,16 +187,9 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     }
 
     fun getVisitDashboardGraph() {
-
         scope.launch {
 
-            // Permissions already granted; proceed with inserting or reading data
-
-            scope.launch {
-
-                getDailyStepAndSleepData()
-
-            }
+            getDailyStepAndSleepData()
         }
     }
 
