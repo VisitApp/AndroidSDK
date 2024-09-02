@@ -8,8 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.HealthConnectListener
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
@@ -42,23 +42,37 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web_view)
 
+
+        //this code will not be shipped in react native webview.
         mWebView = findViewById(R.id.webview);
         mWebView.setListener(this, this);
         mWebView.setMixedContentAllowed(false);
         mWebView.settings.javaScriptEnabled = true
-
         webAppInterface = WebAppInterface(this)
-        visitStepSyncHelper = VisitStepSyncHelper(this)
-        healthConnectUtil = HealthConnectUtil(this, this)
-
 
         val magicLink =
             "https://star-health.getvisitapp.com/?mluib7c=wx6hHGGG"
 
+        ActivityCompat.requestPermissions(
+            this, arrayOf<String>(
+                Manifest.permission.POST_NOTIFICATIONS
+            ), 101
+        )
+
+
+
+
+
+        visitStepSyncHelper = VisitStepSyncHelper(this)
+        healthConnectUtil = HealthConnectUtil(this, this)
+
+
+
+
+
         mWebView.loadUrl(magicLink)
-
-
         mWebView.addJavascriptInterface(webAppInterface, "Android")
+
         healthConnectUtil.initialize()
 
 
@@ -221,6 +235,19 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
                 null
             )
         }
+
+    }
+
+    override fun userDeniedHealthConnectPermission() {
+        //write the promise here.
+
+        Timber.d("mytag : userDeniedHealthConnectPermission")
+    }
+
+    override fun userAcceptedHealthConnectPermission() {
+        //write the promise here.
+
+        Timber.d("mytag : userAcceptedHealthConnectPermission")
 
     }
 

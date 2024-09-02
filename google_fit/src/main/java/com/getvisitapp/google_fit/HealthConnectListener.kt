@@ -8,4 +8,7 @@ interface HealthConnectListener {
 
     //This callback is used for both dashboard graph and detailed graph.
     fun loadVisitWebViewGraphData(webUrl: String)
+
+    fun userDeniedHealthConnectPermission()
+    fun userAcceptedHealthConnectPermission()
 }

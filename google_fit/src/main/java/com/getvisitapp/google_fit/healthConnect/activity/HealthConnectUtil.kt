@@ -69,7 +69,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
                 Timber.d("Permissions successfully granted")
                 scope.launch {
-                    checkPermissionsAndRun()
+                    checkPermissionsAndRun(afterRequestingPermission = true)
                 }
 
             } else {
@@ -79,7 +79,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
                 //it also send the granted permission (and not the permission that was previously granted), so the control flow comes inside the else statement.
                 //So we need to check for permission again
                 scope.launch {
-                    checkPermissionsAndRun()
+                    checkPermissionsAndRun(afterRequestingPermission = true)
                 }
             }
         }
@@ -141,7 +141,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
                 //Note: don't put updateButtonState(HealthConnectConnectionState.INSTALLED) here. it is the job of checkPermissionsAndRun()
                 Timber.d("SDK_AVAILABLE")
                 scope.launch {
-                    checkPermissionsAndRun()
+                    checkPermissionsAndRun(false)
                 }
             }
 
@@ -236,7 +236,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     }
 
 
-    private suspend fun checkPermissionsAndRun() {
+    private suspend fun checkPermissionsAndRun(afterRequestingPermission: Boolean) {
 
         healthConnectClient = getHealthConnectClient()
 
@@ -245,14 +245,23 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
         if (granted.containsAll(PERMISSIONS)) {
 
+
             if (Contants.previouslyRevoked) { //special case only happens in android 14
                 updateButtonState(HealthConnectConnectionState.INSTALLED)
             } else {
                 updateButtonState(HealthConnectConnectionState.CONNECTED)
             }
+
+            if (afterRequestingPermission) {
+                listener.userAcceptedHealthConnectPermission()
+            }
         } else {
             Timber.d("Permission Not present")
-            updateButtonState(HealthConnectConnectionState.INSTALLED)
+            updateButtonState(HealthConnectConnectionState.INSTALLED) //if the user
+
+            if (afterRequestingPermission) {
+                listener.userDeniedHealthConnectPermission()
+            }
         }
     }
 
