@@ -2,15 +2,12 @@ package com.example.googlefitsdk
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.getvisitapp.google_fit.HealthConnectListener
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
@@ -165,23 +162,6 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
             syncDataWithServer = true
         }
-    }
-
-    override fun askForLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_REQUEST_CODE
-                )
-            }
-        }
-    }
-
-    override fun closeVisitPWA() {
-
     }
 
     override fun onRequestPermissionsResult(
