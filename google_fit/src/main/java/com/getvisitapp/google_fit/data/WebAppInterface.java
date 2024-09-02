@@ -35,13 +35,14 @@ public class WebAppInterface {
     @JavascriptInterface
     public void getLocationPermissions() {
         Timber.d("mytag: getLocationPermissions() called.");
-        listener.askForLocationPermission();
-
+        //This function is not handled natively.
     }
 
     @JavascriptInterface
     public void closeView() {
         Timber.d("mytag: closeView() called.");
-        listener.closeVisitPWA();
+
+        //This function is not handled natively.
+
     }
 }
