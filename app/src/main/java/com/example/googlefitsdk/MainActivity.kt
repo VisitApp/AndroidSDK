@@ -308,10 +308,13 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        healthConnectAndFitBitSwitch.setOnCheckedChangeListener(null)
+
 
         coroutineScope.launch {
             try {
+                healthConnectAndFitBitSwitch.setOnCheckedChangeListener(null)
+
+
                 val healthConnectAccess = healthConnectAccessChecker.checkAccess();
                 val fitBitAccess = syncStepHelper.getFitbitCurrentStatus()
 
@@ -326,6 +329,8 @@ class MainActivity : AppCompatActivity() {
                 setHealthAppStatus(
                     healthConnectAccess, fitBitAccess,
                 )
+
+                healthConnectAndFitBitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -334,7 +339,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        healthConnectAndFitBitSwitch.setOnCheckedChangeListener(googleFitCheckChangeListener)
+
     }
 
     override fun onDestroy() {
