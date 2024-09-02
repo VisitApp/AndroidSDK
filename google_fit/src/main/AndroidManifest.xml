@@ -35,7 +35,7 @@
         <package android:name="com.google.android.apps.fitness" />
     </queries>
 
-    <application android:allowBackup="true">
+    <application>
         <activity
             android:name="com.getvisitapp.google_fit.healthConnect.activity.ViewPermissionUsageActivity"
             android:exported="true"
