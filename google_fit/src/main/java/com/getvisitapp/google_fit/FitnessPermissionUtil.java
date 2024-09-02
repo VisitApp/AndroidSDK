@@ -49,8 +49,7 @@ public class FitnessPermissionUtil {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
-                        new Scope(Scopes.PLUS_ME),
-                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                        new Scope(Scopes.PLUS_ME))
                 .requestServerAuthCode(defaultWebClientId, false)
                 .requestIdToken(defaultWebClientId)
                 .build();
@@ -70,7 +69,7 @@ public class FitnessPermissionUtil {
 
     private void askFitnessPermissions(GoogleSignInAccount googleSignInAccount, boolean isLastSignedIn) {
         if (googleSignInAccount != null) {
-            fitnessOptions =  FitnessOptions.builder()
+            fitnessOptions = FitnessOptions.builder()
                     .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
 
                     .addDataType(DataType.TYPE_ACTIVITY_SEGMENT, FitnessOptions.ACCESS_READ)
