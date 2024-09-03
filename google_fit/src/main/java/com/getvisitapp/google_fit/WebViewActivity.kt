@@ -1,4 +1,4 @@
-package com.example.googlefitsdk
+package com.getvisitapp.google_fit
 
 import android.Manifest
 import android.content.Intent
@@ -6,21 +6,29 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.ViewGroup
+import android.widget.RelativeLayout
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.getvisitapp.google_fit.HealthConnectListener
+import androidx.health.connect.client.PermissionController
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.WebAppInterface
+import com.getvisitapp.google_fit.healthConnect.OnActivityResultImplementation
 import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import im.delight.android.webview.AdvancedWebView
 import timber.log.Timber
 
+
+//This file is used only for testing purpose.
+//Comment this entire file and build the .aar file.
+
+//Consider this file similar to the module file that we have (VisitFitnessModule)
 class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFitStatusListener,
     HealthConnectListener {
 
-    var TAG = "mytag"
 
     lateinit var mWebView: AdvancedWebView
 
@@ -35,13 +43,41 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     lateinit var webAppInterface: WebAppInterface
 
 
+    private val requestPermissionActivityContract: ActivityResultContract<Set<String>, Set<String>> =
+        PermissionController.createRequestPermissionResultContract()
+
+    var onActivityResultImplementation: OnActivityResultImplementation<Set<String>, Set<String>>? =
+        null
+
+    val requestPermissions =
+        registerForActivityResult(requestPermissionActivityContract) { granted: Set<String> ->
+            onActivityResultImplementation?.execute(granted)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_web_view)
+
+        //Initializing it programmatically, as we don't want any layout file, because when building the .aar file,
+        //the layout file will also get shipped which react native won't accept it.
+
+        val relativeLayout = RelativeLayout(this)
+        val lp = RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT
+        )
+        relativeLayout.layoutParams = lp
+
+        mWebView = AdvancedWebView(this)
+        mWebView.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+
+        relativeLayout.addView(mWebView)
+
+        setContentView(relativeLayout)
 
 
-        //this code will not be shipped in react native webview.
-        mWebView = findViewById(R.id.webview);
+
         mWebView.setListener(this, this);
         mWebView.setMixedContentAllowed(false);
         mWebView.settings.javaScriptEnabled = true

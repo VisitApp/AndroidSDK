@@ -8,10 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.fragment.app.FragmentActivity
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
@@ -20,6 +17,8 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.google_fit.HealthConnectListener
+import com.getvisitapp.google_fit.WebViewActivity
+import com.getvisitapp.google_fit.healthConnect.OnActivityResultImplementation
 import com.getvisitapp.google_fit.healthConnect.contants.Contants
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
@@ -55,38 +54,40 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-
-    private val requestPermissionActivityContract: ActivityResultContract<Set<String>, Set<String>> =
-        PermissionController.createRequestPermissionResultContract()
-
-
-    private val requestPermissionsActivityContract =
-        (context as FragmentActivity).registerForActivityResult(requestPermissionActivityContract) { granted: Set<String> ->
-            //Note: don't put updateButtonState(HealthConnectConnectionState.*) here. it is the job of checkPermissionsAndRun()
-
-            if (granted.containsAll(PERMISSIONS)) {
-                Contants.previouslyRevoked = false
-
-                Timber.d("Permissions successfully granted")
-                scope.launch {
-                    checkPermissionsAndRun(afterRequestingPermission = true)
-                }
-
-            } else {
-                Timber.d(" Lack of required permissions")
-
-                //Currently the Health Connect SDK, only asks for the remaining permission was the NOT granted in the first time, and when it return,
-                //it also send the granted permission (and not the permission that was previously granted), so the control flow comes inside the else statement.
-                //So we need to check for permission again
-                scope.launch {
-                    checkPermissionsAndRun(afterRequestingPermission = true)
-                }
-            }
-        }
-
     var healthConnectConnectionState: HealthConnectConnectionState =
         HealthConnectConnectionState.NONE
 
+    init {
+
+        val activity = context as WebViewActivity
+
+        activity.onActivityResultImplementation =
+            object : OnActivityResultImplementation<Set<String>, Set<String>> {
+                override fun execute(granted: Set<String>): Set<String> {
+                    Timber.d("onActivityResultImplementation execute: result: $granted")
+
+                    if (granted.containsAll(PERMISSIONS)) {
+                        Contants.previouslyRevoked = false
+
+                        Timber.d("Permissions successfully granted")
+                        scope.launch {
+                            checkPermissionsAndRun(afterRequestingPermission = true)
+                        }
+
+                    } else {
+                        Timber.d(" Lack of required permissions")
+
+                        //Currently the Health Connect SDK, only asks for the remaining permission was the NOT granted in the first time, and when it return,
+                        //it also send the granted permission (and not the permission that was previously granted), so the control flow comes inside the else statement.
+                        //So we need to check for permission again
+                        scope.launch {
+                            checkPermissionsAndRun(afterRequestingPermission = true)
+                        }
+                    }
+                    return granted
+                }
+            }
+    }
 
     fun initialize() {
         updateButtonState(HealthConnectConnectionState.NONE)
@@ -173,7 +174,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
 
             HealthConnectConnectionState.INSTALLED -> {
-                requestPermissionsActivityContract.launch(PERMISSIONS)
+                (context as WebViewActivity).requestPermissions.launch(PERMISSIONS)
             }
 
 
