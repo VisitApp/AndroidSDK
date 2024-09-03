@@ -17,8 +17,10 @@ import com.getvisitapp.google_fit.data.VisitStepSyncHelper
 import com.getvisitapp.google_fit.data.WebAppInterface
 import com.getvisitapp.google_fit.healthConnect.OnActivityResultImplementation
 import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
+import com.getvisitapp.google_fit.healthConnect.contants.Contants
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import im.delight.android.webview.AdvancedWebView
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -68,8 +70,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
         mWebView = AdvancedWebView(this)
         mWebView.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
         )
 
         relativeLayout.addView(mWebView)
@@ -107,6 +108,36 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         mWebView.addJavascriptInterface(webAppInterface, "Android")
 
         healthConnectUtil.initialize()
+
+
+        val activity = this as WebViewActivity
+
+        activity.onActivityResultImplementation =
+            object : OnActivityResultImplementation<Set<String>, Set<String>> {
+                override fun execute(granted: Set<String>): Set<String> {
+                    Timber.d("onActivityResultImplementation execute: result: $granted")
+
+                    if (granted.containsAll(healthConnectUtil.PERMISSIONS)) {
+                        Contants.previouslyRevoked = false
+
+                        Timber.d("Permissions successfully granted")
+                        healthConnectUtil.scope.launch {
+                            healthConnectUtil.checkPermissionsAndRun(afterRequestingPermission = true)
+                        }
+
+                    } else {
+                        Timber.d(" Lack of required permissions")
+
+                        //Currently the Health Connect SDK, only asks for the remaining permission was the NOT granted in the first time, and when it return,
+                        //it also send the granted permission (and not the permission that was previously granted), so the control flow comes inside the else statement.
+                        //So we need to check for permission again.
+                        healthConnectUtil.scope.launch {
+                            healthConnectUtil.checkPermissionsAndRun(afterRequestingPermission = true)
+                        }
+                    }
+                    return granted
+                }
+            }
 
 
     }
@@ -179,21 +210,14 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     }
 
     override fun syncDataWithServer(
-        baseUrl: String?,
-        authToken: String?,
-        googleFitLastSync: Long,
-        gfHourlyLastSync: Long
+        baseUrl: String?, authToken: String?, googleFitLastSync: Long, gfHourlyLastSync: Long
     ) {
         Timber.d("mytag: baseUrl: $baseUrl")
         if (!syncDataWithServer) {
             Timber.d("mytag: syncDataWithServer() called")
 
             visitStepSyncHelper.sendDataToVisitServer(
-                healthConnectUtil,
-                googleFitLastSync,
-                gfHourlyLastSync,
-                "$baseUrl/",
-                authToken!!
+                healthConnectUtil, googleFitLastSync, gfHourlyLastSync, "$baseUrl/", authToken!!
             )
 
             syncDataWithServer = true
@@ -201,9 +225,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -213,8 +235,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
     }
 
     override fun updateHealthConnectConnectionStatus(
-        status: HealthConnectConnectionState,
-        text: String
+        status: HealthConnectConnectionState, text: String
     ) {
         Timber.d("updateHealthConnectConnectionStatus: $status")
 
@@ -247,8 +268,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
         Handler(Looper.getMainLooper()).post {
             mWebView.evaluateJavascript(
-                webUrl,
-                null
+                webUrl, null
             )
         }
 
