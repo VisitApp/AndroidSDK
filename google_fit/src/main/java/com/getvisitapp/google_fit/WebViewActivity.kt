@@ -104,8 +104,9 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
 
 
-        mWebView.loadUrl(magicLink)
+
         mWebView.addJavascriptInterface(webAppInterface, "Android")
+        mWebView.loadUrl(magicLink)
 
         healthConnectUtil.initialize()
 
@@ -285,6 +286,10 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
         Timber.d("mytag : userAcceptedHealthConnectPermission")
 
+    }
+
+    override fun requestPermission() {
+        requestPermissions.launch(healthConnectUtil.PERMISSIONS)
     }
 
 

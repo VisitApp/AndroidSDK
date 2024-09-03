@@ -141,7 +141,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
 
             HealthConnectConnectionState.INSTALLED -> {
-                (context as WebViewActivity).requestPermissions.launch(PERMISSIONS)
+                listener.requestPermission()
             }
 
 
