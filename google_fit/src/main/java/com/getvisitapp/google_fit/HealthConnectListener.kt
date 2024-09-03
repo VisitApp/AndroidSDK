@@ -11,4 +11,7 @@ interface HealthConnectListener {
 
     fun userDeniedHealthConnectPermission()
     fun userAcceptedHealthConnectPermission()
+
+
+    fun requestPermission()
 }
