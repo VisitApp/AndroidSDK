@@ -17,7 +17,6 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.google_fit.HealthConnectListener
-import com.getvisitapp.google_fit.WebViewActivity
 import com.getvisitapp.google_fit.healthConnect.contants.Contants
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
