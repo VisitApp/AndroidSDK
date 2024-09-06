@@ -85,7 +85,7 @@
 //        webAppInterface = WebAppInterface(this)
 //
 //        val magicLink =
-//            "https://star-health.getvisitapp.com/?mluib7c=wx6hHGGG"
+//            "https://star-health.getvisitapp.com/?mluib7c=%5B%7B%22policyNumber%22:%22P/161130/01/2024/109025%22,%22policyId%22:1295558,%22userId%22:2035724,%22magicUserId%22:920284,%22userMagicCode%22:%22wx6hHGGG%22,%22policyName%22:%22Assure%20Insurance-2021%22,%22policyStartDate%22:%222023-10-14T18:30:00.000Z%22,%22policyEndDate%22:%222024-10-14T18:29:59.000Z%22,%22isHospiCash%22:false,%22isAlreadyOnboarded%22:true,%22isPolicyAvailable%22:true%7D%5D"
 //
 //        ActivityCompat.requestPermissions(
 //            this, arrayOf<String>(
@@ -223,6 +223,33 @@
 //
 //            syncDataWithServer = true
 //        }
+//    }
+//
+//    override fun getHealthConnectStatus() {
+//
+//        if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.NOT_SUPPORTED) {
+//            Handler(Looper.getMainLooper()).post {
+//                val finalString = "window.healthConnectNotSupported()"
+//                mWebView.evaluateJavascript(
+//                    finalString, null
+//                )
+//            }
+//        } else if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.NOT_INSTALLED) {
+//            Handler(Looper.getMainLooper()).post {
+//                val finalString = "window.healthConnectNotInstall()"
+//                mWebView.evaluateJavascript(
+//                    finalString, null
+//                )
+//            }
+//        } else if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.INSTALLED) {
+//            Handler(Looper.getMainLooper()).post {
+//                val finalString = "window.healthConnectAvailable()"
+//                mWebView.evaluateJavascript(
+//                    finalString, null
+//                )
+//            }
+//        }
+//        healthConnectUtil.healthConnectConnectionState
 //    }
 //
 //    override fun onRequestPermissionsResult(

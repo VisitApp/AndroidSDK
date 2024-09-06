@@ -33,6 +33,11 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
+    public void graphReady() {
+        Timber.d("mytag: graphReady() called");
+    }
+
+    @JavascriptInterface
     public void getLocationPermissions() {
         Timber.d("mytag: getLocationPermissions() called.");
         //This function is not handled natively.
@@ -43,6 +48,15 @@ public class WebAppInterface {
         Timber.d("mytag: closeView() called.");
 
         //This function is not handled natively.
+
+    }
+
+    @JavascriptInterface
+    public void getHealthConnectStatus() {
+        Timber.d("mytag: getHealthConnectStatus() called.");
+
+        listener.getHealthConnectStatus();
+
 
     }
 }
