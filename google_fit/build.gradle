@@ -6,7 +6,7 @@ plugins {
 
 android {
     defaultConfig {
-        minSdk 23
+        minSdk 21
         compileSdk 34
         targetSdk 34
         multiDexEnabled = true
