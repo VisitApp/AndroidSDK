@@ -202,6 +202,16 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         }
     }
 
+    fun checkPermissionsAndRunForStar(afterRequestingPermission: Boolean) {
+        scope.launch {
+            try {
+                checkPermissionsAndRun(afterRequestingPermission = afterRequestingPermission)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     suspend fun checkPermissionsAndRun(afterRequestingPermission: Boolean) {
 
