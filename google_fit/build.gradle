@@ -18,23 +18,9 @@ android {
 
     buildTypes {
         release {
-            buildConfigField "String", "APP_MODE", "\"RELEASE\""
-            buildConfigField "String", "PROTOCOL", "\"https\""
-            buildConfigField "String", "DOMAIN_NAME", "\"getvisitapp\""
-            buildConfigField "String", "SUB_DOMAIN_NAME", "\"api\""
-            buildConfigField "String", "TOP_LEVEL_DOMAIN", "\"com\""
-            buildConfigField "String", "PUBLISH_KEY", "\"pub-c-fb8ac7e3-75bf-4396-bf14-77215f8b9419\""
-            buildConfigField "String", "SUBSCRIBE_KEY", "\"sub-c-78deef00-680f-11e5-a57f-0619f8945a4f\""
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            buildConfigField "String", "APP_MODE", "\"DEBUG\""
-            buildConfigField "String", "PROTOCOL", "\"https\""
-            buildConfigField "String", "DOMAIN_NAME", "\"samuraijack\""
-            buildConfigField "String", "SUB_DOMAIN_NAME", "\"api\""
-            buildConfigField "String", "TOP_LEVEL_DOMAIN", "\"xyz\""
-            buildConfigField "String", "PUBLISH_KEY", "\"pub-c-b8b14417-cff1-4e64-aa43-b41a777352cf\""
-            buildConfigField "String", "SUBSCRIBE_KEY", "\"sub-c-42db9ed2-315c-11e6-9327-02ee2ddab7fe\""
         }
     }
 
@@ -50,7 +36,7 @@ android {
 
     buildFeatures{
         dataBinding true
-        buildConfig true
+        buildConfig false
     }
 
     namespace 'com.getvisitapp.google_fit'
@@ -83,6 +69,6 @@ dependencies {
     implementation "androidx.health.connect:connect-client:1.1.0-alpha07"
     implementation "com.jakewharton.timber:timber:5.0.1"
 
-    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
+//    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
 
 }
