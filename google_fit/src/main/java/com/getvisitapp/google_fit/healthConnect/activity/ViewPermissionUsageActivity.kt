@@ -1,7 +1,6 @@
 //package com.getvisitapp.google_fit.healthConnect.activity
 //
 //import android.os.Bundle
-//import androidx.activity.enableEdgeToEdge
 //import androidx.appcompat.app.AppCompatActivity
 //import com.getvisitapp.google_fit.R
 //

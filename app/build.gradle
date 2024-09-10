@@ -39,8 +39,8 @@ android {
         jvmTarget = '17'
     }
     buildFeatures{
-        dataBinding true
-        buildConfig true
+//        dataBinding true
+        buildConfig false
     }
 
     namespace 'com.example.googlefitsdk'
