@@ -185,7 +185,9 @@ class SleepHelper(private val healthConnectClient: HealthConnectClient) {
             formattedSleepDuration = formattedSleep,
             sleepStartTimeMillis = sleepStartTimeMillis,
             sleepEndTimeMillis = sleepEndTimeMillis,
-            sleepDurationInMillis = sleepDurationInMillis
+            sleepDurationInMillis = sleepDurationInMillis,
+            sleepDateInMillis = LocalDateTime.of(selectedDate, LocalTime.MIDNIGHT)
+                .convertLocalDateTimeToEpochMillis()
         )
 
 
@@ -233,11 +235,12 @@ class SleepHelper(private val healthConnectClient: HealthConnectClient) {
             if (sleepModel.sleepDateTime.isAfter(todayDate)) {
                 //don't do anything
             } else {
-                val sleepMetric = getDailySleepData(sleepModel.sleepDateTime.toLocalDate())
+                val sleepMetric: SleepMetric =
+                    getDailySleepData(sleepModel.sleepDateTime.toLocalDate())
 
-                sleepModel.startTimestamp = sleepMetric.sleepStartTimeMillis
+                sleepModel.startTimestamp = sleepMetric.sleepDateInMillis
                 sleepModel.wakeupTime = sleepMetric.sleepEndTimeMillis
-                sleepModel.sleepTime = sleepMetric.sleepDurationInMillis
+                sleepModel.sleepTime = sleepMetric.sleepStartTimeMillis
             }
         }
 

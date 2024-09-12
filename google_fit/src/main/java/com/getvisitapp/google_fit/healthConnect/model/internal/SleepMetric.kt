@@ -10,13 +10,15 @@ data class SleepMetric(
     val sleepStartTimeMillis: Long,
     val sleepEndTimeMillis: Long,
     val sleepDurationInMillis: Long,
+    val sleepDateInMillis: Long,
 ) {
     override fun toString(): String {
         return "SleepMetric( sleepDuration: ${sleepDuration.toMinutes()}, " +
                 "formattedSleepDuration: $formattedSleepDuration, " +
                 "sleepStartTimeMillis: $sleepStartTimeMillis, " +
                 "sleepEndTimeMillis: $sleepEndTimeMillis, " +
-                "sleepDurationInMillis: $sleepDurationInMillis )"
+                "sleepDurationInMillis: $sleepDurationInMillis," +
+                "sleepDateInMillis: $sleepDateInMillis )"
 
     }
 }
