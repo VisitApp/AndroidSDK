@@ -2,7 +2,6 @@ package com.getvisitapp.google_fit.network
 
 import android.content.Context
 import androidx.annotation.Keep
-import com.chuckerteam.chucker.api.ChuckerInterceptor
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -37,7 +36,6 @@ object RetrofitBuilder {
 
         val builder = OkHttpClient.Builder()
             .protocols(listOf(Protocol.HTTP_1_1))
-            .addInterceptor(ChuckerInterceptor(applicationContext))
             .addInterceptor(Interceptor { chain ->
                 val originalRequest = chain.request()
                 val newRequest: Request.Builder = originalRequest.newBuilder()
