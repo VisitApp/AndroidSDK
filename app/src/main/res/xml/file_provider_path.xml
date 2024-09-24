@@ -3,4 +3,7 @@
     <files-path
         name="cert"
         path="cert"/>
+    <external-path
+        name="images"
+        path="Pictures/" />
 </paths>

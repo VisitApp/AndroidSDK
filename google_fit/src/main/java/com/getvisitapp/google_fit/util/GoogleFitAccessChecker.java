@@ -41,8 +41,7 @@ public class GoogleFitAccessChecker {
                         GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                                 .requestScopes(new Scope(Scopes.EMAIL),
                                         new Scope(Scopes.PROFILE),
-                                        new Scope(Scopes.PLUS_ME),
-                                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                                        new Scope(Scopes.PLUS_ME))
                                 .requestServerAuthCode(default_client_id, false)
                                 .requestIdToken(default_client_id)
                                 .addExtension(getFitnessOptions())

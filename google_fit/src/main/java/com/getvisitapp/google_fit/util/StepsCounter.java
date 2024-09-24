@@ -59,8 +59,7 @@ public class StepsCounter {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestScopes(new Scope(Scopes.EMAIL),
                         new Scope(Scopes.PROFILE),
-                        new Scope(Scopes.PLUS_ME),
-                        new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                        new Scope(Scopes.PLUS_ME))
                 .requestServerAuthCode(defaultWebClientId, false)
                 .requestIdToken(defaultWebClientId)
                 .build();

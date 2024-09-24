@@ -290,7 +290,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         if (intent!!.data != null) {

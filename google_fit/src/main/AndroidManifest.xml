@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.webkit.resource.AUDIO_CAPTURE" />
+    <uses-permission android:name="android.webkit.resource.VIDEO_CAPTURE" />
+    <uses-permission android:name="android.webkit.resource" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -30,9 +33,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GoogleFitSdk">
         <activity
+            android:name=".activity.BajajWebViewActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activity.FeedBackActivity"
             android:exported="true"
-            android:windowSoftInputMode="stateVisible|adjustResize"/>
+            android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity android:name=".activity.TwillioVideoCallActivity" />
         <activity
             android:name=".activity.SdkWebviewActivity"
@@ -53,7 +65,7 @@
         </activity>
 
         <provider
-            android:name="com.getvisitapp.google_fit.util.GoogleFitSdkFileProvider"
+            android:name=".util.GoogleFitSdkFileProvider"
             android:authorities="${applicationId}.googlefitsdk.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
