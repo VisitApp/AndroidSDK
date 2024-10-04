@@ -29,7 +29,6 @@ import com.getvisitapp.google_fit.healthConnect.helper.HourlySyncManager
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepSyncRequest
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
-
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -162,6 +161,16 @@ class HealthConnectActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+
+        binding.stressTestButton.setOnClickListener {
+
+            repeat(100) { index ->
+                Timber.d("index: $index")
+                val timeStamp = 1728021706000L //current time
+                getActivityData(type = "steps", frequency = "month", timeStamp = timeStamp)
+            }
+
         }
     }
 
