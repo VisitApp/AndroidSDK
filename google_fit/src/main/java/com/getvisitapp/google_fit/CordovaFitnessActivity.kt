@@ -444,7 +444,7 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun askForLocationPermission() {
+    override fun askForLocationPermission() {
         if (ActivityCompat.checkSelfPermission(
                 this, LOCATION_PERMISSION
             ) != PackageManager.PERMISSION_GRANTED
