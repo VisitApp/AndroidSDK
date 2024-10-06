@@ -61,6 +61,13 @@
 <!--            android:exported="true" >-->
 
 <!--        </activity>-->
+
+        <activity
+            android:name=".CordovaFitnessActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 
 
