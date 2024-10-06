@@ -40,7 +40,8 @@ public class WebAppInterface {
     @JavascriptInterface
     public void getLocationPermissions() {
         Timber.d("mytag: getLocationPermissions() called.");
-        //This function is not handled natively.
+
+        listener.askForLocationPermission();
     }
 
     @JavascriptInterface

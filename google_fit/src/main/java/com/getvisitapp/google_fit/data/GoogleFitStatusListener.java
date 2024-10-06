@@ -8,4 +8,6 @@ public interface GoogleFitStatusListener {
     void syncDataWithServer(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync);
 
     void getHealthConnectStatus();
+
+    void askForLocationPermission();
 }
