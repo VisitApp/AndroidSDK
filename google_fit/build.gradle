@@ -33,6 +33,7 @@ android {
 
     buildFeatures {
         buildConfig false
+        dataBinding true
     }
 
     namespace 'com.getvisitapp.google_fit'

@@ -1,309 +1,348 @@
-package com.getvisitapp.google_fit;
+package com.getvisitapp.google_fit
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Message;
-import android.util.Log;
-import android.webkit.CookieManager;
-import android.webkit.DownloadListener;
-import android.webkit.GeolocationPermissions;
-import android.webkit.ValueCallback;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.webkit.CookieManager
+import android.webkit.DownloadListener
+import android.webkit.GeolocationPermissions
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.health.connect.client.PermissionController
+import com.getvisitapp.google_fit.data.GoogleFitStatusListener
+import com.getvisitapp.google_fit.data.VisitStepSyncHelper
+import com.getvisitapp.google_fit.data.WebAppInterface
+import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
+import com.getvisitapp.google_fit.healthConnect.contants.Contants
+import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, HealthConnectListener {
 
-import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
-import com.getvisitapp.google_fit.data.GoogleFitUtil;
+    private val TAG: String = "mytag"
 
-
-public class CordovaFitnessActivity extends AppCompatActivity implements GoogleFitStatusListener {
-
-    protected static final String TAG = "mytag";
-
-    private ValueCallback<Uri[]> mUploadCallback;
-    private final static int FILECHOOSER_REQUESTCODE = 1;
-
-    GoogleFitUtil googleFitUtil;
-    Activity activity;
-
-
-    public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
-    public static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
-
-    public static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 490;
-    public static final int LOCATION_PERMISSION_REQUEST_CODE = 787;
-
-    boolean dailyDataSynced = false;
-    boolean syncDataWithServer = false;
-    WebView webView;
+    private val FILECHOOSER_REQUESTCODE = 1
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    private val LOCATION_PERMISSION: String = Manifest.permission.ACCESS_FINE_LOCATION
 
-        setContentView(R.layout.activity_cordova_fitness);
+    private val LOCATION_PERMISSION_REQUEST_CODE: Int = 787
 
-        String magicLink = getIntent().getStringExtra("ssoLink");
-        String default_client_id = getIntent().getStringExtra("default_client_id");
+    private var mUploadCallback: ValueCallback<Array<Uri>>? = null
+    private var syncDataWithServer = false
 
-
-        Log.d(TAG, "CordovaFitnessActivity magicLink: " + magicLink);
-        Log.d(TAG, "CordovaFitnessActivity default_client_id: " + default_client_id);
+    private lateinit var webView: WebView
 
 
-        activity = (Activity) this;
+    lateinit var visitStepSyncHelper: VisitStepSyncHelper
 
-        webView = findViewById(R.id.webView);
+    lateinit var healthConnectUtil: HealthConnectUtil
+    lateinit var webAppInterface: WebAppInterface
 
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-        settings.setBuiltInZoomControls(false);
-        settings.setGeolocationEnabled(true);
+    private val requestPermissionActivityContract: ActivityResultContract<Set<String>, Set<String>> =
+        PermissionController.createRequestPermissionResultContract()
 
-        settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setDomStorageEnabled(true);
+    val requestPermissions =
+        registerForActivityResult(requestPermissionActivityContract) { granted: Set<String> ->
+            if (granted.containsAll(healthConnectUtil.PERMISSIONS)) {
+                Contants.previouslyRevoked = false
+
+                Timber.d("Permissions successfully granted")
+                healthConnectUtil.scope.launch {
+                    healthConnectUtil.checkPermissionsAndRun(afterRequestingPermission = true)
+                }
+
+            } else {
+                Timber.d(" Lack of required permissions")
+
+                //Currently the Health Connect SDK, only asks for the remaining permission was the NOT granted in the first time, and when it return,
+                //it also send the granted permission (and not the permission that was previously granted), so the control flow comes inside the else statement.
+                //So we need to check for permission again.
+                healthConnectUtil.scope.launch {
+                    healthConnectUtil.checkPermissionsAndRun(afterRequestingPermission = true)
+                }
+            }
+        }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_cordova_fitness)
+
+        val magicLink = intent.getStringExtra("ssoLink")!!
+
+        Timber.d("mytag: CordovaFitnessActivity magicLink: $magicLink")
+
+
+
+        webView = findViewById<WebView>(R.id.webView)
+
+        val settings: WebSettings = webView.getSettings()
+        settings.setJavaScriptEnabled(true)
+        settings.setJavaScriptCanOpenWindowsAutomatically(true)
+        settings.setBuiltInZoomControls(false)
+        settings.setGeolocationEnabled(true)
+
+        settings.setMediaPlaybackRequiresUserGesture(false)
+        settings.setDomStorageEnabled(true)
 
         // Multiple Windows set to true to mitigate Chromium security bug.
         // See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
-        settings.setSupportMultipleWindows(true);
-        webView.requestFocus();
-        webView.requestFocusFromTouch();
+        settings.setSupportMultipleWindows(true)
+        webView.requestFocus()
+        webView.requestFocusFromTouch()
 
 
-        settings.setLoadWithOverviewMode(true);
-        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true)
+        settings.setUseWideViewPort(true)
 
 
         // Enable Thirdparty Cookies
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
 
-        webView.setWebChromeClient(new WebChromeClient() {
+        webView.setWebChromeClient(object : WebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
+            ): Boolean {
+                Timber.d("mytag :InAppChromeClient onCreateWindow")
 
-            @Override
-            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture,
-                                          Message resultMsg) {
-                Log.d("mytag", "InAppChromeClient onCreateWindow");
-
-                WebView inAppWebView = view;
-                final WebViewClient webViewClient = new WebViewClient() {
-                    @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                        inAppWebView.loadUrl(request.getUrl().toString());
-                        return true;
+                val inAppWebView: WebView = view
+                val webViewClient: WebViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView, request: WebResourceRequest
+                    ): Boolean {
+                        inAppWebView.loadUrl(request.getUrl().toString())
+                        return true
                     }
 
-                    @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                        inAppWebView.loadUrl(url);
-                        return true;
+                    override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                        inAppWebView.loadUrl(url)
+                        return true
                     }
+                }
 
-                };
+                val newWebView: WebView = WebView(view.getContext())
+                newWebView.setWebViewClient(webViewClient)
 
-                final WebView newWebView = new WebView(view.getContext());
-                newWebView.setWebViewClient(webViewClient);
+                val transport: WebView.WebViewTransport = resultMsg.obj as WebView.WebViewTransport
+                transport.setWebView(newWebView)
+                resultMsg.sendToTarget()
 
-                final WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
-                transport.setWebView(newWebView);
-                resultMsg.sendToTarget();
-
-                return true;
+                return true
             }
 
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
-                                             FileChooserParams fileChooserParams) {
-                Log.d(TAG, "File Chooser 5.0+");
+            override fun onShowFileChooser(
+                webView: WebView,
+                filePathCallback: ValueCallback<Array<Uri>>,
+                fileChooserParams: FileChooserParams
+            ): Boolean {
+                Timber.d("mytag :File Chooser 5.0+")
                 // If callback exists, finish it.
                 if (mUploadCallback != null) {
-                    mUploadCallback.onReceiveValue(null);
+                    mUploadCallback!!.onReceiveValue(null)
                 }
-                mUploadCallback = filePathCallback;
+                mUploadCallback = filePathCallback
 
                 // Create File Chooser Intent
-                Intent content = new Intent(Intent.ACTION_GET_CONTENT);
-                content.addCategory(Intent.CATEGORY_OPENABLE);
-                content.setType("*/*");
+                val content: Intent = Intent(Intent.ACTION_GET_CONTENT)
+                content.addCategory(Intent.CATEGORY_OPENABLE)
+                content.setType("*/*")
 
                 // Run cordova startActivityForResult
                 startActivityForResult(
-                        Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE);
-                return true;
+                    Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE
+                )
+                return true
             }
 
-            @Override
-            public void onGeolocationPermissionsShowPrompt(String origin,
-                                                           GeolocationPermissions.Callback callback) {
-                super.onGeolocationPermissionsShowPrompt(origin, callback);
-                callback.invoke(origin, true, false);
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String, callback: GeolocationPermissions.Callback
+            ) {
+                super.onGeolocationPermissionsShowPrompt(origin, callback)
+                callback.invoke(origin, true, false)
             }
-        });
+        })
 
-        webView.setWebViewClient(new WebViewClient() {
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView webView, WebResourceRequest request) {
-                return shouldOverrideUrlLoading(request.getUrl().toString(), request.getMethod());
+        webView.setWebViewClient(object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                webView: WebView, request: WebResourceRequest
+            ): Boolean {
+                return shouldOverrideUrlLoading(request.getUrl().toString(), request.getMethod())
             }
 
 
-            public boolean shouldOverrideUrlLoading(String url, String method) {
-                boolean override = false;
+            fun shouldOverrideUrlLoading(url: String, method: String?): Boolean {
+                var override = false
 
                 if (url.startsWith(WebView.SCHEME_TEL)) {
                     try {
-                        Intent intent = new Intent(Intent.ACTION_DIAL);
-                        intent.setData(Uri.parse(url));
-                        startActivity(intent);
-                        override = true;
-                    } catch (android.content.ActivityNotFoundException e) {
-                        Log.e(TAG, "Error dialing " + url + ": " + e.toString());
+                        val intent: Intent = Intent(Intent.ACTION_DIAL)
+                        intent.setData(Uri.parse(url))
+                        startActivity(intent)
+                        override = true
+                    } catch (e: ActivityNotFoundException) {
+                        Timber.d("mytag : Error dialing " + url + ": " + e.toString())
                     }
-                } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:")
-                        || url.startsWith("intent:")) {
+                } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith(
+                        "market:"
+                    ) || url.startsWith("intent:")
+                ) {
                     try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        startActivity(intent);
-                        override = true;
-                    } catch (android.content.ActivityNotFoundException e) {
-                        Log.e(TAG, "Error with " + url + ": " + e.toString());
+                        val intent: Intent = Intent(Intent.ACTION_VIEW)
+                        intent.setData(Uri.parse(url))
+                        startActivity(intent)
+                        override = true
+                    } catch (e: ActivityNotFoundException) {
+                        Timber.d("mytag : Error with " + url + ": " + e.toString())
                     }
-                }
-                // If sms:5551212?body=This is the message
-                else if (url.startsWith("sms:")) {
+                } else if (url.startsWith("sms:")) {
                     try {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        val intent: Intent = Intent(Intent.ACTION_VIEW)
 
                         // Get address
-                        String address = null;
-                        int parmIndex = url.indexOf('?');
+                        var address: String? = null
+                        val parmIndex = url.indexOf('?')
                         if (parmIndex == -1) {
-                            address = url.substring(4);
+                            address = url.substring(4)
                         } else {
-                            address = url.substring(4, parmIndex);
+                            address = url.substring(4, parmIndex)
 
                             // If body, then set sms body
-                            Uri uri = Uri.parse(url);
-                            String query = uri.getQuery();
+                            val uri = Uri.parse(url)
+                            val query = uri.query
                             if (query != null) {
                                 if (query.startsWith("body=")) {
-                                    intent.putExtra("sms_body", query.substring(5));
+                                    intent.putExtra("sms_body", query.substring(5))
                                 }
                             }
                         }
-                        intent.setData(Uri.parse("sms:" + address));
-                        intent.putExtra("address", address);
-                        intent.setType("vnd.android-dir/mms-sms");
-                        startActivity(intent);
-                        override = true;
-                    } catch (android.content.ActivityNotFoundException e) {
-                        Log.e(TAG, "Error sending sms " + url + ":" + e.toString());
+                        intent.setData(Uri.parse("sms:$address"))
+                        intent.putExtra("address", address)
+                        intent.setType("vnd.android-dir/mms-sms")
+                        startActivity(intent)
+                        override = true
+                    } catch (e: ActivityNotFoundException) {
+                        Timber.d("mytag : Error sending sms " + url + ":" + e.toString())
                     }
                 }
-                return override;
+                return override
             }
 
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request),
-                        request.getMethod());
+            fun shouldInterceptRequest(
+                url: String?, response: WebResourceResponse, method: String?
+            ): WebResourceResponse {
+                return response
             }
 
-            public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
-                return response;
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                String newloc = "";
+            override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                var newloc = ""
                 if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
-                    newloc = url;
+                    newloc = url
                 } else {
                     // Assume that everything is HTTP at this point, because if we don't specify,
                     // it really should be. Complain loudly about this!!!
-                    Log.e(TAG, "Possible Uncaught/Unknown URI");
-                    newloc = "http://" + url;
+                    Timber.d("mytag : Possible Uncaught/Unknown URI")
+                    newloc = "http://$url"
                 }
-
             }
 
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
+            override fun onPageFinished(view: WebView, url: String) {
+                super.onPageFinished(view, url)
 
                 // CB-10395 InAppBrowser's WebView not storing cookies reliable to local device
                 // storage
-                CookieManager.getInstance().flush();
+                CookieManager.getInstance().flush()
 
                 // https://issues.apache.org/jira/browse/CB-11248
-                view.clearFocus();
-                view.requestFocus();
-
+                view.clearFocus()
+                view.requestFocus()
             }
 
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                super.onReceivedError(view, errorCode, description, failingUrl);
-
+            override fun onReceivedError(
+                view: WebView, errorCode: Int, description: String, failingUrl: String
+            ) {
+                super.onReceivedError(view, errorCode, description, failingUrl)
             }
-        });
+        })
 
 
         // 1. set background color
-        webView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+        webView.setBackgroundColor(Color.parseColor("#FFFFFF"))
 
         // // 2. add downloadlistener
-        webView.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition,
-                                        String mimetype, long contentLength) {
-
-                Log.d("mytag", "DownloadListener called");
+        webView.setDownloadListener(object : DownloadListener {
+            override fun onDownloadStart(
+                url: String,
+                userAgent: String,
+                contentDisposition: String,
+                mimetype: String,
+                contentLength: Long
+            ) {
+                Timber.d("mytag :DownloadListener called")
 
                 try {
-                    Uri uri = Uri.parse(url);
-                    webView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    val uri = Uri.parse(url)
+                    webView.getContext().startActivity(Intent(Intent.ACTION_VIEW, uri))
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
-        });
+        })
+
+        webAppInterface = WebAppInterface(this)
+
+        visitStepSyncHelper = VisitStepSyncHelper(this)
+        healthConnectUtil = HealthConnectUtil(this, this)
 
 
-        googleFitUtil = new GoogleFitUtil(activity, this, default_client_id, false);
-        webView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
-        googleFitUtil.init();
+        webView.addJavascriptInterface(webAppInterface, "Android")
+        webView.loadUrl(magicLink)
 
-        webView.loadUrl(magicLink);
+        healthConnectUtil.initialize()
 
+        webView.loadUrl(magicLink)
 
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        webView.onResume();
+    override fun onResume() {
+        super.onResume()
+        webView.onResume()
     }
 
-    @Override
-    protected void onPause() {
-        webView.onPause();
-        super.onPause();
+    override fun onPause() {
+        webView.onPause()
+        super.onPause()
     }
 
 
@@ -314,184 +353,157 @@ public class CordovaFitnessActivity extends AppCompatActivity implements GoogleF
      * @param resultCode  the result code returned from android system
      * @param intent      the data from android file chooser
      */
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        Log.d(TAG, "CordovaFitnessPlugin onActivityResult called. requestCode: " + requestCode + " resultCode: "
-                + resultCode);
+    public override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        Timber.d(
+            "mytag: CordovaFitnessPlugin onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode
+        )
 
-        // If RequestCode or Callback is Invalid
-
-        if (requestCode == 4097 || requestCode == 1900) {
-            if (resultCode == Activity.RESULT_OK) {
-                googleFitUtil.onActivityResult(requestCode, resultCode, intent);
-
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-
-            }
-        }
 
         if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
-            super.onActivityResult(requestCode, resultCode, intent);
-            return;
+            super.onActivityResult(requestCode, resultCode, intent)
+            return
         }
         if (mUploadCallback != null) {
-            mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+            mUploadCallback!!.onReceiveValue(
+                WebChromeClient.FileChooserParams.parseResult(
+                    resultCode, intent
+                )
+            )
         }
-        mUploadCallback = null;
-
+        mUploadCallback = null
     }
 
     /**
      * This get called from the webview when user taps on [Connect To Google Fit]
      */
-
-    @Override
-    public void askForPermissions() {
-        if (dailyDataSynced) {
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            requestPermissions(new String[]{ACTIVITY_RECOGNITION}, ACTIVITY_RECOGNITION_REQUEST_CODE);
+    override fun askForPermissions() {
+        if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
+            healthConnectUtil.getVisitDashboardGraph()
         } else {
-            googleFitUtil.askForGoogleFitPermission();
+            healthConnectUtil.requestPermission()
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        switch (requestCode) {
-            case ACTIVITY_RECOGNITION_REQUEST_CODE:
-                Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted");
+        when (requestCode) {
 
-                googleFitUtil.askForGoogleFitPermission();
-
-                break;
-            case LOCATION_PERMISSION_REQUEST_CODE:
-                break;
+            LOCATION_PERMISSION_REQUEST_CODE -> {}
         }
     }
 
-    /**
-     * 1A
-     * This get called after user has granted all the fitness permission
-     */
 
-    @Override
-    public void onFitnessPermissionGranted() {
-        Log.d(TAG, "onFitnessPermissionGranted() called");
+    override fun requestActivityData(type: String, frequency: String, timestamp: Long) {
+        Timber.d("mytag: requestActivityData() called.")
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                googleFitUtil.fetchDataFromFit();
-            }
-        });
+        //Health Connect Implementation
+        healthConnectUtil.getActivityData(type, frequency, timestamp)
     }
 
-    /**
-     * 1B
-     * This is used to load the Daily Fitness Data into the Home Tab webView.
-     */
-
-    @Override
-    public void loadDailyFitnessData(long steps, long sleep) {
-        String finalString = "window.updateFitnessPermissions(true," + steps + "," +
-                sleep + ")";
-
-        webView.evaluateJavascript(
-                finalString,
-                null);
-        dailyDataSynced = true;
-    }
-
-    /**
-     * 2A
-     * This get used for requesting data that are to be shown in detailed graph
-     */
-
-
-    @Override
-    public void requestActivityData(String type, String frequency, long timestamp) {
-        Log.d(TAG, "requestActivityData() called.");
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (type != null && frequency != null) {
-                    googleFitUtil.getActivityData(type, frequency, timestamp);
-                }
-            }
-        });
-    }
-
-    /**
-     * 2B
-     * This get called when google fit return the detailed graph data that was
-     * requested previously
-     */
-
-    @Override
-    public void loadGraphData(String url) {
-        Log.d("mytag", "detailed graph data: " + url);
-        webView.evaluateJavascript(
-                url,
-                null);
-
-    }
-
-    @Override
-    public void onFitnessPermissionCancelled() {
-        Log.d("mytag", "onFitnessPermissionCancelled()");
-    }
-
-    @Override
-    public void onFitnessPermissionDenied() {
-        Log.d("mytag", "onFitnessPermissionDenied()");
-    }
-
-
-    @Override
-    public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
+    override fun syncDataWithServer(
+        baseUrl: String, authToken: String, googleFitLastSync: Long, gfHourlyLastSync: Long
+    ) {
+        Timber.d("mytag: baseUrl: $baseUrl")
         if (!syncDataWithServer) {
-            Log.d(TAG, "syncDataWithServer() called");
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
-                    syncDataWithServer = true;
-                }
-            });
+            Timber.d("mytag: syncDataWithServer() called")
+
+            visitStepSyncHelper.sendDataToVisitServer(
+                healthConnectUtil, googleFitLastSync, gfHourlyLastSync, "$baseUrl/", authToken!!
+            )
+
+            syncDataWithServer = true
         }
     }
 
-    @Override
-    public void askForLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, LOCATION_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{LOCATION_PERMISSION}, LOCATION_PERMISSION_REQUEST_CODE);
+    override fun getHealthConnectStatus() {
+        if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.NOT_SUPPORTED) {
+            Handler(Looper.getMainLooper()).post {
+                val finalString = "window.healthConnectNotSupported()"
+                webView.evaluateJavascript(
+                    finalString, null
+                )
+            }
+        } else if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.NOT_INSTALLED) {
+            Handler(Looper.getMainLooper()).post {
+                val finalString = "window.healthConnectNotInstall()"
+                webView.evaluateJavascript(
+                    finalString, null
+                )
+            }
+        } else if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.INSTALLED) {
+            Handler(Looper.getMainLooper()).post {
+                val finalString = "window.healthConnectAvailable()"
+                webView.evaluateJavascript(
+                    finalString, null
+                )
+            }
         }
     }
 
-    @Override
-    public void closeVisitPWA() {
-        finish();
-    }
-
-    @Override
-    public void setDailyFitnessDataJSON(String s) {
-        // not required
-    }
-
-    @Override
-    public void setHourlyFitnessDataJSON(String s) {
-        // not required
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (this.webView.canGoBack()) {
-            this.webView.goBack();
-        } else {
-            finish();
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun askForLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                this, LOCATION_PERMISSION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(LOCATION_PERMISSION), LOCATION_PERMISSION_REQUEST_CODE)
         }
+    }
+
+    fun closeVisitPWA() {
+        finish()
+    }
+
+    override fun updateHealthConnectConnectionStatus(
+        status: HealthConnectConnectionState, text: String
+    ) {
+        Timber.d("updateHealthConnectConnectionStatus: $status")
+
+        when (status) {
+            HealthConnectConnectionState.CONNECTED -> {
+                healthConnectUtil.getVisitDashboardGraph()
+            }
+
+            HealthConnectConnectionState.NOT_SUPPORTED -> {
+
+            }
+
+            HealthConnectConnectionState.NOT_INSTALLED -> {
+
+            }
+
+            HealthConnectConnectionState.INSTALLED -> {
+                //don't do anything here for the webView.
+            }
+
+            HealthConnectConnectionState.NONE -> {
+
+            }
+        }
+    }
+
+    override fun loadVisitWebViewGraphData(webUrl: String) {
+        Timber.d("loadVisitWebViewGraphData: webUrl: $webUrl")
+
+        Handler(Looper.getMainLooper()).post {
+            webView.evaluateJavascript(
+                webUrl, null
+            )
+        }
+    }
+
+    override fun userDeniedHealthConnectPermission() {
+        Timber.d("mytag : userDeniedHealthConnectPermission")
+    }
+
+    override fun userAcceptedHealthConnectPermission() {
+        Timber.d("mytag : userAcceptedHealthConnectPermission")
+    }
+
+    override fun requestPermission() {
+        requestPermissions.launch(healthConnectUtil.PERMISSIONS)
     }
 }
