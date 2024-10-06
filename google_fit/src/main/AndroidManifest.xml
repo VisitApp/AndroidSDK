@@ -2,4 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.getvisitapp.google_fit">
 
+    <application android:hardwareAccelerated="true">
+        <activity
+            android:name=".CordovaFitnessActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+    </application>
+
+
 </manifest>
