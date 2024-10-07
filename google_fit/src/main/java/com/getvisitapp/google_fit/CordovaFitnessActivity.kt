@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
 import android.webkit.GeolocationPermissions
@@ -23,10 +24,16 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.health.connect.client.PermissionController
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
@@ -34,6 +41,7 @@ import com.getvisitapp.google_fit.data.WebAppInterface
 import com.getvisitapp.google_fit.healthConnect.activity.HealthConnectUtil
 import com.getvisitapp.google_fit.healthConnect.contants.Contants
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -52,6 +60,7 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
     private var syncDataWithServer = false
 
     private lateinit var webView: WebView
+    private lateinit var progressBar: LinearProgressIndicator
 
 
     lateinit var visitStepSyncHelper: VisitStepSyncHelper
@@ -90,6 +99,14 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
 
         setContentView(R.layout.activity_cordova_fitness)
 
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.light(
+                Color.WHITE, Color.WHITE
+            ),
+            statusBarStyle = SystemBarStyle.light(Color.WHITE, Color.WHITE)
+        )
+
+
         val magicLink = intent.getStringExtra("ssoLink")!!
 
         Timber.d("mytag: CordovaFitnessActivity magicLink: $magicLink")
@@ -97,6 +114,9 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
 
 
         webView = findViewById<WebView>(R.id.webView)
+        progressBar = findViewById<LinearProgressIndicator>(R.id.progressBar)
+
+        progressBar.visibility = View.VISIBLE
 
         val settings: WebSettings = webView.getSettings()
         settings.setJavaScriptEnabled(true)
@@ -120,6 +140,7 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
 
         // Enable Thirdparty Cookies
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+
 
         webView.setWebChromeClient(object : WebChromeClient() {
             override fun onCreateWindow(
@@ -185,6 +206,7 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
         })
 
         webView.setWebViewClient(object : WebViewClient() {
+
             override fun shouldOverrideUrlLoading(
                 webView: WebView, request: WebResourceRequest
             ): Boolean {
@@ -257,6 +279,12 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
 
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
+
+                Timber.d("mytag: onPageStarted")
+
+                progressBar.visibility = View.VISIBLE
+
+
                 var newloc = ""
                 if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
                     newloc = url
@@ -265,11 +293,16 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
                     // it really should be. Complain loudly about this!!!
                     Timber.d("mytag : Possible Uncaught/Unknown URI")
                     newloc = "http://$url"
+
+
                 }
             }
 
             override fun onPageFinished(view: WebView, url: String) {
                 super.onPageFinished(view, url)
+
+                Timber.d("mytag: onPageFinished")
+
 
                 // CB-10395 InAppBrowser's WebView not storing cookies reliable to local device
                 // storage
@@ -278,12 +311,19 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
                 // https://issues.apache.org/jira/browse/CB-11248
                 view.clearFocus()
                 view.requestFocus()
+
+                progressBar.visibility = View.GONE
             }
 
             override fun onReceivedError(
                 view: WebView, errorCode: Int, description: String, failingUrl: String
             ) {
                 super.onReceivedError(view, errorCode, description, failingUrl)
+
+                Timber.d("mytag: onReceivedError")
+
+
+                progressBar.visibility = View.GONE
             }
         })
 
@@ -333,6 +373,48 @@ class CordovaFitnessActivity : AppCompatActivity(), GoogleFitStatusListener, Hea
                 }
             }
         })
+
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { view, windowInsets ->
+
+            val statusBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
+
+
+            val navigationBarInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            val imeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime())
+            val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+
+
+
+            Timber.d(
+                "statusBarHeight: ${statusBarInsets.top}, imeInsets(bottom: ${imeInsets.bottom}), navigationBarInsets: (bottom: ${navigationBarInsets.bottom}), imeVisible: ${imeVisible}"
+            )
+
+            progressBar.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                this.topMargin = statusBarInsets.top
+            }
+
+            webView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                this.topMargin = statusBarInsets.top
+            }
+
+
+            if (imeVisible) {
+                webView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    this.bottomMargin = imeInsets.bottom
+                }
+            } else {
+                webView.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    this.bottomMargin = navigationBarInsets.bottom
+                }
+            }
+
+//
+//            // Return CONSUMED if you don't want want the window insets to keep passing
+//            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     override fun onResume() {
