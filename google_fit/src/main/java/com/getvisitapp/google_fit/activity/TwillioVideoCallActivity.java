@@ -55,7 +55,6 @@ import com.twilio.video.ConnectOptions;
 import com.twilio.video.EncodingParameters;
 import com.twilio.video.G722Codec;
 import com.twilio.video.H264Codec;
-import com.twilio.video.IsacCodec;
 import com.twilio.video.LocalAudioTrack;
 import com.twilio.video.LocalParticipant;
 import com.twilio.video.LocalVideoTrack;
@@ -108,7 +107,7 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
             Vp8Codec.NAME, H264Codec.NAME, Vp9Codec.NAME
     };
     private static final String[] AUDIO_CODEC_NAMES = new String[]{
-            IsacCodec.NAME, OpusCodec.NAME, PcmaCodec.NAME, PcmuCodec.NAME, G722Codec.NAME
+            OpusCodec.NAME, PcmaCodec.NAME, PcmuCodec.NAME, G722Codec.NAME
     };
     /*
      * Audio and video tracks can be created with names. This feature is useful for categorizing
@@ -617,8 +616,6 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
         final String audioCodecName = preferences.getString(key, defaultValue);
 
         switch (audioCodecName) {
-            case IsacCodec.NAME:
-                return new IsacCodec();
             case OpusCodec.NAME:
                 return new OpusCodec();
             case PcmaCodec.NAME:
@@ -1235,6 +1232,7 @@ public class TwillioVideoCallActivity extends AppCompatActivity implements Twill
     @Override
     public void onBackPressed() {
 
+        super.onBackPressed();
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.end_your_call_dialog);
         TextView cancel = dialog.findViewById(R.id.cancel_tv);

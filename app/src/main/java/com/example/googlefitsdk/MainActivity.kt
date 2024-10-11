@@ -7,12 +7,6 @@ import com.getvisitapp.google_fit.IntiateSdk
 
 
 class MainActivity : AppCompatActivity() {
-    private var TAG = "mytag10"
-
-    private val default_client_id =
-        "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com"
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,25 +19,17 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     fun init() {
 
-//        val magicLink =
-//            "https://web.getvisitapp.xyz/"
-
         val magicLink =
-            "https://abhi.getvisitapp.net/sso?userParams=t1Q8E-aBzmU2_Y7xi17gjrMzTGsvH32N9GeePukIc-KjG6bmMrfsLpmrzpqNiKFkgfSB3NMF0SPeQMXITQ6QXBLpUzc7fLrgsdyF8MOw46_02_YH7ogZH_oekVYByGaQ-qSIyP3P8aCxGq5tIZ7QRxImqGtQxeV4pJXJCddGihL7-eIbe5ivM-cNQMM3iHkoNGR7ximmaCOK6iXVQVfxLMyuSFL5O7VCild5iphHX1s&clientId=abhi-58fd14"
+            "https://navi-visit.getvisitapp.com/sso?userParams=e-GE4kSPM_9k6QQqMI4QQnlloLJQg15QujHKvLvRlYsvquGpBPIkqmcLN2FnLvABtChG-ofoUICopmOJ5GaPipHNFzZeog8LhKt0T8QF4qrJXMnoPqTEtSq90vxJOW3_qEIUrpR5PgmPfzy3IUVRjERjW8zOxFcwHXs-WWSxDO5s51TSEfr8ZBwQcsO93segMhOrCgBKf2sBkppix1RTL775fNHbsugANiT-weICAvYVP9V69VDqo51yZq64mfNS&clientId=navi-f3vkn"
 
-
-//        val magicLink =
-//            "https://star-health.getvisitapp.com/?mluib7c=QNkg98jB"
 
 
         IntiateSdk.s(
             this,
             false,
-            magicLink,
-            default_client_id
+            magicLink
         )
     }
 }

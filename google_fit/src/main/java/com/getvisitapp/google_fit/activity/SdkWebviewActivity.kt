@@ -10,38 +10,29 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.Browser
 import android.text.Html
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.webkit.*
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
 import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
-import com.getvisitapp.google_fit.data.GoogleFitUtil
-import com.getvisitapp.google_fit.data.SharedPrefUtil
+import com.getvisitapp.google_fit.data.WebAppInterface
 import com.getvisitapp.google_fit.databinding.SdkWebView
-import com.getvisitapp.google_fit.util.Constants.DEFAULT_CLIENT_ID
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
-import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
+import com.getvisitapp.google_fit.util.makeStatusBarTransparent
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
-import com.getvisitapp.google_fit.view.VideoCallListener
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.json.JSONException
@@ -70,7 +61,7 @@ Sync steps and calories api failed (done)
 
  */
 @Keep
-class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener {
+class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     var TAG = "mytag"
 
@@ -81,7 +72,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     val LOCATION_PERMISSION_REQUEST_CODE = 787
     val REQUEST_CODE_FILE_PICKER = 51426
 
-    lateinit var googleFitUtil: GoogleFitUtil
 
     var isDebug: Boolean = false
     lateinit var magicLink: String
@@ -91,9 +81,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     var dailyDataSynced = false
     var syncDataWithServer = false
 
-    private lateinit var googleFitStepChecker: GoogleFitAccessChecker
 
-    lateinit var sharedPrefUtil: SharedPrefUtil
     lateinit var pdfDownloader: PdfDownloader
 
 
@@ -102,8 +90,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     var googleFitLastSync: Long = 0L
     var gfHourlyLastSync = 0L
 
-    var redirectUserToGoogleFitStatusPage: Boolean =
-        false //this flag acts a check with which we should redirect user to google connected successfully page or not.
 
     lateinit var locationTrackerUtil: LocationTrackerUtil
     private val AUTHORITY_SUFFIX = ".googlefitsdk.fileprovider"
@@ -145,18 +131,18 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         }
     }
 
+    lateinit var webAppInterface: WebAppInterface
+
 
     companion object {
         fun getIntent(
             context: Context,
             isDebug: Boolean,
             magicLink: String,
-            default_web_client_id: String
         ): Intent {
             val intent = Intent(context, SdkWebviewActivity::class.java);
             intent.putExtra(IS_DEBUG, isDebug)
             intent.putExtra(WEB_URL, magicLink)
-            intent.putExtra(DEFAULT_CLIENT_ID, default_web_client_id)
             return intent
         }
     }
@@ -164,11 +150,11 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        makeStatusBarTransparent()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_sdk)
         binding.progressBar.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
-        default_web_client_id = intent.extras!!.getString(DEFAULT_CLIENT_ID)!!
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -235,12 +221,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         binding.webview.loadUrl(magicLink)
 
 
-        googleFitUtil = GoogleFitUtil(this, this, default_web_client_id)
-        binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
-        googleFitUtil.init()
+        webAppInterface = WebAppInterface(this)
+        binding.webview.addJavascriptInterface(webAppInterface, "Android")
 
-        googleFitStepChecker = GoogleFitAccessChecker(this)
-        sharedPrefUtil = SharedPrefUtil(this)
         pdfDownloader = PdfDownloader()
         locationTrackerUtil = LocationTrackerUtil(this)
 
@@ -251,12 +234,15 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 ConnectivityObserver.Status.Available -> {
                     binding.noNetworkConnectionLayout.visibility = View.GONE
                 }
+
                 ConnectivityObserver.Status.Unavailable -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Losing -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Lost -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
@@ -285,10 +271,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         super.onActivityResult(requestCode, resultCode, intent)
 
-        if (requestCode == 4097 || requestCode == 1900) {
-
-            googleFitUtil.onActivityResult(requestCode, resultCode, intent)
-        } else if (requestCode == 1000 && resultCode == RESULT_OK) {
+        if (requestCode == 1000 && resultCode == RESULT_OK) {
             Log.d("mytag", "resultCode: $requestCode")
 
             binding.webview.webChromeClient = webChromeClient
@@ -322,177 +305,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                     mFileUploadCallbackSecond = null
                 }
             }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun connectToGoogleFit(redirectUserToGoogleFitStatusPage: Boolean) {
-        this.redirectUserToGoogleFitStatusPage = redirectUserToGoogleFitStatusPage
-
-        //if we are redirecting user to google fit status page, then it means it is a fresh connection request.
-        //so here i am resetting the flag.
-
-
-        Log.d(
-            TAG,
-            "redirectUserToGoogleFitStatusPage: $redirectUserToGoogleFitStatusPage, googleFitStepChecker.checkGoogleFitAccess() :  " + googleFitStepChecker.checkGoogleFitAccess()
-        )
-
-        if (!redirectUserToGoogleFitStatusPage && !googleFitStepChecker.checkGoogleFitAccess()) {
-            Log.d(TAG, "window.googleFitStatus(false) called")
-
-            runOnUiThread {
-                binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(false)", null
-                )
-            }
-            return
-        }
-
-        if (dailyDataSynced) {
-            return
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.ACTIVITY_RECOGNITION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                    ACTIVITY_RECOGNITION_REQUEST_CODE
-                )
-            } else {
-                googleFitUtil.askForGoogleFitPermission()
-            }
-        } else {
-            googleFitUtil.askForGoogleFitPermission()
-        }
-    }
-
-    override fun disconnectFromGoogleFit() {
-
-        googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
-
-    }
-
-    override fun connectToFitbit(url: String, authToken: String) {
-
-        Log.d(TAG, "connectToFitbit: $url, authToken: $authToken")
-
-        runOnUiThread {
-            val browserIntent = Intent(
-                Intent.ACTION_VIEW, Uri.parse(url)
-            )
-
-            val bundle = Bundle()
-            bundle.putString(
-                "Authorization", authToken
-            )
-            browserIntent.putExtra(Browser.EXTRA_HEADERS, bundle)
-
-            startActivity(browserIntent)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun onFitnessPermissionGranted() {
-
-        googleFitUtil.fetchDataFromFit()
-        Log.d(
-            TAG,
-            "onFitnessPermissionGranted() called , redirectUserToGoogleFitPage: $redirectUserToGoogleFitStatusPage"
-        )
-
-
-        //manually calling sync steps here because we are not getting sync step event after the google fit is connected
-        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L) {
-            runOnUiThread {
-                googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
-                    googleFitLastSync,
-                    gfHourlyLastSync
-                )
-                syncDataWithServer = true
-            }
-        }
-
-
-    }
-
-    override fun loadWebUrl(urlString: String?) {
-        Log.d("mytag", "daily Fitness Data url:$urlString")
-        if (urlString != null) {
-            binding.webview.loadUrl(urlString)
-        }
-    }
-
-    override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
-        Log.d(TAG, "requestActivityData() called.")
-
-        runOnUiThread(Runnable {
-            if (type != null && frequency != null) {
-                googleFitUtil.getActivityData(type, frequency, timestamp)
-            }
-        })
-    }
-
-    override fun loadGraphDataUrl(url: String?) {
-        if (url != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                binding.webview.evaluateJavascript(
-                    url, null
-                )
-            }
-        }
-        dailyDataSynced = true
-    }
-
-    override fun updateApiBaseUrl(
-        visitApiBaseUrl: String?,
-        authtoken: String?,
-        googleFitLastSync: Long,
-        gfHourlyLastSync: Long
-    ) {
-
-        this.visitApiBaseUrl = visitApiBaseUrl
-        this.authtoken = authtoken
-        this.googleFitLastSync = googleFitLastSync
-        this.gfHourlyLastSync = gfHourlyLastSync
-
-        //For the first time, when the logs in the PWA, this will comes zero, so in that case just make it today's date
-        if (this.googleFitLastSync == 0L) {
-            this.googleFitLastSync = getTodayDateTimeStamp()
-        }
-        if (this.gfHourlyLastSync == 0L) {
-            this.gfHourlyLastSync = getTodayDateTimeStamp()
-        }
-
-        Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl")
-
-        if (!syncDataWithServer) {
-            Log.d(TAG, "syncDataWithServer() called")
-
-            visitApiBaseUrl?.let {
-                sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl + "/")
-            }
-            authtoken?.let {
-                sharedPrefUtil.setVisitAuthToken(authtoken)
-            }
-
-            sharedPrefUtil.setTataAIGLastSyncTimeStamp(this.gfHourlyLastSync)// adding this here because there might be a case where the user just connected to google fit and
-            // closed TATA AIG app immediately, in that case take this timestamp and start syncing from there end.
-
-
-            runOnUiThread(Runnable {
-                googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
-                    this.googleFitLastSync,
-                    this.gfHourlyLastSync
-                )
-                syncDataWithServer = true
-            })
         }
     }
 
@@ -542,17 +354,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            ACTIVITY_RECOGNITION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty()) {
-                    val fitnessPermissionGranted =
-                        (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    if (fitnessPermissionGranted) {
-                        Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted")
-                        googleFitUtil.askForGoogleFitPermission()
-                    }
-                }
 
-            }
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty()) {
                     val locationPermissionGranted =
@@ -583,54 +385,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         startActivity(intent)
     }
 
-    override fun hraCompleted() {
-    }
-
-    override fun googleFitConnectedAndSavedInPWA() {
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun inHraEndPage() {
-        Log.d("mytag", "inHraEndPage() called")
-        runOnUiThread {
-            //check for google fit has access and call this event
-
-            if (googleFitStepChecker.checkGoogleFitAccess()) {
-                binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(false)", null
-                )
-                Log.d("mytag", "showConnectToGoogleFit(false) called")
-            } else {
-                binding.webview.evaluateJavascript(
-                    "window.showConnectToGoogleFit(true)", null
-                )
-                Log.d("mytag", "showConnectToGoogleFit(true) called")
-            }
-        }
-    }
-
-    override fun hraQuestionAnswered(current: Int, total: Int) {
-
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun inFitSelectScreen() {
-        runOnUiThread {
-            //check for google fit has access and call this event
-
-            if (googleFitStepChecker.checkGoogleFitAccess()) {
-                binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(true)", null
-                )
-                Log.d("mytag", "googleFitStatus(true) called")
-            } else {
-                binding.webview.evaluateJavascript(
-                    "window.googleFitStatus(false)", null
-                )
-                Log.d("mytag", "googleFitStatus(false) called")
-            }
-        }
+    override fun closeView() {
+        finish()
     }
 
 
@@ -687,130 +443,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         super.onDestroy()
     }
 
-    fun getTodayDateTimeStamp(): Long {
-        val startCalendar: Calendar = Calendar.getInstance()
-        startCalendar.setTimeInMillis(System.currentTimeMillis())
-
-        //doing to remove the hours passed in the today's date.
-
-        //doing to remove the hours passed in the today's date.
-        startCalendar.set(Calendar.HOUR_OF_DAY, 0)
-        startCalendar.set(Calendar.MINUTE, 0)
-        startCalendar.set(Calendar.SECOND, 0)
-
-        return startCalendar.getTimeInMillis()
-    }
-
-
-    override fun downloadHraLink(url: String) {
-        Log.d("mytag", "downloadHraLink() link:$url")
-
-
-        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url, onDownloadComplete = {
-            val shareIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(
-                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                        applicationContext, applicationContext.packageName + AUTHORITY_SUFFIX, it
-                    )
-                )
-                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                type = "application/pdf"
-            }
-            val sendIntent = Intent.createChooser(shareIntent, null)
-            startActivity(sendIntent)
-        }, onDownloadFailed = {
-            Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
-            try {
-                val uri = Uri.parse(url)
-                startActivity(Intent(Intent.ACTION_VIEW, uri))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        })
-    }
-
-    override fun openDependentLink(link: String?) {
-        Log.d("mytag", "openDependentLink link:$link")
-        val customIntent = CustomTabsIntent.Builder()
-        customIntent.setShareState(CustomTabsIntent.SHARE_STATE_OFF)
-        customIntent.setShowTitle(false)
-        customIntent.setToolbarColor(
-            ContextCompat.getColor(
-                this, R.color.tata_aig_brand_color
-            )
-        )
-        try {
-            val uri = Uri.parse(link)
-            openCustomTab(this, customIntent.build(), uri = uri)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun closeView(tataUser: Boolean) {
-        if (tataUser) {
-            finish()
-            overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun pendingHraUpdation() {
-        runOnUiThread {
-            binding.webview.evaluateJavascript(
-                "window.updateHraToAig()", null
-            )
-        }
-    }
-
-    override fun hraInComplete(jsonObject: String?, isIncomplete: Boolean) {
-        jsonObject?.let {
-            sharedPrefUtil.setHRAIncompleteStatusRequest(jsonObject);
-            sharedPrefUtil.setHRAIncompleteStatus(isIncomplete)
-        }
-    }
-
-
-    fun openCustomTab(activity: Activity, customTabsIntent: CustomTabsIntent, uri: Uri) {
-        val packageName = "com.android.chrome"
-        customTabsIntent.intent.setPackage(packageName)
-        customTabsIntent.launchUrl(activity, uri)
-    }
-
-    override fun consultationBooked() {
-
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    override fun loadDailyFitnessData(steps: Long, sleep: Long) {
-        val finalString = "window.updateFitnessPermissions(true,$steps,$sleep)"
-
-        Log.d(TAG, finalString)
-
-        runOnUiThread {
-            binding.webview.evaluateJavascript(
-                finalString, null
-            )
-        }
-    }
-
-    override fun disconnectFromFitbit() {
-
-    }
-
-    override fun couponRedeemed() {
-    }
-
-    override fun internetErrorHandler(jsonObject: String?) {
-        jsonObject?.let {
-            val decodedObject: JSONObject? = decodeString(jsonObject)
-
-            val errStatus = decodedObject?.getInt("errStatus")
-            val error = decodedObject?.getString("error")
-
-        }
-    }
 
     override fun openLink(url: String?) {
         runOnUiThread {
@@ -823,29 +455,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         }
     }
 
-    override fun openExternalLink(url: String?) {
-        runOnUiThread {
-            try {
-                val feedBackActivity = FeedBackActivity.getIntent(this, url!!)
-                startActivity(feedBackActivity)
-                overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_up);
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    override fun visitCallback(jsonObject: String?) {
-        jsonObject?.let {
-            val decodedObject: JSONObject = decodeString(jsonObject)
-
-            val message: String = decodedObject.getString("message")
-            val failureReason: String? =
-                if (decodedObject.has("failureReason")) decodedObject.getString("failureReason") else null
-
-
-        }
-    }
 
     inner class MyChrome internal constructor() : WebChromeClient() {
         private var mCustomView: View? = null
