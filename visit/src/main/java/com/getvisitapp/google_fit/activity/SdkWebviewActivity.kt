@@ -166,6 +166,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webview, true)
         binding.webview.settings.setGeolocationEnabled(true)
         binding.webview.settings.setDomStorageEnabled(true);
+        binding.webview.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
         binding.webview.webChromeClient = webChromeClient
         binding.webview.webViewClient = webViewClient
