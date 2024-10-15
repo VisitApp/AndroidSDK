@@ -56,8 +56,10 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         HealthConnectConnectionState.NONE
 
     fun initialize() {
-        updateButtonState(HealthConnectConnectionState.NONE)
-        checkAvailability()
+        updateHealthConnectState(HealthConnectConnectionState.NONE)
+        scope.launch {
+            checkAvailability()
+        }
     }
 
 
@@ -88,34 +90,35 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         }
     }
 
-
-    private fun checkAvailability() {
+    suspend fun checkAvailability(): HealthConnectConnectionState {
         val availabilityStatus = checkHealthConnectAvailabilityStatus()
 
         when (availabilityStatus) {
 
             HealthConnectClient.SDK_UNAVAILABLE -> {
                 Timber.d("SDK_UNAVAILABLE")
-                updateButtonState(HealthConnectConnectionState.NOT_SUPPORTED)
+                updateHealthConnectState(HealthConnectConnectionState.NOT_SUPPORTED)
             }
 
             HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> {
                 Timber.d("SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED")
-                updateButtonState(HealthConnectConnectionState.NOT_INSTALLED)
+                updateHealthConnectState(HealthConnectConnectionState.NOT_INSTALLED)
             }
 
             HealthConnectClient.SDK_AVAILABLE -> {
                 //Note: don't put updateButtonState(HealthConnectConnectionState.INSTALLED) here. it is the job of checkPermissionsAndRun()
                 Timber.d("SDK_AVAILABLE")
-                scope.launch {
-                    checkPermissionsAndRun(false)
-                }
+
+                return checkPermissionsAndRun(false)
+
             }
 
             else -> {
                 Timber.d("availabilityStatus else")
             }
         }
+
+        return healthConnectConnectionState
     }
 
     fun requestPermission() {
@@ -170,7 +173,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     }
 
-    private fun updateButtonState(healthConnectConnectionState: HealthConnectConnectionState): String {
+    private fun updateHealthConnectState(healthConnectConnectionState: HealthConnectConnectionState): String {
         this.healthConnectConnectionState = healthConnectConnectionState
 
         val text = when (healthConnectConnectionState) {
@@ -213,7 +216,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     }
 
 
-    suspend fun checkPermissionsAndRun(afterRequestingPermission: Boolean) {
+    suspend fun checkPermissionsAndRun(afterRequestingPermission: Boolean): HealthConnectConnectionState {
 
         healthConnectClient = getHealthConnectClient()
 
@@ -224,9 +227,9 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
 
             if (Contants.previouslyRevoked) { //special case only happens in android 14
-                updateButtonState(HealthConnectConnectionState.INSTALLED)
+                updateHealthConnectState(HealthConnectConnectionState.INSTALLED)
             } else {
-                updateButtonState(HealthConnectConnectionState.CONNECTED)
+                updateHealthConnectState(HealthConnectConnectionState.CONNECTED)
             }
 
             if (afterRequestingPermission) {
@@ -234,12 +237,14 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
             }
         } else {
             Timber.d("Permission Not present")
-            updateButtonState(HealthConnectConnectionState.INSTALLED) //if the user
+            updateHealthConnectState(HealthConnectConnectionState.INSTALLED) //if the user
 
             if (afterRequestingPermission) {
                 listener.userDeniedHealthConnectPermission()
             }
         }
+
+        return healthConnectConnectionState
     }
 
     // 1. For the dashboard graph.
