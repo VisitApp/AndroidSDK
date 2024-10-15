@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     fun init() {
 
         val magicLink =
-            "https://navi-visit.getvisitapp.com/sso?userParams=e-GE4kSPM_9k6QQqMI4QQnlloLJQg15QujHKvLvRlYsvquGpBPIkqmcLN2FnLvABtChG-ofoUICopmOJ5GaPipHNFzZeog8LhKt0T8QF4qrJXMnoPqTEtSq90vxJOW3_qEIUrpR5PgmPfzy3IUVRjERjW8zOxFcwHXs-WWSxDO5s51TSEfr8ZBwQcsO93segMhOrCgBKf2sBkppix1RTL775fNHbsugANiT-weICAvYVP9V69VDqo51yZq64mfNS&clientId=navi-f3vkn"
+            "https://navi-visit.getvisitapp.net/sso?userParams=rPjf1gmSCqbeDwqVKqRhpt-TVihQ_XmLWt99w4avNGe0-jO3ER8QHahQ-vho1kDYO0ysZqaZ4C06W2VYdht5wxbxoE8ULxgaxQKrTIX7TB4m6nbr94ALRMR3LHHNBSPtC1d56vYBiGUirYo8Ltvodjcl0UKWVcO1Ierp3uPRDLZUUTjzzRkAJYcwxK8FPs2x-LHG7-tXTM969K8Yw-nvz20kJmkdUcWz2jKUrsXX7vRC-iOnwE8SeDvh7G_2NI0XVQybbaAsCkjYAQFAX7j4p1-7i3Vc5Y0yttDhQPWZmEc=&clientId=navi-f3vkn"
 
 
 

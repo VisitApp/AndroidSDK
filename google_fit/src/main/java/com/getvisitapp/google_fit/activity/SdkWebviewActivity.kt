@@ -363,6 +363,13 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                     if (locationPermissionGranted) {
                         if (!locationTrackerUtil.isGPSEnabled()) {
                             locationTrackerUtil.showGPS_NotEnabledDialog()
+                        } else {
+                            runOnUiThread {
+                                binding.webview.evaluateJavascript(
+                                    "window.checkTheGpsPermission(true)", null
+                                )
+                                Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                            }
                         }
                     } else {
                         locationTrackerUtil.showLocationPermissionDeniedAlertDialog()
