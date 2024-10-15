@@ -155,7 +155,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         binding.progressBar.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && isDebug) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
@@ -165,9 +166,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webview, true)
         binding.webview.settings.setGeolocationEnabled(true)
         binding.webview.settings.setDomStorageEnabled(true);
-        binding.webview.settings.setAllowFileAccessFromFileURLs(true)
-        binding.webview.settings.setAllowUniversalAccessFromFileURLs(true)
-
 
         binding.webview.webChromeClient = webChromeClient
         binding.webview.webViewClient = webViewClient

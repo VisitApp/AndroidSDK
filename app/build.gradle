@@ -58,8 +58,8 @@ android {
 }
 
 dependencies {
+    implementation project(':visit')
 //    implementation files('google_fit-debug.aar')
-    implementation project(':google_fit')
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
