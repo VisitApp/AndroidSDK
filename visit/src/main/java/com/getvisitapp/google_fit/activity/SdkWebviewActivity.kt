@@ -16,17 +16,17 @@ import android.view.KeyEvent
 import android.view.View
 import android.webkit.*
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
 import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
 import com.getvisitapp.google_fit.data.WebAppInterface
-import com.getvisitapp.google_fit.databinding.SdkWebView
 import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
 import com.getvisitapp.google_fit.util.Constants.WEB_URL
 import com.getvisitapp.google_fit.util.LocationTrackerUtil
@@ -65,8 +65,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     var TAG = "mytag"
 
-    lateinit var binding: SdkWebView
-
 
     val ACTIVITY_RECOGNITION_REQUEST_CODE = 490
     val LOCATION_PERMISSION_REQUEST_CODE = 787
@@ -102,12 +100,12 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     var webViewClient: WebViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             Log.d(TAG, "onPageStarted: $url")
-            binding.progressBar.visibility = View.VISIBLE
+            progressBar.visibility = View.VISIBLE
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
             Log.d(TAG, "onPageFinished: $url")
-            binding.progressBar.visibility = View.GONE
+            progressBar.visibility = View.GONE
 
         }
 
@@ -116,7 +114,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             view: WebView?, request: WebResourceRequest?, error: WebResourceError?
         ) {
 //            Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
-            binding.progressBar.visibility = View.GONE
+            progressBar.visibility = View.GONE
             Log.d("mytag", "onReceivedError")
         }
 
@@ -124,7 +122,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             Log.d("mytag", "shouldOverrideUrlLoading")
 
             url?.let {
-                binding.webview.loadUrl(url)
+                webview.loadUrl(url)
             }
             return true;
 
@@ -147,12 +145,20 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
     }
 
+    lateinit var progressBar: ProgressBar
+    lateinit var webview: WebView
+    lateinit var noNetworkConnectionLayout: LinearLayout
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         makeStatusBarTransparent()
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_sdk)
-        binding.progressBar.setVisibility(View.GONE)
+        setContentView(R.layout.activity_sdk)
+        progressBar = findViewById(R.id.progressBar)
+        webview = findViewById(R.id.webview)
+        noNetworkConnectionLayout = findViewById(R.id.noNetworkConnectionLayout)
+
+        progressBar.setVisibility(View.GONE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
 
@@ -160,18 +166,18 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        binding.webview.settings.javaScriptEnabled = true
-        binding.webview.settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        webview.settings.javaScriptEnabled = true
+        webview.settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webview, true)
-        binding.webview.settings.setGeolocationEnabled(true)
-        binding.webview.settings.setDomStorageEnabled(true);
-        binding.webview.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true)
+        webview.settings.setGeolocationEnabled(true)
+        webview.settings.setDomStorageEnabled(true);
+        webview.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
 
-        binding.webview.webChromeClient = webChromeClient
-        binding.webview.webViewClient = webViewClient
+        webview.webChromeClient = webChromeClient
+        webview.webViewClient = webViewClient
 
-        binding.webview.setDownloadListener(object : DownloadListener {
+        webview.setDownloadListener(object : DownloadListener {
             override fun onDownloadStart(
                 url: String?,
                 userAgent: String?,
@@ -217,11 +223,11 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             }
         })
 
-        binding.webview.loadUrl(magicLink)
+        webview.loadUrl(magicLink)
 
 
         webAppInterface = WebAppInterface(this)
-        binding.webview.addJavascriptInterface(webAppInterface, "Android")
+        webview.addJavascriptInterface(webAppInterface, "Android")
 
         pdfDownloader = PdfDownloader()
         locationTrackerUtil = LocationTrackerUtil(this)
@@ -231,19 +237,19 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         connectivityObserver.observe().onEach { networkStatus ->
             when (networkStatus) {
                 ConnectivityObserver.Status.Available -> {
-                    binding.noNetworkConnectionLayout.visibility = View.GONE
+                    noNetworkConnectionLayout.visibility = View.GONE
                 }
 
                 ConnectivityObserver.Status.Unavailable -> {
-                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                    noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
 
                 ConnectivityObserver.Status.Losing -> {
-                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                    noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
 
                 ConnectivityObserver.Status.Lost -> {
-                    binding.noNetworkConnectionLayout.visibility = View.VISIBLE
+                    noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
             }
             Log.d("mytag", "network status: $networkStatus")
@@ -254,11 +260,11 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     override fun onResume() {
         super.onResume()
-        binding.webview.onResume();
+        webview.onResume();
     }
 
     override fun onPause() {
-        binding.webview.onPause();
+        webview.onPause();
         super.onPause()
     }
 
@@ -273,8 +279,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         if (requestCode == 1000 && resultCode == RESULT_OK) {
             Log.d("mytag", "resultCode: $requestCode")
 
-            binding.webview.webChromeClient = webChromeClient
-            binding.webview.webViewClient = webViewClient
+            webview.webChromeClient = webChromeClient
+            webview.webViewClient = webViewClient
 
 
         } else if (requestCode == REQUEST_CODE_FILE_PICKER) {
@@ -314,7 +320,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             if (locationTrackerUtil.isLocationPermissionAllowed()) {
                 if (locationTrackerUtil.isGPSEnabled()) {
                     runOnUiThread {
-                        binding.webview.evaluateJavascript(
+                        webview.evaluateJavascript(
                             "window.checkTheGpsPermission(true)", null
                         )
                         Log.d("mytag", "window.checkTheGpsPermission(true) called")
@@ -340,7 +346,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         super.onRestart()
         if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
             runOnUiThread {
-                binding.webview.evaluateJavascript(
+                webview.evaluateJavascript(
                     "window.checkTheGpsPermission(true)", null
                 )
                 Log.d("mytag", "window.checkTheGpsPermission(true) called")
@@ -364,7 +370,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                             locationTrackerUtil.showGPS_NotEnabledDialog()
                         } else {
                             runOnUiThread {
-                                binding.webview.evaluateJavascript(
+                                webview.evaluateJavascript(
                                     "window.checkTheGpsPermission(true)", null
                                 )
                                 Log.d("mytag", "window.checkTheGpsPermission(true) called")
@@ -401,29 +407,29 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> {
-                    Log.d(TAG, "webview.canGoBack(): ${binding.webview.canGoBack()}")
+                    Log.d(TAG, "webview.canGoBack(): ${webview.canGoBack()}")
 
-                    Log.d(TAG, binding.webview.url.toString())
+                    Log.d(TAG, webview.url.toString())
 
-                    if (binding.webview.canGoBack()) {
-                        binding.webview.goBack()
-                        if (binding.webview.url!!.endsWith("consultation/online/preview")) {
+                    if (webview.canGoBack()) {
+                        webview.goBack()
+                        if (webview.url!!.endsWith("consultation/online/preview")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/weight-management")) {
+                        } else if (webview.url!!.endsWith("/weight-management")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("op-benefits")) {
+                        } else if (webview.url!!.endsWith("op-benefits")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/home/rewards")) {
+                        } else if (webview.url!!.endsWith("/home/rewards")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/wellness-management")) {
+                        } else if (webview.url!!.endsWith("/wellness-management")) {
                             finish()
-                        } else if (binding.webview.url!!.endsWith("/health-data") || binding.webview.url!!.endsWith(
+                        } else if (webview.url!!.endsWith("/health-data") || webview.url!!.endsWith(
                                 "/hra/question"
-                            ) || binding.webview.url!!.contains("stay-active")
+                            ) || webview.url!!.contains("stay-active")
                         ) {
                             Log.d(TAG, "window.hardwareBackPressed() called")
                             runOnUiThread {
-                                binding.webview.evaluateJavascript(
+                                webview.evaluateJavascript(
                                     "window.hardwareBackPressed()", null
                                 ) // this is a workaround to close the PWA, when the user lands to the details graph page directly,
                                 // so this event acts as a gateway to check if the user has directly landed on the page, and close the PWA.
@@ -544,12 +550,12 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        binding.webview.saveState(outState)
+        webview.saveState(outState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        binding.webview.restoreState(savedInstanceState)
+        webview.restoreState(savedInstanceState)
     }
 
     @Throws(JSONException::class)

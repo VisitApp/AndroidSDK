@@ -46,7 +46,6 @@ android {
     }
 
     buildFeatures {
-        dataBinding true
         buildConfig true
     }
     namespace 'com.getvisitapp.google_fit'
