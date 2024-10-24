@@ -153,7 +153,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         makeStatusBarTransparent()
-        setContentView(R.layout.activity_sdk)
+        setContentView(R.layout.visit_activity_sdk)
         progressBar = findViewById(R.id.progressBar)
         webview = findViewById(R.id.webview)
         noNetworkConnectionLayout = findViewById(R.id.noNetworkConnectionLayout)
