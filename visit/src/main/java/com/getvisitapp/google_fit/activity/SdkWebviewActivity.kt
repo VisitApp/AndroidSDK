@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.json.JSONException
 import org.json.JSONObject
-import tvi.webrtc.ContextUtils
 import java.util.*
 
 
@@ -384,19 +383,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
     }
 
-    override fun startVideoCall(sessionId: Int, consultationId: Int, authToken: String?) {
-
-
-        val intent = Intent(
-            this, TwillioVideoCallActivity::class.java
-        )
-        intent.putExtra("isDebug", isDebug)
-        intent.putExtra("sessionId", sessionId)
-        intent.putExtra("consultationId", consultationId)
-        intent.putExtra("authToken", authToken)
-        startActivity(intent)
-    }
-
     override fun closeView() {
         finish()
     }
@@ -445,11 +431,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         return super.onKeyDown(keyCode, event)
     }
 
-    fun closePWA() {
-        finish()
-        overridePendingTransition(R.anim.slide_from_top, R.anim.slide_in_top);
-    }
-
     override fun onDestroy() {
         Log.d(TAG, "onDestroy called")
         super.onDestroy()
@@ -477,7 +458,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             return if (mCustomView == null) {
                 null
             } else BitmapFactory.decodeResource(
-                ContextUtils.getApplicationContext().resources, 2130837573
+                getApplicationContext().resources, 2130837573
             )
         }
 

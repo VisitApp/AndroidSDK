@@ -22,11 +22,6 @@ public class WebAppInterface {
         listener.askForLocationPermission();
     }
 
-    @JavascriptInterface
-    public void initiateVideoCall(int sessionId, int consultationId, String authToken) {
-        Log.d("mytag", "initiateVideoCall() called.");
-        listener.startVideoCall(sessionId, consultationId, authToken);
-    }
 
 
     @JavascriptInterface
