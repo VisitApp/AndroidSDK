@@ -158,7 +158,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         webview = findViewById(R.id.webview)
         noNetworkConnectionLayout = findViewById(R.id.noNetworkConnectionLayout)
 
-        progressBar.setVisibility(View.GONE)
+        progressBar.setVisibility(View.VISIBLE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
 
