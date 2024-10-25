@@ -21,7 +21,11 @@ import android.widget.ProgressBar
 import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.google_fit.R
 import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
@@ -65,27 +69,15 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     var TAG = "mytag"
 
 
-    val ACTIVITY_RECOGNITION_REQUEST_CODE = 490
     val LOCATION_PERMISSION_REQUEST_CODE = 787
     val REQUEST_CODE_FILE_PICKER = 51426
 
 
     var isDebug: Boolean = false
     lateinit var magicLink: String
-    lateinit var default_web_client_id: String
-
-
-    var dailyDataSynced = false
-    var syncDataWithServer = false
 
 
     lateinit var pdfDownloader: PdfDownloader
-
-
-    var visitApiBaseUrl: String? = null
-    var authtoken: String? = null
-    var googleFitLastSync: Long = 0L
-    var gfHourlyLastSync = 0L
 
 
     lateinit var locationTrackerUtil: LocationTrackerUtil
@@ -147,6 +139,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     lateinit var progressBar: ProgressBar
     lateinit var webview: WebView
     lateinit var noNetworkConnectionLayout: LinearLayout
+    lateinit var parentLayout: ConstraintLayout
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,6 +149,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         progressBar = findViewById(R.id.progressBar)
         webview = findViewById(R.id.webview)
         noNetworkConnectionLayout = findViewById(R.id.noNetworkConnectionLayout)
+        parentLayout = findViewById(R.id.parentLayout)
 
         progressBar.setVisibility(View.VISIBLE)
         magicLink = intent.extras!!.getString(WEB_URL)!!
@@ -253,6 +247,43 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             }
             Log.d("mytag", "network status: $networkStatus")
         }.launchIn(lifecycleScope)
+
+
+        ViewCompat.setOnApplyWindowInsetsListener(parentLayout) { view, windowInsets ->
+
+
+            val statusBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
+            val navigationBarInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            val imeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime())
+            val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+
+
+//            Log.d(
+//                "mytag",
+//                "imeInsets(bottom: ${imeInsets.bottom}), navigationBarInsets: (bottom: ${navigationBarInsets.bottom}), imeVisible: ${imeVisible} "
+//            )
+
+            webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                this.bottomMargin = navigationBarInsets.bottom
+            }
+
+            if (imeVisible) {
+                webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    this.bottomMargin = imeInsets.bottom
+                }
+            } else {
+                webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                    this.bottomMargin = 0
+                }
+            }
+
+//
+//            // Return CONSUMED if you don't want want the window insets to keep passing
+//            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
 
 
     }
