@@ -383,7 +383,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
     override fun visitCallback(jsonObject: String?) {
-        Timber.tag(TAG).d("visitCallback jsonObject: $jsonObject")
 
         jsonObject?.let {
 
@@ -399,7 +398,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
     override fun errorCallback(jsonObject: String?) {
-        Timber.tag(TAG).d("errorCallback jsonObject: $jsonObject")
 
         jsonObject?.let {
 
