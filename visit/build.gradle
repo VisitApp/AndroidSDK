@@ -75,10 +75,6 @@ dependencies {
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.0.0'
 
 
-    //Chucker
-    debugApi "com.github.chuckerteam.chucker:library:4.0.0"
-    releaseApi "com.github.chuckerteam.chucker:library-no-op:4.0.0"
-
 
     implementation "androidx.browser:browser:1.8.0"
 
