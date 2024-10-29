@@ -46,7 +46,7 @@ android {
         jvmTarget = '17'
     }
 
-    namespace 'com.example.googlefitsdk'
+    namespace 'com.example.app'
 }
 
 dependencies {
@@ -63,7 +63,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 
-    def retrofit_version="2.11.0"
+    def retrofit_version = "2.11.0"
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation 'de.hdodenhof:circleimageview:3.1.0'
@@ -86,5 +86,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.6"
 
 
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+    implementation "com.jakewharton.timber:timber:5.0.1"
 
 }

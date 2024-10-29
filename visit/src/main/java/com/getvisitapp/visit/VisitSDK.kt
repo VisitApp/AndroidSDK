@@ -1,18 +1,23 @@
-package com.getvisitapp.google_fit;
+package com.getvisitapp.visit
 
-import android.content.Context;
-import android.content.Intent;
-
-import androidx.annotation.Keep;
-
-import com.getvisitapp.google_fit.activity.SdkWebviewActivity;
-
+import android.content.Context
+import android.content.Intent
+import androidx.annotation.Keep
+import com.getvisitapp.visit.activity.SdkWebviewActivity
 
 @Keep
-public class IntiateSdk {
+object VisitSDK {
 
-    public static void s(Context c, boolean isDebug, String magicLink) {
-        Intent intent = SdkWebviewActivity.Companion.getIntent(c, isDebug, magicLink);
-        c.startActivity(intent);
+    fun init(c: Context, isDebug: Boolean, magicLink: String) {
+        val intent: Intent = SdkWebviewActivity.getIntent(c, isDebug, magicLink)
+        c.startActivity(intent)
+    }
+
+    fun setUserEventCallback(callback: (eventName: String) -> Unit) {
+        SdkWebviewActivity.userEventCallback = callback
+    }
+
+    fun setErrorEventCallback(callback: (errorMessage: String, description: String?) -> Unit) {
+        SdkWebviewActivity.errorEventCallback = callback
     }
 }

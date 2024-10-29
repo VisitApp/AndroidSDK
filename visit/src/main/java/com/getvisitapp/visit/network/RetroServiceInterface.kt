@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.network
+package com.getvisitapp.visit.network
 
 import androidx.annotation.Keep
 import okhttp3.ResponseBody

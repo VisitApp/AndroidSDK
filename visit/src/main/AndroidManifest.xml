@@ -27,7 +27,7 @@
             android:windowSoftInputMode="stateVisible|adjustResize" />
 
         <provider
-            android:name="com.getvisitapp.google_fit.util.GoogleFitSdkFileProvider"
+            android:name="com.getvisitapp.visit.util.GoogleFitSdkFileProvider"
             android:authorities="${applicationId}.googlefitsdk.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

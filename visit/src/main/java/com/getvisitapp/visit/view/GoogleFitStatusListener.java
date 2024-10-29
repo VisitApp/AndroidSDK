@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.view;
+package com.getvisitapp.visit.view;
 
 import androidx.annotation.Keep;
 
@@ -10,5 +10,9 @@ public interface GoogleFitStatusListener {
     void closeView();
 
     void askForLocationPermission();
+
+    void visitCallback(String jsonObject);
+
+    void errorCallback(String jsonObject);
 
 }

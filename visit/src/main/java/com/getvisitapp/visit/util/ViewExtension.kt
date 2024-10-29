@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.util
+package com.getvisitapp.visit.util
 
 import android.app.Activity
 import android.graphics.Color

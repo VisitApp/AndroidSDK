@@ -1,8 +1,8 @@
-package com.getvisitapp.google_fit.util
+package com.getvisitapp.visit.util
 
 import android.util.Log
 import androidx.annotation.Keep
-import com.getvisitapp.google_fit.network.RetroServiceInterface
+import com.getvisitapp.visit.network.RetroServiceInterface
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback

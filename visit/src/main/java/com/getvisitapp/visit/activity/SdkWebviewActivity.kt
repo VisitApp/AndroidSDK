@@ -1,6 +1,7 @@
-package com.getvisitapp.google_fit.activity
+package com.getvisitapp.visit.activity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -8,18 +9,23 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
-import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.DownloadListener
+import android.webkit.GeolocationPermissions
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.annotation.Keep
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
@@ -27,21 +33,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.getvisitapp.google_fit.R
-import com.getvisitapp.google_fit.connectivity.ConnectivityObserver
-import com.getvisitapp.google_fit.connectivity.NetworkConnectivityObserver
-import com.getvisitapp.google_fit.data.WebAppInterface
-import com.getvisitapp.google_fit.util.Constants.IS_DEBUG
-import com.getvisitapp.google_fit.util.Constants.WEB_URL
-import com.getvisitapp.google_fit.util.LocationTrackerUtil
-import com.getvisitapp.google_fit.util.PdfDownloader
-import com.getvisitapp.google_fit.util.makeStatusBarTransparent
-import com.getvisitapp.google_fit.view.GoogleFitStatusListener
+import com.getvisitapp.visit.R
+import com.getvisitapp.visit.connectivity.ConnectivityObserver
+import com.getvisitapp.visit.connectivity.NetworkConnectivityObserver
+import com.getvisitapp.visit.data.WebAppInterface
+import com.getvisitapp.visit.util.Constants.IS_DEBUG
+import com.getvisitapp.visit.util.Constants.WEB_URL
+import com.getvisitapp.visit.util.LocationTrackerUtil
+import com.getvisitapp.visit.util.PdfDownloader
+import com.getvisitapp.visit.util.makeStatusBarTransparent
+import com.getvisitapp.visit.view.GoogleFitStatusListener
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.json.JSONException
-import org.json.JSONObject
-import java.util.*
+import timber.log.Timber
 
 
 /**
@@ -90,12 +96,12 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     var webChromeClient: WebChromeClient = MyChrome()
     var webViewClient: WebViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            Log.d(TAG, "onPageStarted: $url")
+            Timber.tag(TAG).d("onPageStarted: $url")
             progressBar.visibility = View.VISIBLE
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
-            Log.d(TAG, "onPageFinished: $url")
+            Timber.tag(TAG).d("onPageFinished: $url")
             progressBar.visibility = View.GONE
 
         }
@@ -104,13 +110,16 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         override fun onReceivedError(
             view: WebView?, request: WebResourceRequest?, error: WebResourceError?
         ) {
-//            Log.d(TAG, "errorCode: $errorCode description: $description failingUrl: $failingUrl")
+
+//            Timber.tag(TAG)
+//                .d( "errorCode: $errorCode description: $description failingUrl: $failingUrl")
             progressBar.visibility = View.GONE
-            Log.d("mytag", "onReceivedError")
+            Timber.tag(TAG).d("onReceivedError")
         }
 
+
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-            Log.d("mytag", "shouldOverrideUrlLoading")
+            Timber.tag(TAG).d("shouldOverrideUrlLoading")
 
             url?.let {
                 webview.loadUrl(url)
@@ -124,6 +133,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
 
     companion object {
+
         fun getIntent(
             context: Context,
             isDebug: Boolean,
@@ -134,6 +144,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             intent.putExtra(WEB_URL, magicLink)
             return intent
         }
+
+        var userEventCallback: ((eventName: String) -> Unit)? = null
+        var errorEventCallback: ((errorMessage: String, description: String?) -> Unit)? = null
     }
 
     lateinit var progressBar: ProgressBar
@@ -142,6 +155,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     lateinit var parentLayout: ConstraintLayout
 
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         makeStatusBarTransparent()
@@ -155,7 +169,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         magicLink = intent.extras!!.getString(WEB_URL)!!
         isDebug = intent.extras!!.getBoolean(IS_DEBUG);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && isDebug) {
+        if (isDebug) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
@@ -164,8 +178,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true)
         webview.settings.setGeolocationEnabled(true)
-        webview.settings.setDomStorageEnabled(true);
-        webview.settings.setCacheMode(WebSettings.LOAD_NO_CACHE)
+        webview.settings.domStorageEnabled = true;
+        webview.settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
         webview.webChromeClient = webChromeClient
         webview.webViewClient = webViewClient
@@ -179,7 +193,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                 contentLength: Long
             ) {
 
-                Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimetype");
+                Timber.tag(TAG).d("onDownloadRequested() url:$url, mimeType:$mimetype");
 
                 url?.let {
                     pdfDownloader.downloadPdfFile(fileDir = filesDir,
@@ -201,8 +215,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                             startActivity(sendIntent)
                         },
                         onDownloadFailed = {
-                            Log.d(
-                                TAG, "onDownloadRequested() download failed, opening it in chrome"
+                            Timber.tag(TAG).d(
+                                "onDownloadRequested() download failed, opening it in chrome"
                             )
                             try {
                                 val uri = Uri.parse(url)
@@ -245,7 +259,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                     noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
             }
-            Log.d("mytag", "network status: $networkStatus")
+            Timber.tag(TAG).d("network status: $networkStatus")
         }.launchIn(lifecycleScope)
 
 
@@ -260,8 +274,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
 
 
-//            Log.d(
-//                "mytag",
+//            Timber.tag(
+//                TAG
+//            ).d(
 //                "imeInsets(bottom: ${imeInsets.bottom}), navigationBarInsets: (bottom: ${navigationBarInsets.bottom}), imeVisible: ${imeVisible} "
 //            )
 
@@ -300,14 +315,13 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        Log.d(
-            TAG, "onActivityResult called. requestCode: $requestCode resultCode: $resultCode"
-        )
+        Timber.tag(TAG)
+            .d("onActivityResult called. requestCode: $requestCode resultCode: $resultCode")
 
         super.onActivityResult(requestCode, resultCode, intent)
 
         if (requestCode == 1000 && resultCode == RESULT_OK) {
-            Log.d("mytag", "resultCode: $requestCode")
+            Timber.tag(TAG).d("resultCode: $requestCode")
 
             webview.webChromeClient = webChromeClient
             webview.webViewClient = webViewClient
@@ -343,7 +357,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun askForLocationPermission() {
 
         runOnUiThread {
@@ -353,25 +366,68 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                         webview.evaluateJavascript(
                             "window.checkTheGpsPermission(true)", null
                         )
-                        Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                        Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
                     }
                 } else {
                     locationTrackerUtil.showGPS_NotEnabledDialog()
                 }
             } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        LOCATION_PERMISSION_REQUEST_CODE
-                    )
-                }
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    LOCATION_PERMISSION_REQUEST_CODE
+                )
             }
         }
 
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    override fun visitCallback(jsonObject: String?) {
+        Timber.tag(TAG).d("visitCallback jsonObject: $jsonObject")
+
+        jsonObject?.let {
+
+            val eventData = getAllKeysAndValues(Gson().fromJson(jsonObject, JsonObject::class.java))
+            Timber.tag(TAG).d(
+                "setUserEventCallback eventJsonObject: $jsonObject, eventData: $eventData"
+            )
+
+            val eventName = eventData["eventName"].toString()
+
+            userEventCallback?.invoke(eventName)
+        }
+    }
+
+    override fun errorCallback(jsonObject: String?) {
+        Timber.tag(TAG).d("errorCallback jsonObject: $jsonObject")
+
+        jsonObject?.let {
+
+            val eventData = getAllKeysAndValues(Gson().fromJson(jsonObject, JsonObject::class.java))
+
+
+            Timber.tag(TAG).d(
+                "setUserEventCallback eventJsonObject: $jsonObject, eventData: $eventData"
+            )
+
+            val errorTitle: String = eventData["errorTitle"].toString()
+            val errorDesc: String? = eventData["errorDesc"]?.toString()
+
+            errorEventCallback?.invoke(errorTitle, errorDesc)
+        }
+
+    }
+
+    private fun getAllKeysAndValues(jsonObject: JsonObject): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+
+        jsonObject.keySet().forEach { key ->
+            map[key] = jsonObject.get(key)
+        }
+
+        return map
+    }
+
     override fun onRestart() {
         super.onRestart()
         if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
@@ -379,7 +435,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                 webview.evaluateJavascript(
                     "window.checkTheGpsPermission(true)", null
                 )
-                Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
             }
         }
     }
@@ -403,7 +459,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                                 webview.evaluateJavascript(
                                     "window.checkTheGpsPermission(true)", null
                                 )
-                                Log.d("mytag", "window.checkTheGpsPermission(true) called")
+                                Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
                             }
                         }
                     } else {
@@ -419,39 +475,16 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             when (keyCode) {
                 KeyEvent.KEYCODE_BACK -> {
-                    Log.d(TAG, "webview.canGoBack(): ${webview.canGoBack()}")
 
-                    Log.d(TAG, webview.url.toString())
+                    Timber.tag(TAG)
+                        .d("webview.canGoBack(): ${webview.canGoBack()}, url: ${webview.url}")
 
                     if (webview.canGoBack()) {
                         webview.goBack()
-                        if (webview.url!!.endsWith("consultation/online/preview")) {
-                            finish()
-                        } else if (webview.url!!.endsWith("/weight-management")) {
-                            finish()
-                        } else if (webview.url!!.endsWith("op-benefits")) {
-                            finish()
-                        } else if (webview.url!!.endsWith("/home/rewards")) {
-                            finish()
-                        } else if (webview.url!!.endsWith("/wellness-management")) {
-                            finish()
-                        } else if (webview.url!!.endsWith("/health-data") || webview.url!!.endsWith(
-                                "/hra/question"
-                            ) || webview.url!!.contains("stay-active")
-                        ) {
-                            Log.d(TAG, "window.hardwareBackPressed() called")
-                            runOnUiThread {
-                                webview.evaluateJavascript(
-                                    "window.hardwareBackPressed()", null
-                                ) // this is a workaround to close the PWA, when the user lands to the details graph page directly,
-                                // so this event acts as a gateway to check if the user has directly landed on the page, and close the PWA.
-                            }
-                        }
                     } else {
                         finish()
                     }
@@ -463,7 +496,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "onDestroy called")
+        Timber.tag(TAG).d("onDestroy called")
+        userEventCallback = null
         super.onDestroy()
     }
 
@@ -545,16 +579,15 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
 
         override fun onGeolocationPermissionsShowPrompt(
-            origin: String?,
-            callback: GeolocationPermissions.Callback?
+            origin: String?, callback: GeolocationPermissions.Callback?
         ) {
-            Log.d("mytag", "onGeolocationPermissionsShowPrompt called")
+            Timber.tag(TAG).d("onGeolocationPermissionsShowPrompt called")
             super.onGeolocationPermissionsShowPrompt(origin, callback);
             callback?.invoke(origin, true, false);
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
-            Log.d("mytag", "onGeolocationPermissionsHidePrompt called")
+            Timber.tag(TAG).d("onGeolocationPermissionsHidePrompt called")
             super.onGeolocationPermissionsHidePrompt()
 
         }
@@ -569,17 +602,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         super.onRestoreInstanceState(savedInstanceState)
         webview.restoreState(savedInstanceState)
     }
-
-    @Throws(JSONException::class)
-    private fun decodeString(response: String): JSONObject {
-        return if (Build.VERSION.SDK_INT >= 24) {
-            JSONObject(Html.fromHtml(response, Html.FROM_HTML_MODE_LEGACY).toString())
-        } else {
-            JSONObject(Html.fromHtml(response).toString())
-        }
-    }
-
-
 }
 
 

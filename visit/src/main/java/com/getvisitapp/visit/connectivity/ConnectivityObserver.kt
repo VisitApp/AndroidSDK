@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.connectivity
+package com.getvisitapp.visit.connectivity
 
 import kotlinx.coroutines.flow.Flow
 

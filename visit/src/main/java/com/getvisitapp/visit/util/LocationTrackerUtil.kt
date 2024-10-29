@@ -1,4 +1,4 @@
-package com.getvisitapp.google_fit.util
+package com.getvisitapp.visit.util
 
 import android.Manifest
 import android.content.Context
