@@ -13,11 +13,11 @@ object VisitSDK {
         c.startActivity(intent)
     }
 
-    fun setUserEventCallback(callback: (eventName: String) -> Unit) {
+    fun getUserEventCallback(callback: (eventName: String) -> Unit) {
         SdkWebviewActivity.userEventCallback = callback
     }
 
-    fun setErrorEventCallback(callback: (errorMessage: String, description: String?) -> Unit) {
+    fun getErrorEventCallback(callback: (errorMessage: String, description: String?) -> Unit) {
         SdkWebviewActivity.errorEventCallback = callback
     }
 }

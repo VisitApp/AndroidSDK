@@ -18,12 +18,12 @@ class MainActivity : AppCompatActivity() {
             init()
         }
 
-        VisitSDK.setUserEventCallback { eventName: String ->
+        VisitSDK.getUserEventCallback { eventName: String ->
 
             Timber.tag("mytag").d("setUserEventCallback eventName: $eventName")
         }
 
-        VisitSDK.setErrorEventCallback { errorMessage: String, description: String? ->
+        VisitSDK.getErrorEventCallback { errorMessage: String, description: String? ->
 
             Timber.tag("mytag")
                 .d("setErrorEventCallback errorMessage: $errorMessage, description: $description")
