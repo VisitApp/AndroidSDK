@@ -456,6 +456,13 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         }
     }
 
+    suspend fun exhaustHealthConnectQueryLimitTest(timeStamp: Long) {
+        (1..1000).forEachIndexed { index, i ->
+            Timber.d("exhaustHealthConnectQueryLimitTest: index: $index")
+            getHourlySyncData(timeStamp)
+        }
+    }
+
 
     suspend fun getDailySyncData(timeStamp: Long): DailyStepSyncRequest {
 
