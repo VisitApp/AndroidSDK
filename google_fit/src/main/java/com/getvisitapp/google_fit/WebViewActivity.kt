@@ -206,7 +206,13 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
     override fun requestActivityData(type: String?, frequency: String?, timestamp: Long) {
         Timber.d("mytag: requestActivityData() called.")
-        healthConnectUtil.getActivityData(type, frequency, timestamp)
+        if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
+            //Health Connect Implementation
+            healthConnectUtil.getActivityData(type, frequency, timestamp)
+        } else {
+            Timber.d("mytag: permission not available healthConnectConnectionState: ${healthConnectUtil.healthConnectConnectionState}")
+            healthConnectUtil.requestPermission()
+        }
     }
 
     override fun syncDataWithServer(
