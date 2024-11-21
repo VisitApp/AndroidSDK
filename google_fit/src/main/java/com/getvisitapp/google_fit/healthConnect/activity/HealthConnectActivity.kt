@@ -31,6 +31,7 @@ import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncH
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
 
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,7 +56,13 @@ class HealthConnectActivity : AppCompatActivity() {
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
 
-    val scope = CoroutineScope(Dispatchers.IO)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        Timber.d("HealthConnectActivity coroutineExceptionHandler")
+        throwable.printStackTrace()
+
+    }
+
+    val scope = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler)
 
 
     val requestPermissionActivityContract: ActivityResultContract<Set<String>, Set<String>> =
@@ -248,7 +255,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1724582306000L //current time
+            var timeStamp = 1732165563000L //current time
 //            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
@@ -256,7 +263,8 @@ class HealthConnectActivity : AppCompatActivity() {
 //                Tutorials(healthConnectClient!!).fetchData()
 
 //                getDailySyncData(timeStamp)
-                getHourlySyncData(timeStamp)
+//                getHourlySyncData(timeStamp)
+                exhaustHealthConnectQueryLimitTest(timeStamp)
 
 //                getDailyStepAndSleepData()
 
@@ -483,6 +491,13 @@ class HealthConnectActivity : AppCompatActivity() {
         Timber.d("getDailySyncData: requestBody: ${Gson().toJson(requestBody)}")
 
         return requestBody
+    }
+
+    suspend fun exhaustHealthConnectQueryLimitTest(timeStamp: Long) {
+        (1..1000).forEachIndexed { index, i ->
+            Timber.d("exhaustHealthConnectQueryLimitTest: index: $index")
+            getHourlySyncData(timeStamp)
+        }
     }
 
     suspend fun getHourlySyncData(timeStamp: Long): HourlyDataSyncRequest {

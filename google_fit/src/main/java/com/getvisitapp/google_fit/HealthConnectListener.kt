@@ -14,4 +14,6 @@ interface HealthConnectListener {
 
 
     fun requestPermission()
+
+    fun logHealthConnectError(throwable: Throwable)
 }

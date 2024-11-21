@@ -26,6 +26,7 @@ import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailyStepS
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyDataSyncRequest
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,7 +51,13 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
 
-    val scope = CoroutineScope(Dispatchers.IO)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable: Throwable ->
+        Timber.d("HealthConnectUtil coroutineExceptionHandler")
+        throwable.printStackTrace()
+        listener.logHealthConnectError(throwable)
+    }
+
+    val scope = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler)
 
     var healthConnectConnectionState: HealthConnectConnectionState =
         HealthConnectConnectionState.NONE

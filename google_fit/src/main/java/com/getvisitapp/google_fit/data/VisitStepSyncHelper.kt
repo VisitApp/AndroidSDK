@@ -9,6 +9,7 @@ import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.HourlyData
 import com.getvisitapp.google_fit.healthConnect.model.apiRequestModel.SyncResponse
 import com.getvisitapp.google_fit.network.APIServiceInstance
 import com.getvisitapp.google_fit.network.ApiService
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,6 +28,11 @@ class VisitStepSyncHelper(var context: Context) {
         )
     }
 
+    val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        Timber.d("HealthConnectUtil coroutineExceptionHandler")
+        throwable.printStackTrace()
+    }
+
 
     fun sendDataToVisitServer(
         healthConnectUtil: HealthConnectUtil,
@@ -38,7 +44,7 @@ class VisitStepSyncHelper(var context: Context) {
 
         Timber.d("sendDataToVisitServer: googleFitLastSync: $googleFitLastSync, gfHourlyLastSync: $gfHourlyLastSync")
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
             try {
                 if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
                     val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)

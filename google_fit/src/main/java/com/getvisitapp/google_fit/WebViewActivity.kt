@@ -341,6 +341,10 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         }
     }
 
+    override fun logHealthConnectError(throwable: Throwable) {
+        Timber.d("mytag: logHealthConnectError + ${throwable.message}")
+    }
+
 
 }
 
