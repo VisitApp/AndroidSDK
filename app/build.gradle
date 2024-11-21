@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId "com.example.googlefitsdk"
         minSdk 23
-        compileSdk 34
+        compileSdk 35
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -38,7 +38,7 @@ android {
         jvmTarget = JavaVersion.VERSION_17
     }
     buildFeatures {
-//        dataBinding true
+        dataBinding true
         buildConfig false
     }
 
