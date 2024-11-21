@@ -60,6 +60,11 @@
 //        Timber.d("HealthConnectActivity coroutineExceptionHandler")
 //        throwable.printStackTrace()
 //
+//
+//        val formattedMessage = "${throwable.javaClass}: ${throwable.message}"
+//        Timber.d("mytag: $formattedMessage")
+//
+//
 //    }
 //
 //    val scope = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler)
