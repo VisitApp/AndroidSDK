@@ -33,7 +33,7 @@ android {
     }
 
     buildFeatures {
-        dataBinding true
+//        dataBinding true
         buildConfig false
     }
 
@@ -64,6 +64,6 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 
 
-    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
+//    implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
 
 }

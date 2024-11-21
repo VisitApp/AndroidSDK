@@ -38,7 +38,7 @@ android {
         jvmTarget = JavaVersion.VERSION_17
     }
     buildFeatures {
-        dataBinding true
+//        dataBinding true
         buildConfig false
     }
 
