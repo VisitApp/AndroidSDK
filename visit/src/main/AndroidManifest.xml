@@ -20,7 +20,7 @@
     <application>
 
         <activity
-            android:name=".activity.SdkWebviewActivity"
+            android:name=".activity.PaymentActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"

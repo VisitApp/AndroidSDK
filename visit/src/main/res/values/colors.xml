@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="tata_aig_brand_color">#01448E</color>
 
+    <color name="bot_question_text">#8752cc</color>
+
+
 </resources>

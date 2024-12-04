@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'maven-publish'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -46,6 +46,7 @@ android {
 
     buildFeatures {
         buildConfig true
+        dataBinding true
     }
     namespace 'com.getvisitapp.visit'
 }
@@ -81,21 +82,4 @@ dependencies {
 
 
 
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-
-            // Creates a Maven publication called “debug”.
-            release(MavenPublication) {
-                // Applies the component for the debug build variant.
-                from components.release
-
-                groupId = 'com.getvisitapp'
-                artifactId = 'google_fit'
-                version = '2.1.5'
-            }
-        }
-    }
 }
