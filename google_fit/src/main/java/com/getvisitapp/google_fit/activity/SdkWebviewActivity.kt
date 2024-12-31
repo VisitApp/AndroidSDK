@@ -113,6 +113,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     var authtoken: String? = null
     var googleFitLastSync: Long = 0L
     var gfHourlyLastSync = 0L
+    var fitbitLastSyncTimeStamp = 0L
     var memberId: String? = null
 
     var redirectUserToGoogleFitStatusPage: Boolean =
@@ -273,12 +274,15 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 ConnectivityObserver.Status.Available -> {
                     binding.noNetworkConnectionLayout.visibility = View.GONE
                 }
+
                 ConnectivityObserver.Status.Unavailable -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Losing -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
+
                 ConnectivityObserver.Status.Lost -> {
                     binding.noNetworkConnectionLayout.visibility = View.VISIBLE
                 }
@@ -306,6 +310,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 Handler(Looper.getMainLooper()).postDelayed({ //Do something here
                     if (message != null && message.equals("success", ignoreCase = true)) {
                         runOnUiThread {
+
+                            Log.d("mytag", "window.fitbitConnectSuccessfully(true)")
+
                             binding.webview.evaluateJavascript(
                                 "window.fitbitConnectSuccessfully(true)", null
                             )
@@ -501,6 +508,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     override fun disconnectFromGoogleFit() {
 
         googleFitStepChecker.revokeGoogleFitPermission(default_web_client_id)
+        visitSyncStepSyncHelper.revokeFitbitAccess()
 
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(true)))
 
@@ -613,13 +621,14 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         dailyDataSynced = true
     }
 
-    override fun updateApiBaseUrlV2(
+    override fun updateApiBaseUrlV3(
         visitApiBaseUrl: String?,
         authtoken: String?,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
         memberId: String,
-        isFitBitConnected: Boolean
+        isFitBitConnected: Boolean,
+        fitbitLastSyncTimeStamp: Long,
     ) {
 
         this.visitApiBaseUrl = visitApiBaseUrl
@@ -627,6 +636,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         this.googleFitLastSync = googleFitLastSync
         this.gfHourlyLastSync = gfHourlyLastSync
         this.memberId = memberId
+        this.fitbitLastSyncTimeStamp = fitbitLastSyncTimeStamp
 
         //For the first time, when the logs in the PWA, this will comes zero, so in that case just make it today's date
         if (this.googleFitLastSync == 0L) {
@@ -637,6 +647,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         }
 
         sharedPrefUtil.setFitBitConnectedStatus(isFitBitConnected)
+        sharedPrefUtil.setFitBitLastSyncTimeStamp(fitbitLastSyncTimeStamp)
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
@@ -670,6 +681,19 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                     syncDataWithServer = true
                 })
             }
+        }
+    }
+
+    override fun visitCredentialCallback(visitApiBaseUrl: String?, visitAuthToken: String?) {
+        this.visitApiBaseUrl = visitApiBaseUrl + "/"
+        this.authtoken = visitAuthToken
+
+
+        visitApiBaseUrl?.let {
+            sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl + "/")
+        }
+        visitAuthToken?.let {
+            sharedPrefUtil.setVisitAuthToken(visitAuthToken)
         }
     }
 
@@ -731,6 +755,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 }
 
             }
+
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty()) {
                     val locationPermissionGranted =
@@ -907,7 +932,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
 
-    override fun downloadHraLink(url: String,toShare:Boolean) {
+    override fun downloadHraLink(url: String, toShare: Boolean) {
         Log.d("mytag", "downloadHraLink() link:$url")
 
         EventBus.getDefault().post(
@@ -922,7 +947,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url,
             authorization = authtoken!!,
             onDownloadComplete = {
-                if(toShare){
+                if (toShare) {
                     val shareIntent = Intent().apply {
                         action = Intent.ACTION_VIEW
                         putExtra(
@@ -937,7 +962,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                     }
                     val sendIntent = Intent.createChooser(shareIntent, null)
                     startActivity(sendIntent)
-                }else{
+                } else {
                     try {
                         val uri = FileProvider.getUriForFile(
                             applicationContext,
@@ -952,9 +977,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                         e.printStackTrace()
                     }
                 }
-
-
-
 
 
             }, onDownloadFailed = {
@@ -1036,7 +1058,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun disconnectFromFitbit() {
-        sharedPrefUtil.setFitBitConnectedStatus(false)
+        visitSyncStepSyncHelper.revokeFitbitAccess()
         EventBus.getDefault().post(MessageEvent(VisitEventType.FitnessPermissionRevoked(false)))
 
     }
@@ -1094,8 +1116,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun downloadPdf(link: String) {
-        Log.d("mytag","downloadPdf called(): $link")
-        downloadHraLink(link,false)
+        Log.d("mytag", "downloadPdf called(): $link")
+        downloadHraLink(link, false)
     }
 
     override fun setAuthToken(authToken: String) {

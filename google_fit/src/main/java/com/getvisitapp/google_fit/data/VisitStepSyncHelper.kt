@@ -11,11 +11,13 @@ import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.GoogleFitConnector
 import com.getvisitapp.google_fit.util.GoogleFitConnector.GoogleConnectorFitListener
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 @Keep
 class VisitStepSyncHelper(var context: Context, var default_web_client_id: String) {
@@ -295,7 +297,21 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                             Log.d("mytag", "endCalNew timestamp: ${endCalNew.timeInMillis}")
 
-                            sharedPrefUtil.setFitBitLastSyncTimeStamp(endCalNew.timeInMillis)
+
+                            //update the timestamp in for Visit Database.
+
+                            val body = JsonObject()
+                            body.addProperty("lastSyncTimeStamp", endOfDay)
+                            val response =
+                                visitApiService.updateFitbitLastSyncTimestampForVisit(body)
+
+                            if (response.status == "success") {
+                                sharedPrefUtil.setFitBitLastSyncTimeStamp(endCalNew.timeInMillis)
+                                Log.d("mytag", "fitbit timestamp stored in visit backend.")
+
+                            } else {
+                                Log.d("mytag", "unable to update fitbit timestamp")
+                            }
                         }
                     }
 

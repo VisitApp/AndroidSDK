@@ -20,7 +20,10 @@ public interface GoogleFitStatusListener {
 
     void loadGraphDataUrl(String url);
 
-    void updateApiBaseUrlV2(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean isFitBitConnected);
+
+    void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean isFitBitConnected, long fitbitLastSyncTimeStamp);
+
+    void visitCredentialCallback(String visitApiBaseUrl, String visitAuthToken);
 
     void askForLocationPermission();
 
@@ -34,7 +37,7 @@ public interface GoogleFitStatusListener {
 
     void hraQuestionAnswered(int current, int total);
 
-    void downloadHraLink(String link,boolean toShare);
+    void downloadHraLink(String link, boolean toShare);
 
     void inFitSelectScreen();
 

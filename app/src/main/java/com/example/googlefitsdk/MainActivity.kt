@@ -1,5 +1,8 @@
 package com.example.googlefitsdk
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -76,6 +79,19 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.revokeFitBitAccessButton).setOnClickListener {
             syncStepHelper.revokeFitbitAccess()
+        }
+
+        checkForNotificationPermission()
+    }
+
+    fun checkForNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 202)
+            }
         }
     }
 
@@ -247,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 //            "https://web.getvisitapp.xyz/"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.com/sso?userParams=XsOIXYsDhmOiQpvGWzKerumQP_5AIWLHz5y6VOB22tO2eiPMsKCDvXB1hR9YG8WteES1e51ztX7xjtCjyiW4bnWXI4wn3g1wPJJKOLXyz2IALAp51GOrhRtVQG4MzsBNMSmimkeiwB3xtn_GrIR9j1ePrEKx4uy5qh9zhvitdOn3Hu9MDB-Vgd9Kb7z854hbMSlKlDuzQqVSxvY74DVYRKhL_gEkuHXoeMjJy9bEcx-l98ZIOOyhK4hpksNIOytD7lWzRvErxJNXm1OboaB0QDtj5P3-jJ2hLRKwcIrLbdEvXSZrqWF3vPfyHDimzPEh&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.net/sso?userParams=tP7p8wzjsvykw8UHLod5MKNQruBg3P0fIJQ6W_gIa7ZNvMUOG-N24sBe2-hso9xESFu7eD2jnnjm7HnNZkeeOZRi3kx7ReJ0cDvoMChTtDDCi7Lvd3QsLnUNNGGBOwKT-rpAHO-DpGyZjI4TimUTFJrGGq49KVFqu4yj1tVK-el0gd2oOkUUu1cfE8GcsrNZebI8K4R3_dHbUd7Eckr0jmy7f2xe1AzX_HKAXLvZ9GsTEQ33TJwyu_HE2AFIO-JOrAuHb7QTqUT72QsXYFS4KzEMmszrM113a6OrGnZOv-iJR8TPggxn0DF-u6x-Qj4D0uR4pGTfFE0hFzJbR_NiwO9oF2bDlBH_fwlEwrEm7WfVtIOisDFZ_gpa2zTgz9JOFG9wGKbSxMgsf271tx9vjTigTU2dw38c3LOH8eIOMGl5_-5qF8NrrzzlnsTss-zgAU4TNqY2SclMiPLIu3ZL7xmmizM5Uin1wwyyKXZ6YMliw3Hzg7htQ_hcn3Y7dGVA&clientId=tata-aig-a8b455"
 
 
 //        val magicLink =

@@ -26,6 +26,7 @@ public class WebAppInterface {
     }
 
 
+
     @JavascriptInterface
     public void disconnectFromGoogleFit() {
         Log.d("mytag", "disconnectFromGoogleFit() called");
@@ -62,18 +63,21 @@ public class WebAppInterface {
         listener.requestActivityData(type, frequency, timestamp);
     }
 
-    @Deprecated(since = "1.69")
     @JavascriptInterface
-    public void updateApiBaseUrl(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId) {
-        Log.d("mytag", "updateApiBaseUrl() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId);
-//        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId);
+    public void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected, long fitbitLastSyncTimeStamp) {
+        Log.d("mytag", "updateApiBaseUrlV3() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected + " fitbitLastSyncTimeStamp: " + fitbitLastSyncTimeStamp);
+        listener.updateApiBaseUrlV3(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId, fitbitConnected, fitbitLastSyncTimeStamp);
     }
 
     @JavascriptInterface
-    public void updateApiBaseUrlV2(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected) {
-        Log.d("mytag", "updateApiBaseUrlV2() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected);
-        listener.updateApiBaseUrlV2(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId, fitbitConnected);
+    public void visitCredentialCallback(String apiBaseUrl, String authtoken) {
+
+        Log.d("mytag", "visitCredentialCallback() called, apiBaseUrl: " + apiBaseUrl + " authtoken: " + authtoken);
+
+        listener.visitCredentialCallback(apiBaseUrl, authtoken);
+
     }
+
 
     @JavascriptInterface
     public void getLocationPermissions() {
@@ -115,7 +119,7 @@ public class WebAppInterface {
     @JavascriptInterface
     public void downloadHraLink(String link) {
         Log.d("mytag", "downloadHraLink() called");
-        listener.downloadHraLink(link,true);
+        listener.downloadHraLink(link, true);
     }
 
     @JavascriptInterface

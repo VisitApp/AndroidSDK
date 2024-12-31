@@ -20,7 +20,7 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
+          "current_key": "AIzaSyC5KbM5EXqadGM34NBAOIrHI4bNi9GRCYo"
         },
         {
           "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
@@ -46,11 +46,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "74319562719-270hpg8vbpqi20e3jesail97flucd7j0.apps.googleusercontent.com",
+          "client_id": "74319562719-22g5g6mjal0j66dds2k0cbvloo9j3r24.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.googlefitsdk",
-            "certificate_hash": "5f7fc36fcb31ff47a12f3af1aad6f29d58eba6ef"
+            "certificate_hash": "bb79b8aad066ae052abfc6d035ff25bab4c6b946"
           }
         },
         {
@@ -60,7 +60,39 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDxXqRSgEyu4deno6rUPeFRWDFKyBS1zxQ"
+          "current_key": "AIzaSyC5KbM5EXqadGM34NBAOIrHI4bNi9GRCYo"
+        },
+        {
+          "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74319562719:android:316ae31348f3ff2046266a",
+        "android_client_info": {
+          "package_name": "com.example.googlefitsdkdemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "74319562719-7rart63dq265045vtanlni9m8o41tn7o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5KbM5EXqadGM34NBAOIrHI4bNi9GRCYo"
         },
         {
           "current_key": "AIzaSyAYqLLWupc_HboZPoaCgGpxobPauIdMHk4"

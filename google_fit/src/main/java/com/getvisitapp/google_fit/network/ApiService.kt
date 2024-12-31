@@ -3,6 +3,7 @@ package com.getvisitapp.google_fit.network
 import androidx.annotation.Keep
 import com.getvisitapp.google_fit.model.FitBitRevokeResponse
 import com.getvisitapp.google_fit.model.FitbitDataResponse
+import com.getvisitapp.google_fit.model.SaveFitbitTimeStampResponse
 import com.getvisitapp.google_fit.model.SessionRoom
 import com.getvisitapp.google_fit.model.TataAIGFitnessPayload
 import com.google.gson.JsonObject
@@ -32,7 +33,10 @@ interface ApiService {
     suspend fun pushDataToTataAIG(@Body tataAIGFitnessPayload: TataAIGFitnessPayload): JsonObject
 
     @POST("wearables/fitbit/revoke")
-    suspend fun revokeFitBitAccess():FitBitRevokeResponse
+    suspend fun revokeFitBitAccess(): FitBitRevokeResponse
 
+
+    @POST("new-auth/log-fitbit-lastsync")
+    suspend fun updateFitbitLastSyncTimestampForVisit(@Body jsonObject: JsonObject): SaveFitbitTimeStampResponse
 
 }
