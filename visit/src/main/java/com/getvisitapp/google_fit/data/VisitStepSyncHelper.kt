@@ -39,9 +39,9 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
             if (checker.checkGoogleFitAccess()) {
 
-                val tataAIGLastSyncTimeStamp = if (timeStamp == 0L)
-                    sharedPrefUtil.getTataAIGLastSyncTimeStamp()
-                else timeStamp
+                val tataAIGLastSyncTimeStamp =
+                    if (timeStamp == 0L) sharedPrefUtil.getTataAIGLastSyncTimeStamp()
+                    else timeStamp
 
                 val baseUrl = sharedPrefUtil.getVisitBaseUrl()
                 val authToken = sharedPrefUtil.getVisitAuthToken()
@@ -49,23 +49,21 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                 if (tataAIGLastSyncTimeStamp != 0L) {
 
-                    val googleFitConnector =
-                        GoogleFitConnector(
-                            context,
-                            default_web_client_id,
-                            object : GoogleConnectorFitListener {
-                                override fun onComplete() {
-                                    Log.d(TAG, "onComplete() called")
-                                }
+                    val googleFitConnector = GoogleFitConnector(context,
+                        default_web_client_id,
+                        object : GoogleConnectorFitListener {
+                            override fun onComplete() {
+                                Log.d(TAG, "onComplete() called")
+                            }
 
-                                override fun onError() {
-                                    Log.d(TAG, "onError() called")
-                                }
+                            override fun onError() {
+                                Log.d(TAG, "onError() called")
+                            }
 
-                                override fun onServerAuthCodeFound(s: String) {
-                                    Log.d(TAG, "error Occured: $s")
-                                }
-                            })
+                            override fun onServerAuthCodeFound(s: String) {
+                                Log.d(TAG, "error Occured: $s")
+                            }
+                        })
 
 
                     syncStepHelper = SyncStepHelper(
@@ -91,8 +89,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
     }
 
     fun sendHRAInComplete(
-        tataAIG_base_url: String,
-        tata_aig_authToken: String
+        tataAIG_base_url: String, tata_aig_authToken: String
     ) {
 
 
@@ -104,23 +101,21 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
         val isHraInComplete: Boolean = sharedPrefUtil.getHRAIncompleteStatus()
 
         if (!hraInCompleteStatusResponse.isNullOrEmpty() && isHraInComplete == false) {
-            val googleFitConnector =
-                GoogleFitConnector(
-                    context,
-                    default_web_client_id,
-                    object : GoogleConnectorFitListener {
-                        override fun onComplete() {
-                            Log.d(TAG, "onComplete() called")
-                        }
+            val googleFitConnector = GoogleFitConnector(context,
+                default_web_client_id,
+                object : GoogleConnectorFitListener {
+                    override fun onComplete() {
+                        Log.d(TAG, "onComplete() called")
+                    }
 
-                        override fun onError() {
-                            Log.d(TAG, "onError() called")
-                        }
+                    override fun onError() {
+                        Log.d(TAG, "onError() called")
+                    }
 
-                        override fun onServerAuthCodeFound(s: String) {
-                            Log.d(TAG, "error Occured: $s")
-                        }
-                    })
+                    override fun onServerAuthCodeFound(s: String) {
+                        Log.d(TAG, "error Occured: $s")
+                    }
+                })
 
             syncStepHelper = SyncStepHelper(
                 googleFitConnector,
@@ -135,8 +130,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
             try {
 
                 val hraInCompleteResponse: HraInCompleteResponse = Gson().fromJson(
-                    hraInCompleteStatusResponse,
-                    HraInCompleteResponse::class.java
+                    hraInCompleteStatusResponse, HraInCompleteResponse::class.java
                 )
 
                 val jsonObject = JSONObject()
@@ -178,16 +172,12 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
         Log.d("mytag", "getVisitApiService authToken: $visitAuthToken, baseUrl: $baseUrl")
 
         return APIServiceInstance.getApiService(
-            baseUrl,
-            context,
-            visitAuthToken,
-            true
+            baseUrl, context, visitAuthToken, true
         )
     }
 
     fun getTataAigAPIService(
-        tataAIG_base_url: String,
-        tata_aig_authToken: String
+        tataAIG_base_url: String, tata_aig_authToken: String
     ): ApiService {
 
         Log.d(
@@ -196,26 +186,20 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
         )
 
         return APIServiceInstance.getApiService(
-            tataAIG_base_url,
-            context,
-            tata_aig_authToken,
-            true
+            tataAIG_base_url, context, tata_aig_authToken, true
         )
     }
 
     //pass the start time if the client application wants to sync some data custom data.
     fun syncFitbitSteps(
-        tataAIG_base_url: String,
-        tata_aig_authToken: String,
-        startTimeStamp: Long = 0L
+        tataAIG_base_url: String, tata_aig_authToken: String, startTimeStamp: Long = 0L
     ) {
 
-        var startOfDay =
-            if (startTimeStamp == 0L) {
-                sharedPrefUtil.getFitbitLastSyncTimestamp()
-            } else {
-                startTimeStamp
-            }
+        var startOfDay = if (startTimeStamp == 0L) {
+            sharedPrefUtil.getFitbitLastSyncTimestamp()
+        } else {
+            startTimeStamp
+        }
 
         Log.d("mytag", "startOfDay: $startOfDay")
 
@@ -260,13 +244,11 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
 
         val visitApiService = getVisitApiService(
-            baseUrl = visitBaseUrl,
-            visitAuthToken = visitAuthToken
+            baseUrl = visitBaseUrl, visitAuthToken = visitAuthToken
         )
 
         val tataApiService = getTataAigAPIService(
-            tataAIG_base_url = tataAIG_base_url,
-            tata_aig_authToken = tata_aig_authToken
+            tataAIG_base_url = tataAIG_base_url, tata_aig_authToken = tata_aig_authToken
         )
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -286,28 +268,38 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                         )
 
                         val tataAIGServerResponse = tataApiService.pushDataToTataAIG(requestBody)
-                        if (tataAIGServerResponse.has("action")
-                            && tataAIGServerResponse.get("action").asString == "SUCCESS"
-                        ) {
+                        if (tataAIGServerResponse.has("action") && tataAIGServerResponse.get("action").asString == "SUCCESS") {
                             Log.d("mytag", "Fitbit data synced with TATA AIG server successfully")
 
-                            //after data is successfully synced to tata aig, saved the last sync timestamp.
-                            val endCalNew = Calendar.getInstance()
-                            endCalNew.timeInMillis = Date().time
+                            //after data is successfully synced to tata aig, saved the last sync timestamp. last sync timestamp should be the current data set to 12AM.
 
-                            Log.d("mytag", "endCalNew timestamp: ${endCalNew.timeInMillis}")
+                            //normalising the end date timestamp value
+                            val endCalMinusOneDay: Calendar = Calendar.getInstance()
+                            endCalMinusOneDay.time = endCal.time
+                            endCalMinusOneDay.add(Calendar.DATE, -1)
+                            val endOfDayMinusOneDayInMillis = endCalMinusOneDay.timeInMillis
 
+                            Log.d(
+                                "mytag",
+                                "endCalMinusOneDay timestamp: " + endOfDayMinusOneDayInMillis
+                            )
+
+                            Log.d("mytag", "endCal timestamp: " + endCal.timeInMillis)
 
                             //update the timestamp in for Visit Database.
 
                             val body = JsonObject()
-                            body.addProperty("lastSyncTimeStamp", endOfDay)
+
+                            body.addProperty("lastSyncTimeStamp", endOfDayMinusOneDayInMillis)
+
                             val response =
                                 visitApiService.updateFitbitLastSyncTimestampForVisit(body)
 
                             if (response.status == "success") {
-                                sharedPrefUtil.setFitBitLastSyncTimeStamp(endCalNew.timeInMillis)
-                                Log.d("mytag", "fitbit timestamp stored in visit backend.")
+                                sharedPrefUtil.setFitBitLastSyncTimeStamp(
+                                    endOfDayMinusOneDayInMillis
+                                )
+                                Log.d("mytag", "Fitbit timestamp stored in visit backend.")
 
                             } else {
                                 Log.d("mytag", "unable to update fitbit timestamp")
