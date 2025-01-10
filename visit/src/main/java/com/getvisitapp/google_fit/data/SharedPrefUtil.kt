@@ -2,7 +2,6 @@ package com.getvisitapp.google_fit.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import com.getvisitapp.google_fit.util.Constants
@@ -10,6 +9,7 @@ import com.getvisitapp.google_fit.util.Constants.FITBIT_CONNECTION_STATUS
 import com.getvisitapp.google_fit.util.Constants.FITBIT_LAST_SYNC_TIMESTAMP
 import com.getvisitapp.google_fit.util.Constants.HRA_INCOMPLETE_RESPONSE
 import com.getvisitapp.google_fit.util.Constants.IS_HRA_INCOMPLETE
+import com.getvisitapp.google_fit.util.Constants.POLICY_NUMBER
 
 @Keep
 class SharedPrefUtil(context: Context) {
@@ -86,6 +86,14 @@ class SharedPrefUtil(context: Context) {
 
     fun getFitBitConnectionStatus(): Boolean {
         return sharedPreferences.getBoolean(FITBIT_CONNECTION_STATUS, false)
+    }
+
+    fun setPolicyNumber(policyNumber: String) {
+        sharedPreferencesEditor.putString(POLICY_NUMBER, policyNumber).commit()
+    }
+
+    fun getPolicyNumber(): String {
+        return sharedPreferences.getString(POLICY_NUMBER, "")!!;
     }
 
 

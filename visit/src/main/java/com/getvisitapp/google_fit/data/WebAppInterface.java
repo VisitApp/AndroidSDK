@@ -26,7 +26,6 @@ public class WebAppInterface {
     }
 
 
-
     @JavascriptInterface
     public void disconnectFromGoogleFit() {
         Log.d("mytag", "disconnectFromGoogleFit() called");
@@ -64,9 +63,9 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected, long fitbitLastSyncTimeStamp) {
-        Log.d("mytag", "updateApiBaseUrlV3() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected + " fitbitLastSyncTimeStamp: " + fitbitLastSyncTimeStamp);
-        listener.updateApiBaseUrlV3(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId, fitbitConnected, fitbitLastSyncTimeStamp);
+    public void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean fitbitConnected, long fitbitLastSyncTimeStamp, String policyNumber) {
+        Log.d("mytag", "updateApiBaseUrlV3() called. apiBaseUrl: " + apiBaseUrl + ",authtoken: " + authtoken + ",googleFitLastSync: " + googleFitLastSync + ",gfHourlyLastSync: " + gfHourlyLastSync + " memberId: " + memberId + " fitbitConnected: " + fitbitConnected + " fitbitLastSyncTimeStamp: " + fitbitLastSyncTimeStamp + " policyNumber: " + policyNumber);
+        listener.updateApiBaseUrlV3(apiBaseUrl, authtoken, googleFitLastSync, gfHourlyLastSync, memberId, fitbitConnected, fitbitLastSyncTimeStamp, policyNumber);
     }
 
     @JavascriptInterface

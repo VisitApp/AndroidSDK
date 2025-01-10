@@ -18,4 +18,5 @@ object Constants {
     const val HRA_INCOMPLETE_RESPONSE="hra_incomplete_response"
     const val IS_HRA_INCOMPLETE="hra_incomplete"
     const val FITBIT_CONNECTION_STATUS="fitbit_connection_status"
+    const val POLICY_NUMBER="policyNumber"
 }

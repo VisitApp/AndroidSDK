@@ -629,6 +629,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         memberId: String,
         isFitBitConnected: Boolean,
         fitbitLastSyncTimeStamp: Long,
+        policyNumber: String
     ) {
 
         this.visitApiBaseUrl = visitApiBaseUrl
@@ -648,6 +649,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         sharedPrefUtil.setFitBitConnectedStatus(isFitBitConnected)
         sharedPrefUtil.setFitBitLastSyncTimeStamp(fitbitLastSyncTimeStamp)
+        sharedPrefUtil.setPolicyNumber(policyNumber)
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {

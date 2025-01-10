@@ -201,6 +201,8 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
             startTimeStamp
         }
 
+        val policyNumber = sharedPrefUtil.getPolicyNumber()
+
         Log.d("mytag", "startOfDay: $startOfDay")
 
         //normalising the start timestamp value
@@ -291,6 +293,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                             val body = JsonObject()
 
                             body.addProperty("lastSyncTimeStamp", endOfDayMinusOneDayInMillis)
+                            body.addProperty("policyNumber", policyNumber)
 
                             val response =
                                 visitApiService.updateFitbitLastSyncTimestampForVisit(body)
