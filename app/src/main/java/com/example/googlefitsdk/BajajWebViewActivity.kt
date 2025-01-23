@@ -80,7 +80,7 @@ class BajajWebViewActivity : AppCompatActivity() {
 
 
         mainUrl =
-            "https://fitpass.getvisitapp.com/sso?userParams=ewogICJkb2IiOiAiMjAwMS0wOC0yNFQwMDowMDowMCswNTozMCIsCiAgImVtYWlsIjogIjEyNTIyODQwNzcuZml0cGFzc0BnbWFpbC5jb20iLAogICJnZW5kZXIiOiAiTWFsZSIsCiAgIm1lbWJlcklkIjogMTI1MjI4NDA3NywKICAibW9kdWxlTmFtZSI6ICJsYWJzIiwKICAibmFtZSI6ICJWaWtyYW50IENob3VkaGFyeSIKfQ==&clientId=fit-pass-3a9c3"
+            ""
 
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
