@@ -51,11 +51,12 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
 
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable: Throwable ->
-        Timber.d("HealthConnectUtil coroutineExceptionHandler")
-        throwable.printStackTrace()
-        listener.logHealthConnectError(throwable)
-    }
+    private val coroutineExceptionHandler =
+        CoroutineExceptionHandler { coroutineContext, throwable: Throwable ->
+            Timber.d("HealthConnectUtil coroutineExceptionHandler")
+            throwable.printStackTrace()
+            listener.logHealthConnectError(throwable)
+        }
 
     val scope = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler)
 
@@ -168,6 +169,12 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
             getDailyStepAndSleepData()
         }
+    }
+
+    suspend fun getTodayStepData(): Long {
+        val steps =
+            graphDataOperationsHelper.getTodaySteps(getHealthConnectClient())
+        return steps
     }
 
     fun checkHealthConnectAvailabilityStatus(): Int {

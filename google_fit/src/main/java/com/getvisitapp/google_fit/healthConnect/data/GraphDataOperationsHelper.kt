@@ -68,6 +68,38 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         return finalString
     }
 
+    suspend fun getTodaySteps(
+        healthConnectClient: HealthConnectClient
+    ): Long {
+
+        val stepsStartTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).atZone(ZoneId.systemDefault())
+                .toInstant()
+
+
+        val stepsEndTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
+                .toInstant()
+
+        val stepsResponse = healthConnectClient.aggregate(
+            AggregateRequest(
+                metrics = setOf(
+                    StepsRecord.COUNT_TOTAL
+                ), timeRangeFilter = TimeRangeFilter.between(stepsStartTime, stepsEndTime)
+            )
+        )
+
+
+        // The result may be null if no data is available in the time range
+        val stepCount: Long = stepsResponse[StepsRecord.COUNT_TOTAL] ?: 0L
+
+        Timber.d(
+            "Steps: $stepCount"
+        )
+
+        return stepCount
+    }
+
     /**
      * Steps Reading Functions
      */
