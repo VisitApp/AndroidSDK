@@ -31,14 +31,14 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
 
     suspend fun getDailySyncData(dailyLastSyncTimeStamp: Long): List<DailySyncHealthMetric> {
 
-        //Case 1: If the timestamp is 0, then take last 15day timestamp and sync it from there.
-        //Case 2: If the timestamp is older then 15 days, then only sync the data for last 15 days.
+        //Case 1: If the timestamp is 0, then take last 30day timestamp and sync it from there.
+        //Case 2: If the timestamp is older then 30 days, then only sync the data for last 30 days.
         //Case 3: else sync from the dailyLastSyncTimeStamp
 
 
         //Case 1:
         val normalizedDateTime: LocalDateTime = if (dailyLastSyncTimeStamp == 0L) {
-            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
         } else {
             Instant.ofEpochMilli(dailyLastSyncTimeStamp).convertToLocalDateTime().withHour(0)
                 .withMinute(0).withSecond(0).withNano(0)
@@ -61,8 +61,8 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
 
 
         //Case 2:
-        if (daysInBetween > 15) {
-            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+        if (daysInBetween > 30) {
+            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
                 .atZone(ZoneId.systemDefault()).toInstant()
 
             daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)

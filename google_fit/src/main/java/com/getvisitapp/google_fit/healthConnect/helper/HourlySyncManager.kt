@@ -26,13 +26,13 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
 
     suspend fun getHourlySyncData(hourlyLastSyncTimestamp: Long): List<BulkHealthData> {
 
-        //Case 1: If the timestamp is 0, then take last 15day timestamp and sync it from there.
-        //Case 2: If the timestamp is older then 15 days, then only sync the data for last 15 days.
+        //Case 1: If the timestamp is 0, then take last 30day timestamp and sync it from there.
+        //Case 2: If the timestamp is older then 30 days, then only sync the data for last 30 days.
         //Case 3: else sync from the hourlyLastSyncTimestamp
 
         //Case 1:
         val normalizedStartDateTime: LocalDateTime = if (hourlyLastSyncTimestamp == 0L) {
-            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
         } else {
             LocalDateTime.of(
                 Instant.ofEpochMilli(hourlyLastSyncTimestamp).convertToLocalDateTime()
@@ -50,8 +50,8 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
         var daysInBetween = ChronoUnit.DAYS.between(startDate, endDate).toInt() + 1
 
         //Case 2:
-        if (daysInBetween > 15) {
-            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(15)
+        if (daysInBetween > 30) {
+            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
 
             daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
                 .toInt() + 1 // "+1" because current days is not included
