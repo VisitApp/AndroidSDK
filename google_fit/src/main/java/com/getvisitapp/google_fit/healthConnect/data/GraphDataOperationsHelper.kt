@@ -20,8 +20,6 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
     val stepsHelper by lazy { StepHelper(healthConnectClient) }
     val distanceHelper by lazy { DistanceHelper(healthConnectClient) }
     val calorieHelper by lazy { CalorieHelper(healthConnectClient) }
-    val sleepHelper by lazy { SleepHelper(healthConnectClient) }
-
 
     suspend fun getTodayStepsAndSleepData(
         healthConnectClient: HealthConnectClient
@@ -48,19 +46,15 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         // The result may be null if no data is available in the time range
         val stepCount: Long? = stepsResponse[StepsRecord.COUNT_TOTAL]
 
-        val sleepHelper = SleepHelper(healthConnectClient)
 
-        val sleepMetric = sleepHelper.getDailySleepData(LocalDate.now())
-
-        Timber.d("getDailySleepData() sleepDuration: ${sleepMetric.sleepDuration.toMinutes()}")
-
-        val stepsAndSleep = StepsAndSleep(stepCount, sleepMetric)
+        val stepsAndSleep = StepsAndSleep(stepCount)
 
         Timber.d(
-            "Steps: ${stepsAndSleep.steps}, formattedSleepDuration: ${stepsAndSleep.sleepMetric.formattedSleepDuration}, sleepDuration: ${stepsAndSleep.sleepMetric.sleepDuration.toMinutes()} "
+            "Steps: ${stepsAndSleep.steps}"
         )
+
         val finalString =
-            "window.updateFitnessPermissions(true,${stepsAndSleep.steps ?: 0},${stepsAndSleep.sleepMetric.sleepDuration.toMinutes()})"
+            "window.updateFitnessPermissions(true,${stepsAndSleep.steps ?: 0},0)"
 
         Timber.d(finalString)
 
@@ -484,53 +478,6 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         Timber.d("value: $webString")
 
         return webString
-    }
-
-    /**
-     * Sleep Reading Function
-     */
-
-    //1. Daily Sleep
-    //Expected Output: DetailedGraph.updateDailySleep(1724689800000,1724712378235)
-
-    suspend fun getDailySleepData(timeStamp: Long): String {
-
-        val requestedTimeStamp: LocalDateTime = timeStamp.convertEpochMillisToLocalDateTime()
-
-        val sleepMetric = sleepHelper.getDailySleepData(requestedTimeStamp.toLocalDate())
-
-        Timber.d("getDailySleepData() sleepDuration: ${sleepMetric?.sleepDuration?.toHoursPart()}::${sleepMetric?.sleepDuration?.toMinutesPart()}")
-
-        val webString =
-            "DetailedGraph.updateDailySleep(${sleepMetric?.sleepStartTimeMillis},${sleepMetric?.sleepEndTimeMillis})"
-
-        Timber.d("value: $webString")
-
-        return webString
-    }
-
-
-    //        2. Weekly Sleep
-//        Expected Output: DetailedGraph.updateSleepData(JSON.stringify([{"sleepTime":1723395642384,"wakeupTime":1723426200000,"day":"Mon","startTimestamp":1723401000000},{"sleepTime":1723480200000,"wakeupTime":1723512600000,"day":"Tue","startTimestamp":1723487400000},{"sleepTime":1723570618608,"wakeupTime":1723599000000,"day":"Wed","startTimestamp":1723573800000},{"sleepTime":1723661950089,"wakeupTime":1723685400000,"day":"Thu","startTimestamp":1723660200000},{"sleepTime":1723739400000,"wakeupTime":1723771800000,"day":"Fri","startTimestamp":1723746600000},{"sleepTime":1723825800000,"wakeupTime":1723858200000,"day":"Sat","startTimestamp":1723833000000},{"sleepTime":1723923449337,"wakeupTime":1723944600000,"day":"Sun","startTimestamp":1723919400000}]));
-//        Actual Output:   DetailedGraph.updateSleepData(JSON.stringify([{"day":"Mon","sleepTime":32400000,"startTimestamp":1723998600000,"wakeupTime":1724031000000},{"day":"Tue","sleepTime":32400000,"startTimestamp":1724085000000,"wakeupTime":1724117400000},{"day":"Wed","sleepTime":28800000,"startTimestamp":1724171640000,"wakeupTime":1724200440000},{"day":"Thu","sleepTime":30600000,"startTimestamp":1724263331060,"wakeupTime":1724293931060},{"day":"Fri","sleepTime":32400000,"startTimestamp":1724344200000,"wakeupTime":1724376600000},{"day":"Sat","sleepTime":22140000,"startTimestamp":1724438160000,"wakeupTime":1724460300000},{"day":"Sun","sleepTime":32400000,"startTimestamp":1724517000000,"wakeupTime":1724549400000}]));
-    suspend fun getWeeklySleepData(timeStamp: Long): String {
-
-        val requestedTimeStamp: LocalDateTime = timeStamp.convertEpochMillisToLocalDateTime()
-
-        val weeklySleepData: List<SleepModel> =
-            sleepHelper.getSleepDataForAWeek(requestedTimeStamp.toLocalDate())
-        Timber.d("weeklySleepData() $weeklySleepData")
-
-        val weeklySleepJson = Gson().toJson(weeklySleepData)
-
-        val webString = "DetailedGraph.updateSleepData(JSON.stringify(${weeklySleepJson}));"
-
-
-        Timber.d("weeklySleepJson: $weeklySleepJson")
-        Timber.d("webString: $webString")
-
-        return webString
-
     }
 
 }

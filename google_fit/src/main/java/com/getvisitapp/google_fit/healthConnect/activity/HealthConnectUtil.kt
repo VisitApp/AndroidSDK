@@ -426,39 +426,6 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
                         }
                     }
                 }
-
-                "sleep" -> {
-                    when (frequency) {
-                        "day" -> {
-                            scope.launch {
-                                try {
-
-                                    val resultString =
-                                        graphDataOperationsHelper.getDailySleepData(timeStamp)
-
-                                    listener.loadVisitWebViewGraphData(resultString)
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-
-                        }
-
-                        "week" -> {
-                            scope.launch {
-                                try {
-
-                                    val resultString =
-                                        graphDataOperationsHelper.getWeeklySleepData(timeStamp)
-                                    listener.loadVisitWebViewGraphData(resultString)
-
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
     }
