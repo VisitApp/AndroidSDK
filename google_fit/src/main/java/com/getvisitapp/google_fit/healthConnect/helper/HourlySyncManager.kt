@@ -2,11 +2,7 @@ package com.getvisitapp.google_fit.healthConnect.helper
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertInstantToEpochMillis
@@ -101,8 +97,6 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
             AggregateGroupByDurationRequest(
                 metrics = setOf(
                     StepsRecord.COUNT_TOTAL,
-                    DistanceRecord.DISTANCE_TOTAL,
-                    TotalCaloriesBurnedRecord.ENERGY_TOTAL
                 ),
                 timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant),
                 timeRangeSlicer = Duration.ofHours(1)
@@ -123,10 +117,6 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
             logMessage.append("bucketStartDateTime: $bucketStartDateTime | ")
             logMessage.append("bucketEndDateTime: $bucketEndDateTime | ")
             logMessage.append("steps total: ${result.result[StepsRecord.COUNT_TOTAL]} | ")
-            logMessage.append("distance total: ${result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters} | ")
-            logMessage.append("exercise total: ${result.result[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()} | ")
-            logMessage.append("calorie total: ${result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories} | ")
-            logMessage.append("sleep total: ${result.result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes()} | ")
             logMessage.append("startTime: ${result.startTime} | ")
             logMessage.append("endTime: ${result.endTime}")
 
@@ -140,26 +130,19 @@ class HourlySyncManager(private val healthConnectClient: HealthConnectClient) {
             if (record != null) {
 
                 record.st = result.result[StepsRecord.COUNT_TOTAL] ?: 0
-                record.d = result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters?.toInt() ?: 0
-                record.c =
-                    result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toInt()
-                        ?: 0
-                record.s = result.result.dataOrigins?.joinToString(",") { it.packageName }
             }
 
 
         }
 
         val totalStepsOfTheDay = hourlyRecord.sumOf { it.st }
-        val totalDistanceOfTheDay = hourlyRecord.sumOf { it.d }
-        val totalCalorieOfTheDay = hourlyRecord.sumOf { it.c }
 
 
         val bulkHealthData = BulkHealthData(
             hourlyRecord = hourlyRecord, dt = startDateInstant.convertInstantToEpochMillis()
         )
 
-        Timber.d("hourlyRecord: $hourlyRecord, totalStepsOfTheDay: $totalStepsOfTheDay, totalDistanceOfTheDay: $totalDistanceOfTheDay, totalCalorieOfTheDay: $totalCalorieOfTheDay \n \n")
+        Timber.d("hourlyRecord: $hourlyRecord, totalStepsOfTheDay: $totalStepsOfTheDay")
 
         return bulkHealthData
     }

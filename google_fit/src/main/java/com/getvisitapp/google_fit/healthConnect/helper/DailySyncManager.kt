@@ -2,10 +2,7 @@ package com.getvisitapp.google_fit.healthConnect.helper
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.google_fit.healthConnect.TimeUtil.convertLocalDateTimeToEpochMillis
@@ -109,10 +106,7 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
         val response = healthConnectClient.aggregateGroupByDuration(
             AggregateGroupByDurationRequest(
                 metrics = setOf(
-                    StepsRecord.COUNT_TOTAL,
-                    DistanceRecord.DISTANCE_TOTAL,
-                    ExerciseSessionRecord.EXERCISE_DURATION_TOTAL,
-                    TotalCaloriesBurnedRecord.ENERGY_TOTAL
+                    StepsRecord.COUNT_TOTAL
                 ),
                 timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant),
                 timeRangeSlicer = Duration.ofDays(1)
@@ -141,13 +135,6 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
 
                 finalHealthMetricDataList[index].steps = result.result[StepsRecord.COUNT_TOTAL] ?: 0
 
-                finalHealthMetricDataList[index].calorie =
-                    result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toLong()
-                        ?: 0L
-
-                finalHealthMetricDataList[index].distance =
-                    result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters?.toLong() ?: 0
-
                 finalHealthMetricDataList[index].activity =
                     activityTimeHelper.getTotalActivityTimeForDay(
                         healthConnectClient,
@@ -160,7 +147,7 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
             }
 
             Timber.d(
-                "bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime, " + "steps total: ${result.result[StepsRecord.COUNT_TOTAL]} " + "distance total: ${result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters} " + "exercise total: ${result.result[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()} " + "calorie total: ${result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories} " + "startTime:${result.startTime} ," + "endTime: ${result.endTime},"
+                "bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime, " + "steps total: ${result.result[StepsRecord.COUNT_TOTAL]} startTime:${result.startTime} ," + "endTime: ${result.endTime},"
             )
 
         }
