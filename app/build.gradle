@@ -50,7 +50,8 @@ android {
 }
 
 dependencies {
-    implementation project(':visit')
+//    implementation project(':visit')
+    implementation files('visit-debug.aar')
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
