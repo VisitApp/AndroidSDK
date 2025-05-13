@@ -1,14 +1,14 @@
 package com.example.googlefitsdk
 
-import com.getvisitapp.visit.BuildConfig
+//import com.getvisitapp.visit.BuildConfig
 import timber.log.Timber
 
 object TimberUtils {
 
     @JvmStatic
     fun configTimber() {
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        }
+//        if (BuildConfig.DEBUG) {
+//            Timber.plant(Timber.DebugTree())
+//        }
     }
 }

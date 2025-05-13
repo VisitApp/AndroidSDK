@@ -1,11 +1,11 @@
 package com.example.googlefitsdk
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.example.app.R
-import com.getvisitapp.visit.VisitSDK
-import timber.log.Timber
+import com.zomato.chatsdk.activities.ChatSDKDeepLinkRouter
 
 
 class MainActivity : AppCompatActivity() {
@@ -17,29 +17,17 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button).setOnClickListener {
             init()
         }
-
-        VisitSDK.getUserEventCallback { eventName: String ->
-
-            Timber.tag("mytag").d("setUserEventCallback eventName: $eventName")
-        }
-
-        VisitSDK.getErrorEventCallback { errorMessage: String, description: String? ->
-
-            Timber.tag("mytag")
-                .d("setErrorEventCallback errorMessage: $errorMessage, description: $description")
-        }
     }
 
 
     private fun init() {
-
-        val ssoLink =
-            "https://web.getvisitapp.net"
-
-        VisitSDK.init(
-            this, false, ssoLink
+        val intent = Intent(
+            this,
+            ChatSDKDeepLinkRouter::class.java
         )
+        intent.putExtra("uri", "")
+        startActivity(intent)
     }
-
 }
+
 
