@@ -7,6 +7,8 @@ import androidx.annotation.Keep;
 
 import com.getvisitapp.google_fit.event.MessageEvent;
 import com.getvisitapp.google_fit.event.VisitEventType;
+import com.getvisitapp.google_fit.model.SyncDateHelper;
+import com.getvisitapp.google_fit.model.SyncStartAndEndDate;
 import com.getvisitapp.google_fit.okhttp.ApiResponse;
 import com.getvisitapp.google_fit.okhttp.MainActivityPresenter;
 import com.getvisitapp.google_fit.okhttp.Transformers;
@@ -15,6 +17,7 @@ import com.getvisitapp.google_fit.pojo.HealthDataGraphValues;
 import com.getvisitapp.google_fit.pojo.StartEndDate;
 import com.getvisitapp.google_fit.util.DateHelper;
 import com.getvisitapp.google_fit.util.GoogleFitConnector;
+import com.getvisitapp.google_fit.view.SyncStatusListener;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -31,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import rx.Emitter;
@@ -56,84 +60,42 @@ public class SyncStepHelper {
     private long endSyncTime;
 
     private Context context;
-    private SimpleDateFormat readableFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
-
+    private SimpleDateFormat readableFormat = new SimpleDateFormat("d MMM, yyyy", Locale.ENGLISH);
     JSONArray tataAIG_sync_data = new JSONArray();
     private String memberId;
     private boolean syncWithTataAIGServerOnly;
 
     private SharedPrefUtil sharedPrefUtil;
 
-    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, String tata_aig_baseURL, String tata_aig_authToken, String memberId, Context context) {
+    SyncStatusListener syncStatusListener;
+
+    public SyncStepHelper(GoogleFitConnector connector, String baseUrl, String authToken, String tata_aig_baseURL, String tata_aig_authToken, String memberId, Context context, SyncStatusListener syncStatusListener) {
         this.googleFitConnector = connector;
         this.compositeSubscription = new CompositeSubscription();
         this.mainActivityPresenter = new MainActivityPresenter(baseUrl, authToken, tata_aig_baseURL, tata_aig_authToken, context);
         this.context = context;
         this.memberId = memberId;
         this.sharedPrefUtil = new SharedPrefUtil(context);
+        this.syncStatusListener = syncStatusListener;
     }
 
-    public void dailySync(long googleFitLastSync) {
+    public void dailySync(long startTimeStamp, long endTimeStamp, boolean isManual) {
+
+        SyncDateHelper syncDateHelper = new SyncDateHelper();
+        SyncStartAndEndDate syncStartAndEndDate = syncDateHelper.getSyncDates(startTimeStamp, endTimeStamp, isManual);
+
+        getSyncData(syncStartAndEndDate.getStartTimeStamp(), syncStartAndEndDate.getEndTimeStamp());
 
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date()); // compute start of the day for the timestamp
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        // long startOfDay = cal.getTimeInMillis();
-        cal.set(Calendar.HOUR_OF_DAY, 23);
-        cal.set(Calendar.MINUTE, 59);
-        cal.set(Calendar.SECOND, 59);
-        final long endOfDay = cal.getTimeInMillis();
+        Log.d(TAG, "dailySync called.");
+        Log.d(TAG, "Start Time: " + readableFormat.format(syncStartAndEndDate.getStartTimeStamp()) + " timestamp: " + syncStartAndEndDate.getStartTimeStamp());
+        Log.d(TAG, "End Of day: " + readableFormat.format(syncStartAndEndDate.getEndTimeStamp()) + " timestamp: " + syncStartAndEndDate.getEndTimeStamp());
+        Log.d(TAG, "isManual: " + syncStartAndEndDate.isManual());
 
-
-        long startTime = googleFitLastSync;
-        Log.d(TAG, "GoogleFitLastSync: " + startTime);
-
-        Calendar last30Days;
-        last30Days = Calendar.getInstance();
-        last30Days.setTime(new Date());
-        last30Days.set(Calendar.HOUR_OF_DAY, 0);
-        last30Days.set(Calendar.MINUTE, 0);
-        last30Days.set(Calendar.SECOND, 0);
-        last30Days.set(Calendar.MILLISECOND, 0);
-        last30Days.add(Calendar.DATE, -15);
-
-
-        if (startTime == 0) {
-
-            startTime = last30Days.getTimeInMillis();
-        } else {
-
-            int noOfDays = DateHelper.getDifferenceBetweenTwoDays(startTime, last30Days.getTimeInMillis());
-
-            if (noOfDays > 15) {
-                startTime = last30Days.getTimeInMillis();
-            } else {
-
-                // If the user has not updated his steps count for the first challenge then manually update his steps
-                // This will update the step count for his previous 10 days
-                // First challenge went live on 15th, so assuming that the user updates the app on 25th also, it will update his step count
-                Calendar calendar;
-                calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(startTime);
-                calendar.add(Calendar.DATE, -1);
-                startTime = calendar.getTimeInMillis();
-
-            }
-        }
-
-        getSyncData(startTime, endOfDay);
-        Log.d(TAG, "Start Time: " + startTime);
-        Log.d(TAG, "End Of day: " + endOfDay);
-
-        startSyncTime = startTime;
-        endSyncTime = endOfDay;
-
-
+        startSyncTime = syncStartAndEndDate.getStartTimeStamp();
+        endSyncTime = syncStartAndEndDate.getEndTimeStamp();
     }
+
 
     private void getSyncData(long start, long end) {
         Log.d(TAG, "startTime: " + start + ", endTime: " + end);
@@ -277,51 +239,20 @@ public class SyncStepHelper {
      *
      * @param startTimeStamp is the epoch timestamp in the format 1645166569594
      */
-    public void hourlySync(long startTimeStamp, boolean syncWithTataAIGServerOnly) {
+    public void hourlySync(long startTimeStamp, long endTimeStamp, boolean isManual, boolean syncWithTataAIGServerOnly) {
         this.syncWithTataAIGServerOnly = syncWithTataAIGServerOnly;
 
-        Calendar calendar = Calendar.getInstance();
+        SyncDateHelper syncDateHelper = new SyncDateHelper();
+        SyncStartAndEndDate syncStartAndEndDate = syncDateHelper.getSyncDates(startTimeStamp, endTimeStamp, isManual);
 
-        calendar.setTimeInMillis(startTimeStamp);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        startTimeStamp = calendar.getTimeInMillis();
-        Log.d(TAG, "onRunJob: " + startTimeStamp);
-        Log.d(TAG, "onRunJob: " + readableFormat.format(startTimeStamp));
-        // If difference between the timestamp and today is over 30 days, then only fetch recent 30 days data from google
-        // And mark the job done once the 30 days data is synced
-        // Each day needs to be run sequentially
-
-        int diffDays = GoogleFitConnector.getDifferenceBetweenTwoDays(startTimeStamp, System.currentTimeMillis()) + 1;
-        Log.d(TAG, "onRunJob: diffDays: " + diffDays);
-
-        long endTimeStamp = 0;
-        if (diffDays > 30) {
-            //if diffDays are 30 or more, then we will sync only the recent 30 days.
-
-            Calendar startCalendar = Calendar.getInstance();
-            startCalendar.setTimeInMillis(System.currentTimeMillis());
-
-            //doing to remove the hours passed in the today's date.
-            startCalendar.set(Calendar.HOUR_OF_DAY, 0);
-            startCalendar.set(Calendar.MINUTE, 0);
-            startCalendar.set(Calendar.SECOND, 0);
-
-            startCalendar.add(Calendar.DATE, -30); //going back to 30 days.
-            startTimeStamp = startCalendar.getTimeInMillis();
-
-        }
-
-        endTimeStamp = System.currentTimeMillis();
-
-        Log.d(TAG, "startTimeStamp:" + readableFormat.format(startTimeStamp));
-        Log.d(TAG, "endTimeStamp:" + readableFormat.format(endTimeStamp));
-
+        Log.d(TAG, "hourlySync called.");
+        Log.d(TAG, "startTimeStamp:" + readableFormat.format(syncStartAndEndDate.getStartTimeStamp()) + " timestamp: " + syncStartAndEndDate.getStartTimeStamp());
+        Log.d(TAG, "endTimeStamp:" + readableFormat.format(syncStartAndEndDate.getEndTimeStamp()) + " timestamp: " + syncStartAndEndDate.getEndTimeStamp());
+        Log.d(TAG, "isManual:" + syncStartAndEndDate.isManual());
 
         JSONArray jsonArray = new JSONArray();
 
-        syncDataForDay(startTimeStamp, endTimeStamp, context)
+        syncDataForDay(syncStartAndEndDate.getStartTimeStamp(), syncStartAndEndDate.getEndTimeStamp(), context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<JSONObject>() {
@@ -357,7 +288,7 @@ public class SyncStepHelper {
                             finalRequest.put("member_id", String.valueOf(memberId));
                             finalRequest.put("data", tataAIG_sync_data);
                             Log.d(TAG, "tata AIG finalRequest: " + finalRequest.toString());
-                            syncDateToTATA_Server(finalRequest);
+                            syncDateToTATA_Server(finalRequest, isManual);
                         } catch (Exception e) {
                             Log.d(TAG, "exception occured:" + e.getMessage());
                         }
@@ -447,7 +378,7 @@ public class SyncStepHelper {
     }
 
     private Observable<JSONObject> getPayloadForDay(long start, long end, Context context) {
-//
+
         Log.d(TAG, "Start: " + start + " End: " + end);
         Log.d(TAG, "getPayloadForDay: " + readableFormat.format(start) + " to " + readableFormat.format(end));
 
@@ -536,7 +467,8 @@ public class SyncStepHelper {
                 });
     }
 
-    private void syncDateToTATA_Server(JSONObject jsonObject) {
+    private void syncDateToTATA_Server(JSONObject jsonObject, boolean isManual) {
+        Log.d(TAG, "syncDateToTATA_Server: started");
         mainActivityPresenter.syncDayWithTATA_AIG_Server(jsonObject).subscribeOn(Schedulers.io())
                 .doOnError(new Action1<Throwable>() {
                     @Override
@@ -563,6 +495,10 @@ public class SyncStepHelper {
                     public void call(Boolean aBoolean) {
                         Log.d("mytag", "TATA AIG Sync Status: " + aBoolean);
                         if (aBoolean) {
+                            if (isManual && syncStatusListener != null) {
+                                syncStatusListener.syncWithTATA_AIG_Server_Success();
+                            }
+
                             Calendar calendar = Calendar.getInstance();
                             sharedPrefUtil.setTataAIGLastSyncTimeStamp(calendar.getTimeInMillis());
 
@@ -580,6 +516,10 @@ public class SyncStepHelper {
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
+                        Log.d(TAG, "TATA AIG sync failed");
+                        if (isManual && syncStatusListener != null) {
+                            syncStatusListener.syncWithTATA_AIG_Server_Failure("Syncing Failed");
+                        }
                         throwable.printStackTrace();
                     }
                 });

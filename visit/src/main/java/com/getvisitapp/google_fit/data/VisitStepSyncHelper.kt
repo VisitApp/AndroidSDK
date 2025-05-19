@@ -49,7 +49,8 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                 if (tataAIGLastSyncTimeStamp != 0L) {
 
-                    val googleFitConnector = GoogleFitConnector(context,
+                    val googleFitConnector = GoogleFitConnector(
+                        context,
                         default_web_client_id,
                         object : GoogleConnectorFitListener {
                             override fun onComplete() {
@@ -73,13 +74,14 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                         tataAIG_base_url,
                         tata_aig_authToken,
                         memberId,
-                        context
+                        context,
+                        null
                     )
 
                 }
 
                 if (tataAIGLastSyncTimeStamp != 0L) {
-                    syncStepHelper.hourlySync(tataAIGLastSyncTimeStamp, true)
+                    syncStepHelper.hourlySync(tataAIGLastSyncTimeStamp, -1, false, true)
                 }
             }
 
@@ -101,7 +103,8 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
         val isHraInComplete: Boolean = sharedPrefUtil.getHRAIncompleteStatus()
 
         if (!hraInCompleteStatusResponse.isNullOrEmpty() && isHraInComplete == false) {
-            val googleFitConnector = GoogleFitConnector(context,
+            val googleFitConnector = GoogleFitConnector(
+                context,
                 default_web_client_id,
                 object : GoogleConnectorFitListener {
                     override fun onComplete() {
@@ -118,13 +121,14 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                 })
 
             syncStepHelper = SyncStepHelper(
-                googleFitConnector,
-                baseUrl,
-                authToken,
-                tataAIG_base_url,
-                tata_aig_authToken,
-                memberId,
-                context
+                /* connector = */ googleFitConnector,
+                /* baseUrl = */ baseUrl,
+                /* authToken = */ authToken,
+                /* tata_aig_baseURL = */ tataAIG_base_url,
+                /* tata_aig_authToken = */ tata_aig_authToken,
+                /* memberId = */ memberId,
+                /* context = */ context,
+                /* syncStatusListener = */ null
             )
 
             try {

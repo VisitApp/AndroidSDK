@@ -48,6 +48,7 @@ import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.LocationTrackerUtil
 import com.getvisitapp.google_fit.util.PdfDownloader
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener
+import com.getvisitapp.google_fit.view.SyncStatusListener
 import com.getvisitapp.google_fit.view.VideoCallListener
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -80,7 +81,8 @@ Sync steps and calories api failed (done)
 
  */
 @Keep
-class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener {
+class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStatusListener,
+    SyncStatusListener {
 
     var TAG = "mytag"
 
@@ -220,7 +222,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 Log.d("mytag", "onDownloadRequested() url:$url, mimeType:$mimetype");
 
                 url?.let {
-                    pdfDownloader.downloadPdfFile(fileDir = filesDir,
+                    pdfDownloader.downloadPdfFile(
+                        fileDir = filesDir,
                         pdfUrl = url,
                         authorization = authtoken!!,
                         onDownloadComplete = {
@@ -568,13 +571,16 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
                 googleFitUtil.sendDataToServer(
-                    visitApiBaseUrl + "/",
-                    authtoken,
-                    googleFitLastSync,
-                    gfHourlyLastSync,
-                    memberId,
-                    tataAIG_base_url,
-                    tataAIG_auth_token
+                    /* baseUrl = */ visitApiBaseUrl + "/",
+                    /* authToken = */ authtoken,
+                    /* googleFitLastSync = */ googleFitLastSync,
+                    /* gfHourlyLastSync = */ gfHourlyLastSync,
+                    /* memberId = */ memberId,
+                    /* tataAIG_base_url = */ tataAIG_base_url,
+                    /* tata_aig_authToken = */ tataAIG_auth_token,
+                    /* endTimeStamp = */ -1,
+                    /* isManual = */ false,
+                    this
                 )
                 syncDataWithServer = true
             }
@@ -670,18 +676,21 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             if (sharedPrefUtil.getFitBitConnectionStatus()) {
                 visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
             } else {
-                runOnUiThread(Runnable {
+                runOnUiThread {
                     googleFitUtil.sendDataToServer(
-                        visitApiBaseUrl + "/",
-                        authtoken,
-                        this.googleFitLastSync,
-                        this.gfHourlyLastSync,
-                        memberId,
-                        tataAIG_base_url,
-                        tataAIG_auth_token
+                        /* baseUrl = */ visitApiBaseUrl + "/",
+                        /* authToken = */ authtoken,
+                        /* googleFitLastSync = */ this.googleFitLastSync,
+                        /* gfHourlyLastSync = */ this.gfHourlyLastSync,
+                        /* memberId = */ memberId,
+                        /* tataAIG_base_url = */ tataAIG_base_url,
+                        /* tata_aig_authToken = */ tataAIG_auth_token,
+                        /* endTimeStamp = */ -1,
+                        /* isManual = */ false,
+                        this
                     )
                     syncDataWithServer = true
-                })
+                }
             }
         }
     }
@@ -946,7 +955,9 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         )
 
 
-        pdfDownloader.downloadPdfFile(fileDir = filesDir, pdfUrl = url,
+        pdfDownloader.downloadPdfFile(
+            fileDir = filesDir,
+            pdfUrl = url,
             authorization = authtoken!!,
             onDownloadComplete = {
                 if (toShare) {
@@ -981,7 +992,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 }
 
 
-            }, onDownloadFailed = {
+            },
+            onDownloadFailed = {
                 Log.d(TAG, "downloadHraLink() download failed, opening it in chrome")
                 try {
                     val uri = Uri.parse(url)
@@ -1127,6 +1139,31 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         this.authtoken = authToken
     }
 
+    override fun startManualSync(startTimeStamp: Long, endTimeStamp: Long) {
+        Log.d("mytag", "startManualSync: $startTimeStamp, endTimeStamp: $endTimeStamp")
+
+
+        //manually calling sync steps here because we are not getting sync step event after the google fit is connected
+        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
+            runOnUiThread {
+                googleFitUtil.sendDataToServer(
+                    /* baseUrl = */ visitApiBaseUrl + "/",
+                    /* authToken = */ authtoken,
+                    /* googleFitLastSync = */ startTimeStamp * 1000,//converting to milliseconds
+                    /* gfHourlyLastSync = */ startTimeStamp * 1000,//converting to milliseconds,
+                    /* memberId = */ memberId,
+                    /* tataAIG_base_url = */ tataAIG_base_url,
+                    /* tata_aig_authToken = */ tataAIG_auth_token,
+                    /* endTimeStamp = */ endTimeStamp * 1000,//converting to milliseconds,
+                    /* isManual = */ true,
+                    /* listener = */ this
+                )
+            }
+        }
+
+
+    }
+
 
     inner class MyChrome internal constructor() : WebChromeClient() {
         private var mCustomView: View? = null
@@ -1193,8 +1230,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         }
 
         override fun onGeolocationPermissionsShowPrompt(
-            origin: String?,
-            callback: GeolocationPermissions.Callback?
+            origin: String?, callback: GeolocationPermissions.Callback?
         ) {
             Log.d("mytag", "onGeolocationPermissionsShowPrompt called")
             super.onGeolocationPermissionsShowPrompt(origin, callback);
@@ -1225,6 +1261,22 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         } else {
             JSONObject(Html.fromHtml(response).toString())
         }
+    }
+
+    override fun syncWithTATA_AIG_Server_Success() {
+        Handler(Looper.getMainLooper()).postDelayed({
+            binding.webview.evaluateJavascript(
+                "window.manualSyncSuccess()", null
+            )
+        }, 1000)
+    }
+
+    override fun syncWithTATA_AIG_Server_Failure(message: String) {
+        Handler(Looper.getMainLooper()).postDelayed({
+            binding.webview.evaluateJavascript(
+                "window.manualSyncFailure(\"$message\")", null
+            )
+        }, 1000)
     }
 
 

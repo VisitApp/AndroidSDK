@@ -11,6 +11,7 @@ import com.getvisitapp.google_fit.util.GoogleFitConnector;
 import com.getvisitapp.google_fit.util.StepsCounter;
 import com.getvisitapp.google_fit.view.GenericListener;
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
+import com.getvisitapp.google_fit.view.SyncStatusListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -111,24 +112,19 @@ public class GoogleFitUtil implements GenericListener {
             @Override
             public void onNext(SleepStepsData sleepStepsData) {
                 Log.d("mytag", "steps:" + sleepStepsData.steps + " , sleep=" + sleepStepsData.sleepCard);
-                listener.loadDailyFitnessData(sleepStepsData.steps , TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
+                listener.loadDailyFitnessData(sleepStepsData.steps, TimeUnit.SECONDS.toMinutes(sleepStepsData.sleepCard.getSleepSeconds()));
             }
         };
 
-        Observable.zip(googleFitConnector.getTotalStepsForToday(),
-                googleFitConnector.getSleepForToday(),
-                (integers, sleepCard) -> {
-                    SleepStepsData sleepStepsData;
-                    if (!integers.isEmpty()) {
-                        sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
-                    } else {
-                        sleepStepsData = new SleepStepsData(sleepCard, 0);
-                    }
-                    return sleepStepsData;
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(sleepStepsDataSubscriber);
+        Observable.zip(googleFitConnector.getTotalStepsForToday(), googleFitConnector.getSleepForToday(), (integers, sleepCard) -> {
+            SleepStepsData sleepStepsData;
+            if (!integers.isEmpty()) {
+                sleepStepsData = new SleepStepsData(sleepCard, integers.get(0));
+            } else {
+                sleepStepsData = new SleepStepsData(sleepCard, 0);
+            }
+            return sleepStepsData;
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(sleepStepsDataSubscriber);
     }
 
     public void getActivityData(String type, String frequency, long timeStamp) {
@@ -184,42 +180,30 @@ public class GoogleFitUtil implements GenericListener {
             if (type.equals("steps")) {
                 switch (frequency) {
                     case "day": {
-                        googleFitConnector.getDailySteps(startOfDay, endOfDay)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getDailySteps(startOfDay, endOfDay).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "week": {
-                        googleFitConnector.getWeeklySteps(startOfWeek, endOfWeek)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklySteps(startOfWeek, endOfWeek).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "month": {
-                        googleFitConnector.getWeeklySteps(startOfMonth, endOfMonth)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklySteps(startOfMonth, endOfMonth).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                 }
             } else if (type.equals("distance")) {
                 switch (frequency) {
                     case "day": {
-                        googleFitConnector.getDailyDistance(startOfDay, endOfDay)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getDailyDistance(startOfDay, endOfDay).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "week": {
-                        googleFitConnector.getWeeklyDistance(startOfWeek, endOfWeek)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklyDistance(startOfWeek, endOfWeek).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "month": {
-                        googleFitConnector.getWeeklyDistance(startOfMonth, endOfMonth)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklyDistance(startOfMonth, endOfMonth).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
 
@@ -227,21 +211,15 @@ public class GoogleFitUtil implements GenericListener {
             } else if (type.equals("calories")) {
                 switch (frequency) {
                     case "day": {
-                        googleFitConnector.getDailyCalories(startOfDay, endOfDay)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getDailyCalories(startOfDay, endOfDay).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "week": {
-                        googleFitConnector.getWeeklyCalories(startOfWeek, endOfWeek)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklyCalories(startOfWeek, endOfWeek).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "month": {
-                        googleFitConnector.getWeeklyCalories(startOfMonth, endOfMonth)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getWeeklyCalories(startOfMonth, endOfMonth).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
 
@@ -249,15 +227,11 @@ public class GoogleFitUtil implements GenericListener {
             } else if (type.equals("sleep")) {
                 switch (frequency) {
                     case "day": {
-                        googleFitConnector.getSleepForTheDay(startOfDay)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getSleepForTheDay(startOfDay).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                     case "week": {
-                        googleFitConnector.getSleepForWeek(startOfWeek, 7)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(healthDataGraphValuesSubscriber);
+                        googleFitConnector.getSleepForWeek(startOfWeek, 7).observeOn(AndroidSchedulers.mainThread()).subscribe(healthDataGraphValuesSubscriber);
                         break;
                     }
                 }
@@ -355,19 +329,29 @@ public class GoogleFitUtil implements GenericListener {
         }
     }
 
-    public void sendDataToServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync, String memberId, String tataAIG_base_url, String tata_aig_authToken) {
+    //googleFitLastSync should be considered as a start timestamp from when the sync should start.
+
+    public void sendDataToServer(String baseUrl,
+                                 String authToken,
+                                 long googleFitLastSync,
+                                 long gfHourlyLastSync,
+                                 String memberId,
+                                 String tataAIG_base_url,
+                                 String tata_aig_authToken,
+                                 long endTimeStamp,
+                                 boolean isManual,
+                                 SyncStatusListener listener) {
         if (stepsCounter.hasAccess()) {
-            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, tataAIG_base_url, tata_aig_authToken, memberId, context);
-            if (googleFitLastSync != 0) {
-                syncStepHelper.dailySync(googleFitLastSync);
-            }
-            if (gfHourlyLastSync != 0) {
-                syncStepHelper.hourlySync(gfHourlyLastSync,false);
-            }
+            syncStepHelper = new SyncStepHelper(getGoogleFitConnector(), baseUrl, authToken, tataAIG_base_url, tata_aig_authToken, memberId, context, listener);
 
-
+            if (isManual) {
+                syncStepHelper.dailySync(googleFitLastSync, endTimeStamp, true);
+                syncStepHelper.hourlySync(gfHourlyLastSync, endTimeStamp, true, false);
+            } else {
+                syncStepHelper.dailySync(googleFitLastSync, -1, false); //Here the endTimeStamp will be -1, because it doesn't matter what we pass, it should be synced till today's dates.
+                syncStepHelper.hourlySync(gfHourlyLastSync, -1, false, false); //Here the endTimeStamp will be -1, because it doesn't matter what we pass, it should be synced till today's dates.
+            }
         }
-
     }
 
 }

@@ -201,5 +201,11 @@ public class WebAppInterface {
         listener.setAuthToken(authToken);
     }
 
+    @JavascriptInterface
+    public void startManualSync(long startTimeStamp, long endTimeStamp) {
+        Log.d("mytag", "startManualSync called(): " + startTimeStamp + " endTimeStamp" + endTimeStamp);
+        listener.startManualSync(startTimeStamp,endTimeStamp);
+    }
+
 
 }

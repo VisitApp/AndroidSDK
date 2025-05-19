@@ -21,7 +21,7 @@ public interface GoogleFitStatusListener {
     void loadGraphDataUrl(String url);
 
 
-    void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean isFitBitConnected, long fitbitLastSyncTimeStamp,String policyNumber);
+    void updateApiBaseUrlV3(String apiBaseUrl, String authtoken, long googleFitLastSync, long gfHourlyLastSync, String memberId, boolean isFitBitConnected, long fitbitLastSyncTimeStamp, String policyNumber);
 
     void visitCredentialCallback(String visitApiBaseUrl, String visitAuthToken);
 
@@ -69,5 +69,7 @@ public interface GoogleFitStatusListener {
     void downloadPdf(@NonNull String link);
 
     void setAuthToken(@NonNull String authToken);
+
+    void startManualSync(long startTimeStamp, long endTimeStamp);
 
 }
