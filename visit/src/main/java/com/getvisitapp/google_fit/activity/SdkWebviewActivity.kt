@@ -840,6 +840,12 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         runOnUiThread {
             //check for google fit has access and call this event
 
+
+            binding.webview.evaluateJavascript(
+                "window.showManualSyncButton()", null
+            )
+
+
             if (googleFitStepChecker.checkGoogleFitAccess()) {
                 binding.webview.evaluateJavascript(
                     "window.googleFitStatus(true)", null
