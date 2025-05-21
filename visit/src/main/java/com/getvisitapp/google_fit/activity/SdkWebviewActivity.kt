@@ -319,6 +319,13 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                             binding.webview.evaluateJavascript(
                                 "window.fitbitConnectSuccessfully(true)", null
                             )
+
+                            Log.d("mytag", "window.showManualSyncButton()")
+
+                            binding.webview.evaluateJavascript(
+                                "window.showManualSyncButton()", null
+                            )
+
                             EventBus.getDefault()
                                 .post(MessageEvent(VisitEventType.FitnessPermissionGranted(false)))
                             Toast.makeText(
@@ -563,7 +570,14 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 binding.webview.evaluateJavascript(
                     "window.googleFitnessConnectedSuccessfully(true)", null
                 )
+
+                Log.d("mytag", "window.showManualSyncButton()")
+
+                binding.webview.evaluateJavascript(
+                    "window.showManualSyncButton()", null
+                )
             }
+
         }
 
 
@@ -711,7 +725,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 endTimeStamp = endTimeStamp * 1000,
                 isManual = true
             )
-        } else if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
+        } else if (googleFitUtil.stepsCounter.hasAccess() && visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
                 googleFitUtil.sendDataToServer(
                     /* baseUrl = */ visitApiBaseUrl + "/",
@@ -728,11 +742,12 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             }
         } else {
             runOnUiThread {
-                Toast.makeText(
-                    this,
-                    "Connect to Google Fit or Fitbit before doing manual sync",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Handler(Looper.getMainLooper()).postDelayed({
+                    binding.webview.evaluateJavascript(
+                        "window.manualSyncFailure(\"Connect to Google Fit or Fitbit before doing manual sync\")",
+                        null
+                    )
+                }, 1000)
             }
         }
 
