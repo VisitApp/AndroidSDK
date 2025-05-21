@@ -725,8 +725,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             visitSyncStepSyncHelper.syncFitbitSteps(
                 tataAIG_base_url = tataAIG_base_url,
                 tata_aig_authToken = tataAIG_auth_token,
-                startTimeStamp = startTimeStamp * 1000,
-                endTimeStamp = endTimeStamp * 1000,
+                startTimeStamp = startTimeStamp,
+                endTimeStamp = endTimeStamp,
                 isManual = true,
                 syncStatusListener = this
             )
@@ -735,12 +735,12 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 googleFitUtil.sendDataToServer(
                     /* baseUrl = */ visitApiBaseUrl + "/",
                     /* authToken = */ authtoken,
-                    /* googleFitLastSync = */ startTimeStamp * 1000,
-                    /* gfHourlyLastSync = */ startTimeStamp * 1000,
+                    /* googleFitLastSync = */ startTimeStamp,
+                    /* gfHourlyLastSync = */ startTimeStamp,
                     /* memberId = */ memberId,
                     /* tataAIG_base_url = */ tataAIG_base_url,
                     /* tata_aig_authToken = */ tataAIG_auth_token,
-                    /* endTimeStamp = */ endTimeStamp * 1000,
+                    /* endTimeStamp = */ endTimeStamp,
                     /* isManual = */ true,
                     /* listener = */ this
                 )
@@ -1309,19 +1309,19 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     }
 
     override fun syncWithTATA_AIG_Server_Success() {
-        Handler(Looper.getMainLooper()).postDelayed({
+        Handler(Looper.getMainLooper()).post({
             binding.webview.evaluateJavascript(
                 "window.manualSyncSuccess()", null
             )
-        }, 1000)
+        })
     }
 
     override fun syncWithTATA_AIG_Server_Failure(message: String) {
-        Handler(Looper.getMainLooper()).postDelayed({
+        Handler(Looper.getMainLooper()).post({
             binding.webview.evaluateJavascript(
                 "window.manualSyncFailure(\"$message\")", null
             )
-        }, 1000)
+        })
     }
 
 

@@ -304,7 +304,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                             } else {
                                 Log.d("mytag", "unable to update fitbit timestamp")
-                                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Sync Step Failed")
+                                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Syncing Failed")
                             }
                         }
                     }
@@ -317,7 +317,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                     }
                 }
             } catch (e: Exception) {
-                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Sync Step Failed")
+                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Syncing Failed")
                 e.printStackTrace()
             }
         }
