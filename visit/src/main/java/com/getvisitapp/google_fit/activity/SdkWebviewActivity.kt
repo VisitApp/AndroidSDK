@@ -570,16 +570,15 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         //manually calling sync steps here because we are not getting sync step event after the google fit is connected
         if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {
-                googleFitUtil.sendDataToServer(
-                    /* baseUrl = */ visitApiBaseUrl + "/",
-                    /* authToken = */ authtoken,
-                    /* googleFitLastSync = */ googleFitLastSync,
-                    /* gfHourlyLastSync = */ gfHourlyLastSync,
-                    /* memberId = */ memberId,
-                    /* tataAIG_base_url = */ tataAIG_base_url,
-                    /* tata_aig_authToken = */ tataAIG_auth_token,
-                    /* endTimeStamp = */ -1,
-                    /* isManual = */ false,
+                googleFitUtil.sendDataToServer(/* baseUrl = */ visitApiBaseUrl + "/",/* authToken = */
+                    authtoken,/* googleFitLastSync = */
+                    googleFitLastSync,/* gfHourlyLastSync = */
+                    gfHourlyLastSync,/* memberId = */
+                    memberId,/* tataAIG_base_url = */
+                    tataAIG_base_url,/* tata_aig_authToken = */
+                    tataAIG_auth_token,/* endTimeStamp = */
+                    -1,/* isManual = */
+                    false,
                     this
                 )
                 syncDataWithServer = true
@@ -659,7 +658,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
         Log.d("mytag", "apiBaseUrl: $visitApiBaseUrl $memberId")
         if (!syncDataWithServer) {
-            Log.d(TAG, "syncDataWithServer() called")
 
             visitApiBaseUrl?.let {
                 sharedPrefUtil.setVisitBaseUrl(visitApiBaseUrl + "/")
@@ -674,25 +672,71 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             sharedPrefUtil.setTATA_AIG_MemberId(memberId)
 
             if (sharedPrefUtil.getFitBitConnectionStatus()) {
+                Log.d(TAG, "syncFitbitSteps() called")
+
                 visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
-            } else {
+            } else if (googleFitUtil.stepsCounter.hasAccess()) {
+                Log.d(TAG, "syncDataWithServer() called")
+
                 runOnUiThread {
-                    googleFitUtil.sendDataToServer(
-                        /* baseUrl = */ visitApiBaseUrl + "/",
-                        /* authToken = */ authtoken,
-                        /* googleFitLastSync = */ this.googleFitLastSync,
-                        /* gfHourlyLastSync = */ this.gfHourlyLastSync,
-                        /* memberId = */ memberId,
-                        /* tataAIG_base_url = */ tataAIG_base_url,
-                        /* tata_aig_authToken = */ tataAIG_auth_token,
-                        /* endTimeStamp = */ -1,
-                        /* isManual = */ false,
+                    googleFitUtil.sendDataToServer(/* baseUrl = */ visitApiBaseUrl + "/",/* authToken = */
+                        authtoken,/* googleFitLastSync = */
+                        this.googleFitLastSync,/* gfHourlyLastSync = */
+                        this.gfHourlyLastSync,/* memberId = */
+                        memberId,/* tataAIG_base_url = */
+                        tataAIG_base_url,/* tata_aig_authToken = */
+                        tataAIG_auth_token,/* endTimeStamp = */
+                        -1,/* isManual = */
+                        false,
                         this
                     )
                     syncDataWithServer = true
                 }
             }
         }
+    }
+
+    override fun startManualSync(startTimeStamp: Long, endTimeStamp: Long) {
+        Log.d(
+            "mytag",
+            "startManualSync() startTimeStamp: $startTimeStamp, endTimeStamp: $endTimeStamp"
+        )
+
+        //manually calling sync steps here because we are not getting sync step event after the google fit is connected
+        if (sharedPrefUtil.getFitBitConnectionStatus()) {
+            visitSyncStepSyncHelper.syncFitbitSteps(
+                tataAIG_base_url = tataAIG_base_url,
+                tata_aig_authToken = tataAIG_auth_token,
+                startTimeStamp = startTimeStamp * 1000,
+                endTimeStamp = endTimeStamp * 1000,
+                isManual = true
+            )
+        } else if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
+            runOnUiThread {
+                googleFitUtil.sendDataToServer(
+                    /* baseUrl = */ visitApiBaseUrl + "/",
+                    /* authToken = */ authtoken,
+                    /* googleFitLastSync = */ startTimeStamp * 1000,
+                    /* gfHourlyLastSync = */ startTimeStamp * 1000,
+                    /* memberId = */ memberId,
+                    /* tataAIG_base_url = */ tataAIG_base_url,
+                    /* tata_aig_authToken = */ tataAIG_auth_token,
+                    /* endTimeStamp = */ endTimeStamp * 1000,
+                    /* isManual = */ true,
+                    /* listener = */ this
+                )
+            }
+        } else {
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    "Connect to Google Fit or Fitbit before doing manual sync",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+
     }
 
     override fun visitCredentialCallback(visitApiBaseUrl: String?, visitAuthToken: String?) {
@@ -1143,31 +1187,6 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
     override fun setAuthToken(authToken: String) {
 
         this.authtoken = authToken
-    }
-
-    override fun startManualSync(startTimeStamp: Long, endTimeStamp: Long) {
-        Log.d("mytag", "startManualSync: $startTimeStamp, endTimeStamp: $endTimeStamp")
-
-
-        //manually calling sync steps here because we are not getting sync step event after the google fit is connected
-        if (visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
-            runOnUiThread {
-                googleFitUtil.sendDataToServer(
-                    /* baseUrl = */ visitApiBaseUrl + "/",
-                    /* authToken = */ authtoken,
-                    /* googleFitLastSync = */ startTimeStamp * 1000,//converting to milliseconds
-                    /* gfHourlyLastSync = */ startTimeStamp * 1000,//converting to milliseconds,
-                    /* memberId = */ memberId,
-                    /* tataAIG_base_url = */ tataAIG_base_url,
-                    /* tata_aig_authToken = */ tataAIG_auth_token,
-                    /* endTimeStamp = */ endTimeStamp * 1000,//converting to milliseconds,
-                    /* isManual = */ true,
-                    /* listener = */ this
-                )
-            }
-        }
-
-
     }
 
 

@@ -3,6 +3,7 @@ package com.getvisitapp.google_fit.data
 import android.content.Context
 import android.util.Log
 import androidx.annotation.Keep
+import com.getvisitapp.google_fit.model.SyncDateHelper
 import com.getvisitapp.google_fit.model.TataAIGFitnessPayload
 import com.getvisitapp.google_fit.network.APIServiceInstance
 import com.getvisitapp.google_fit.network.ApiService
@@ -16,8 +17,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
+import java.util.Locale
 
 @Keep
 class VisitStepSyncHelper(var context: Context, var default_web_client_id: String) {
@@ -30,18 +32,22 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
     fun syncSteps(
         tataAIG_base_url: String,
         tata_aig_authToken: String,
-        timeStamp: Long = 0L //For testing purpose, pass the timestamp value
+        startTimeStamp: Long = 0L //For testing purpose, pass the timestamp value
     ) {
         if (sharedPrefUtil.getFitBitConnectionStatus()) {
-            syncFitbitSteps(tataAIG_base_url, tata_aig_authToken, timeStamp)
+            syncFitbitSteps(
+                tataAIG_base_url = tataAIG_base_url,
+                tata_aig_authToken = tata_aig_authToken,
+                startTimeStamp = startTimeStamp
+            )
         } else {
             checker = GoogleFitAccessChecker(context)
 
             if (checker.checkGoogleFitAccess()) {
 
                 val tataAIGLastSyncTimeStamp =
-                    if (timeStamp == 0L) sharedPrefUtil.getTataAIGLastSyncTimeStamp()
-                    else timeStamp
+                    if (startTimeStamp == 0L) sharedPrefUtil.getTataAIGLastSyncTimeStamp()
+                    else startTimeStamp
 
                 val baseUrl = sharedPrefUtil.getVisitBaseUrl()
                 val authToken = sharedPrefUtil.getVisitAuthToken()
@@ -196,53 +202,35 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
     //pass the start time if the client application wants to sync some data custom data.
     fun syncFitbitSteps(
-        tataAIG_base_url: String, tata_aig_authToken: String, startTimeStamp: Long = 0L
+        tataAIG_base_url: String,
+        tata_aig_authToken: String,
+        startTimeStamp: Long = 0L,
+        endTimeStamp: Long = 0L,
+        isManual: Boolean = false
     ) {
 
-        var startOfDay = if (startTimeStamp == 0L) {
+        val startOfDay = if (startTimeStamp == 0L) {
             sharedPrefUtil.getFitbitLastSyncTimestamp()
         } else {
             startTimeStamp
         }
 
+        val syncDateHelper = SyncDateHelper()
+        val syncStartAndEndDate =
+            syncDateHelper.getSyncDates(startOfDay, endTimeStamp, isManual)
+
         val policyNumber = sharedPrefUtil.getPolicyNumber()
+        val readableFormat = SimpleDateFormat("d MMM, yyyy", Locale.ENGLISH)
 
-        Log.d("mytag", "startOfDay: $startOfDay")
-
-        //normalising the start timestamp value
-        if (startOfDay == 0L) {
-            //if start timestamp is not present, that mean, we don't any value. So just sync last 1 days data
-            val startCal: Calendar = Calendar.getInstance()
-            startCal.timeInMillis = Date().time
-            startCal.set(Calendar.HOUR_OF_DAY, 0)
-            startCal.set(Calendar.MINUTE, 0)
-            startCal.set(Calendar.SECOND, 0)
-            startCal.set(Calendar.MILLISECOND, 0)
-            startOfDay = startCal.timeInMillis
-        } else {
-            //if start timestamp is present, then just normalise it.
-
-            val startCal: Calendar = Calendar.getInstance()
-            startCal.timeInMillis = startOfDay
-            startCal.set(Calendar.HOUR_OF_DAY, 0)
-            startCal.set(Calendar.MINUTE, 0)
-            startCal.set(Calendar.SECOND, 0)
-            startCal.set(Calendar.MILLISECOND, 0)
-            startOfDay = startCal.timeInMillis
-        }
-
-
-        //normalising the end date timestamp value
-        val endCal: Calendar = Calendar.getInstance()
-        endCal.timeInMillis = Date().time
-        endCal.set(Calendar.HOUR_OF_DAY, 0)
-        endCal.set(Calendar.MINUTE, 0)
-        endCal.set(Calendar.SECOND, 0)
-        endCal.set(Calendar.MILLISECOND, 0)
-        endCal.add(Calendar.DATE, 1)
-        val endOfDay = endCal.timeInMillis
-
-        Log.d("mytag", "startOfDay: $startOfDay, endOfDay: $endOfDay")
+        Log.d(
+            TAG,
+            "Start Time: " + readableFormat.format(syncStartAndEndDate.startTimeStamp) + " timestamp: " + syncStartAndEndDate.startTimeStamp
+        )
+        Log.d(
+            TAG,
+            "End Of day: " + readableFormat.format(syncStartAndEndDate.endTimeStamp) + " timestamp: " + syncStartAndEndDate.endTimeStamp
+        )
+        Log.d(TAG, "isManual: " + syncStartAndEndDate.isManual)
 
 
         val visitBaseUrl = sharedPrefUtil.getVisitBaseUrl()
@@ -259,7 +247,10 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val fitbitStepsResponse = visitApiService.getFitBitStatus(startOfDay, endOfDay)
+                val fitbitStepsResponse = visitApiService.getFitBitStatus(
+                    syncStartAndEndDate.startTimeStamp,
+                    syncStartAndEndDate.endTimeStamp
+                )
 
                 if (fitbitStepsResponse.message == "success") {
 
@@ -281,7 +272,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                             //normalising the end date timestamp value
                             val endCalMinusOneDay: Calendar = Calendar.getInstance()
-                            endCalMinusOneDay.time = endCal.time
+                            endCalMinusOneDay.timeInMillis = syncStartAndEndDate.endTimeStamp
                             endCalMinusOneDay.add(Calendar.DATE, -1)
                             val endOfDayMinusOneDayInMillis = endCalMinusOneDay.timeInMillis
 
@@ -290,7 +281,7 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                                 "endCalMinusOneDay timestamp: " + endOfDayMinusOneDayInMillis
                             )
 
-                            Log.d("mytag", "endCal timestamp: " + endCal.timeInMillis)
+                            Log.d("mytag", "endCal timestamp: " + endCalMinusOneDay.timeInMillis)
 
                             //update the timestamp in for Visit Database.
 
