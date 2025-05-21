@@ -333,7 +333,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                             ).show()
                             sharedPrefUtil.setFitBitConnectedStatus(true)
                             visitSyncStepSyncHelper.syncFitbitSteps(
-                                tataAIG_base_url, tataAIG_auth_token
+                                tataAIG_base_url = tataAIG_base_url,
+                                tata_aig_authToken = tataAIG_auth_token
                             )
 
                         }
@@ -688,7 +689,10 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             if (sharedPrefUtil.getFitBitConnectionStatus()) {
                 Log.d(TAG, "syncFitbitSteps() called")
 
-                visitSyncStepSyncHelper.syncFitbitSteps(tataAIG_base_url, tataAIG_auth_token)
+                visitSyncStepSyncHelper.syncFitbitSteps(
+                    tataAIG_base_url = tataAIG_base_url,
+                    tata_aig_authToken = tataAIG_auth_token
+                )
             } else if (googleFitUtil.stepsCounter.hasAccess()) {
                 Log.d(TAG, "syncDataWithServer() called")
 
@@ -723,7 +727,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
                 tata_aig_authToken = tataAIG_auth_token,
                 startTimeStamp = startTimeStamp * 1000,
                 endTimeStamp = endTimeStamp * 1000,
-                isManual = true
+                isManual = true,
+                syncStatusListener = this
             )
         } else if (googleFitUtil.stepsCounter.hasAccess() && visitApiBaseUrl != null && authtoken != null && googleFitLastSync != 0L && gfHourlyLastSync != 0L && memberId != null) {
             runOnUiThread {

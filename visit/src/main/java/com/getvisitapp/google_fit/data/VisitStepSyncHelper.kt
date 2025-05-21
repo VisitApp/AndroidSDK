@@ -11,6 +11,7 @@ import com.getvisitapp.google_fit.pojo.HraInCompleteResponse
 import com.getvisitapp.google_fit.util.GoogleFitAccessChecker
 import com.getvisitapp.google_fit.util.GoogleFitConnector
 import com.getvisitapp.google_fit.util.GoogleFitConnector.GoogleConnectorFitListener
+import com.getvisitapp.google_fit.view.SyncStatusListener
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
@@ -206,7 +207,8 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
         tata_aig_authToken: String,
         startTimeStamp: Long = 0L,
         endTimeStamp: Long = 0L,
-        isManual: Boolean = false
+        isManual: Boolean = false,
+        syncStatusListener: SyncStatusListener? = null
     ) {
 
         val startOfDay = if (startTimeStamp == 0L) {
@@ -297,10 +299,12 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
                                 sharedPrefUtil.setFitBitLastSyncTimeStamp(
                                     endOfDayMinusOneDayInMillis
                                 )
+                                syncStatusListener?.syncWithTATA_AIG_Server_Success()
                                 Log.d("mytag", "Fitbit timestamp stored in visit backend.")
 
                             } else {
                                 Log.d("mytag", "unable to update fitbit timestamp")
+                                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Sync Step Failed")
                             }
                         }
                     }
@@ -308,10 +312,12 @@ class VisitStepSyncHelper(var context: Context, var default_web_client_id: Strin
 
                 } else {
                     fitbitStepsResponse.errorMessage?.let {
+                        syncStatusListener?.syncWithTATA_AIG_Server_Failure(it)
                         Log.d("mytag", "errorMessage: $it")
                     }
                 }
             } catch (e: Exception) {
+                syncStatusListener?.syncWithTATA_AIG_Server_Failure("Fitbit Sync Step Failed")
                 e.printStackTrace()
             }
         }
