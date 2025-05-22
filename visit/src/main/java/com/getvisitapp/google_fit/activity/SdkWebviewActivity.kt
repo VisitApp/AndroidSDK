@@ -24,8 +24,12 @@ import androidx.annotation.Keep
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.google_fit.R
@@ -289,6 +293,26 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
             }
             Log.d("mytag", "network status: $networkStatus")
         }.launchIn(lifecycleScope)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.parentLayout) { view, windowInsets ->
+
+            val statusBarInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
+
+            val navigationBarInsets =
+                windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            binding.webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topMargin = statusBarInsets.top
+                bottomMargin = navigationBarInsets.bottom
+            }
+
+            binding.noNetworkConnectionLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                topMargin = statusBarInsets.top
+            }
+
+            WindowInsetsCompat.CONSUMED
+        }
 
 
     }

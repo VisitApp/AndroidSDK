@@ -22,8 +22,8 @@ android {
     defaultConfig {
         applicationId "com.example.googlefitsdk"
         minSdk 23
-        compileSdk 34
-        targetSdk 33
+        compileSdk 35
+        targetSdk 35
         versionCode 1
         versionName "1.0"
         multiDexEnabled true

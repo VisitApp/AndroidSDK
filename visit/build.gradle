@@ -9,8 +9,8 @@ android {
 
     defaultConfig {
         minSdk 23
-        compileSdk 34
-        targetSdk 33
+        compileSdk 35
+        targetSdk 35
         multiDexEnabled = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
