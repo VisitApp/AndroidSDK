@@ -38,8 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var googleFitAccessChecker: GoogleFitAccessChecker
     private lateinit var googleFitSwitch: SwitchMaterial
 
-    private val tataAIG_base_url = "https://uathealthvas.tataaig.com"
-    private val tataAIG_auth_token = "Basic Z2V0X3Zpc2l0OkZoNjh2JHdqaHU4WWd3NiQ="
+    private val tataAIG_base_url = ""
+    private val tataAIG_auth_token = ""
 
     private lateinit var syncStepHelper: VisitStepSyncHelper
 
