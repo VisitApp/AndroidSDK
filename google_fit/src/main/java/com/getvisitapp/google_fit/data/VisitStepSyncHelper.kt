@@ -34,59 +34,47 @@ class VisitStepSyncHelper(var context: Context) {
     }
 
 
-    fun sendDataToVisitServer(
+    suspend fun sendDataToVisitServer(
         healthConnectUtil: HealthConnectUtil,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
         visitBaseUrl: String,
         visitAuthToken: String
-    ) {
+    ): Boolean {
 
         Timber.d("sendDataToVisitServer: googleFitLastSync: $googleFitLastSync, gfHourlyLastSync: $gfHourlyLastSync")
 
-        CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
-            try {
-                if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
-                    val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)
-                    val dailySyncResponse = syncDailyHealthData(
-                        dailyStepSyncRequest = dailySyncRequestBody,
-                        visitBaseUrl = visitBaseUrl,
-                        visitAuthToken = visitAuthToken
-                    )
+        try {
+            if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
+                val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)
+                val dailySyncResponse = syncDailyHealthData(
+                    dailyStepSyncRequest = dailySyncRequestBody,
+                    visitBaseUrl = visitBaseUrl,
+                    visitAuthToken = visitAuthToken
+                )
 
-                    Timber.d("dailySyncResponse: $dailySyncResponse")
+                Timber.d("dailySyncResponse: $dailySyncResponse")
 
-                    if (dailySyncResponse?.message == "success") {
 
-                    } else {
+                val hourlyDataSyncRequestBody =
+                    healthConnectUtil.getHourlySyncData(gfHourlyLastSync)
 
-                    }
+                val hourlySyncResponse = syncHourlyHealthData(
+                    hourlyDataSyncRequest = hourlyDataSyncRequestBody,
+                    visitBaseUrl = visitBaseUrl,
+                    visitAuthToken = visitAuthToken
+                )
 
-                    val hourlyDataSyncRequestBody =
-                        healthConnectUtil.getHourlySyncData(gfHourlyLastSync)
+                Timber.d("hourlySyncResponse: $hourlySyncResponse")
 
-                    val hourlySyncResponse = syncHourlyHealthData(
-                        hourlyDataSyncRequest = hourlyDataSyncRequestBody,
-                        visitBaseUrl = visitBaseUrl,
-                        visitAuthToken = visitAuthToken
-                    )
-
-                    Timber.d("hourlySyncResponse: $hourlySyncResponse")
-
-                    if (hourlySyncResponse?.message == "success") {
-
-                    } else {
-
-                    }
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+                return dailySyncResponse?.message == "success" && hourlySyncResponse?.message == "success"
             }
 
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
-
-
+        return false
     }
 
 

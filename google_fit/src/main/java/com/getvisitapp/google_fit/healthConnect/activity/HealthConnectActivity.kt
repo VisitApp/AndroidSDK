@@ -44,7 +44,6 @@ class HealthConnectActivity : AppCompatActivity() {
 
     private val PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
-//        PERMISSION_READ_HEALTH_DATA_HISTORY
     )
 
     private val coroutineExceptionHandler =
@@ -246,15 +245,6 @@ class HealthConnectActivity : AppCompatActivity() {
          Timber.tag("mytag").d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}")
 
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
-
-        if (
-            healthConnectClient!!.features.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) ==
-            HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
-        ) {
-             Timber.tag("mytag").d("Health connect more than 30 day data feature available")
-        } else {
-             Timber.tag("mytag").d("Health connect more than 30 day data feature NOT available")
-        }
 
 
         if (granted.containsAll(PERMISSIONS)) {
