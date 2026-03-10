@@ -22,6 +22,21 @@ import kotlin.math.absoluteValue
 
 class SleepHelper(private val healthConnectClient: HealthConnectClient) {
 
+    private fun getOverlapDurationMillis(
+        record: SleepSessionRecord,
+        windowStart: Instant,
+        windowEnd: Instant
+    ): Long {
+        val overlapStart = maxOf(record.startTime, windowStart)
+        val overlapEnd = minOf(record.endTime, windowEnd)
+
+        return if (overlapEnd.isAfter(overlapStart)) {
+            Duration.between(overlapStart, overlapEnd).toMillis()
+        } else {
+            0L
+        }
+    }
+
     @Throws(Exception::class)
     suspend fun getDailySleepData(
         selectedDate: LocalDate
@@ -128,7 +143,15 @@ class SleepHelper(private val healthConnectClient: HealthConnectClient) {
 
 
                 if (response.records.isNotEmpty()) {
-                    val sleepRecord = response.records[0]
+                    val sleepRecord = response.records.maxWithOrNull(
+                        compareBy<SleepSessionRecord> {
+                            getOverlapDurationMillis(it, sleepStartTime, sleepEndTime)
+                        }.thenBy {
+                            Duration.between(it.startTime, it.endTime).toMillis()
+                        }.thenBy {
+                            -it.startTime.toEpochMilli()
+                        }
+                    ) ?: response.records[0]
                     val startTime: Instant = sleepRecord.startTime
                     val endTime = sleepRecord.endTime
 
