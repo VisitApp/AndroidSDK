@@ -9,7 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
@@ -42,7 +44,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     private val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
 
 
-    val PERMISSIONS = setOf(
+    private val HEALTH_PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
         HealthPermission.getReadPermission(DistanceRecord::class),
         HealthPermission.getReadPermission(SleepSessionRecord::class),
@@ -50,6 +52,15 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
+
+    val PERMISSIONS
+        get() = if (isHistoryReadFeatureAvailable()) {
+            HEALTH_PERMISSIONS.toMutableSet().apply {
+                add(PERMISSION_READ_HEALTH_DATA_HISTORY)
+            }
+        } else {
+            HEALTH_PERMISSIONS.toMutableSet()
+        }
 
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { coroutineContext, throwable: Throwable ->
@@ -62,6 +73,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     var healthConnectConnectionState: HealthConnectConnectionState =
         HealthConnectConnectionState.NONE
+    private var dataBeyond30DaysIsAllowed: Boolean = false
 
     fun initialize() {
         updateHealthConnectState(HealthConnectConnectionState.NONE)
@@ -219,6 +231,17 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         }
     }
 
+    private fun isHistoryReadFeatureAvailable(): Boolean {
+        return getHealthConnectClient().features.getFeatureStatus(
+            HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY
+        ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+    }
+
+    private fun updateHistoryReadAccess(grantedPermissions: Set<String>) {
+        dataBeyond30DaysIsAllowed = isHistoryReadFeatureAvailable() &&
+            grantedPermissions.contains(PERMISSION_READ_HEALTH_DATA_HISTORY)
+    }
+
     fun checkPermissionsAndRunForStar(afterRequestingPermission: Boolean) {
         scope.launch {
             try {
@@ -234,10 +257,16 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
         healthConnectClient = getHealthConnectClient()
 
-        Timber.d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}")
-
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
-        if (granted.containsAll(PERMISSIONS)) {
+        updateHistoryReadAccess(granted)
+
+        Timber.d(
+            "healthConnectClient hashcode: ${healthConnectClient.hashCode()}, " +
+                "historyFeatureAvailable: ${isHistoryReadFeatureAvailable()}, " +
+                "dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed, granted: $granted"
+        )
+
+        if (granted.containsAll(HEALTH_PERMISSIONS)) {
 
 
             if (Contants.previouslyRevoked) { //special case only happens in android 14
@@ -475,7 +504,10 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
         val dailySyncManager = DailySyncManager(getHealthConnectClient())
         val dailySyncData: List<DailySyncHealthMetric> =
-            dailySyncManager.getDailySyncData(timeStamp)
+            dailySyncManager.getDailySyncData(
+                dailyLastSyncTimeStamp = timeStamp,
+                dataBeyond30DaysIsAllowed = dataBeyond30DaysIsAllowed
+            )
 
         val requestBody = DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
 
@@ -516,6 +548,5 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-
 
 

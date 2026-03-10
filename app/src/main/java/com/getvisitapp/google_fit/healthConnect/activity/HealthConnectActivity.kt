@@ -18,7 +18,6 @@ import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
-import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
@@ -63,12 +62,23 @@ class HealthConnectActivity : AppCompatActivity() {
     )
 
     private val ALL_PERMISSION
-        get() = if (dataBeyond30DaysIsAllowed) {
+        get() = if (isHistoryReadFeatureAvailable()) {
             HEALTH_PERMISSIONS.toMutableSet()
                 .apply { add(PERMISSION_READ_HEALTH_DATA_HISTORY) }
         } else {
             HEALTH_PERMISSIONS.toMutableSet()
         }
+
+    private fun isHistoryReadFeatureAvailable(): Boolean {
+        return getHealthConnectClient().features.getFeatureStatus(
+            HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY
+        ) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+    }
+
+    private fun updateHistoryReadAccess(grantedPermissions: Set<String>) {
+        dataBeyond30DaysIsAllowed = isHistoryReadFeatureAvailable() &&
+            grantedPermissions.contains(PERMISSION_READ_HEALTH_DATA_HISTORY)
+    }
 
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -269,18 +279,16 @@ class HealthConnectActivity : AppCompatActivity() {
 
         healthConnectClient = getHealthConnectClient()
 
-        if (
-            healthConnectClient!!.features.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) ==
-            HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
-        ) {
-            dataBeyond30DaysIsAllowed = true
-        }
-
-        Timber.tag("mytag")
-            .d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}, dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed")
-
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
-        if (granted.containsAll(HEALTH_PERMISSIONS)) {
+        updateHistoryReadAccess(granted)
+
+        Timber.tag("mytag").d(
+            "healthConnectClient hashcode: ${healthConnectClient.hashCode()}, " +
+                "historyFeatureAvailable: ${isHistoryReadFeatureAvailable()}, " +
+                "dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed, granted: $granted"
+        )
+
+        if (granted.containsAll(ALL_PERMISSION)) {
 
             updateButtonState(HealthConnectConnectionState.CONNECTED)
 
@@ -576,5 +584,4 @@ class HealthConnectActivity : AppCompatActivity() {
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-
 
