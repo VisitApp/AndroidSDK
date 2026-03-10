@@ -14,8 +14,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.databinding.DataBindingUtil
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
+import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
@@ -47,9 +50,10 @@ class HealthConnectActivity : AppCompatActivity() {
     lateinit var binding: HealthConnectActivityBinding
 
     val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
+    var dataBeyond30DaysIsAllowed: Boolean = false
 
 
-    private val PERMISSIONS = setOf(
+    private val HEALTH_PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
         HealthPermission.getReadPermission(DistanceRecord::class),
         HealthPermission.getReadPermission(SleepSessionRecord::class),
@@ -58,16 +62,25 @@ class HealthConnectActivity : AppCompatActivity() {
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
 
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        Timber.d("HealthConnectActivity coroutineExceptionHandler")
-        throwable.printStackTrace()
+    private val ALL_PERMISSION
+        get() = if (dataBeyond30DaysIsAllowed) {
+            HEALTH_PERMISSIONS.toMutableSet()
+                .apply { add(PERMISSION_READ_HEALTH_DATA_HISTORY) }
+        } else {
+            HEALTH_PERMISSIONS.toMutableSet()
+        }
+
+    private val coroutineExceptionHandler =
+        CoroutineExceptionHandler { coroutineContext, throwable ->
+            Timber.d("HealthConnectActivity coroutineExceptionHandler")
+            throwable.printStackTrace()
 
 
-        val formattedMessage = "${throwable.javaClass}: ${throwable.message}"
-        Timber.d("mytag: $formattedMessage")
+            val formattedMessage = "${throwable.javaClass}: ${throwable.message}"
+            Timber.d("mytag: $formattedMessage")
 
 
-    }
+        }
 
     val scope = CoroutineScope(Dispatchers.IO + coroutineExceptionHandler)
 
@@ -78,8 +91,8 @@ class HealthConnectActivity : AppCompatActivity() {
 
     val requestPermissions =
         registerForActivityResult(requestPermissionActivityContract) { granted: Set<String> ->
-            if (granted.containsAll(PERMISSIONS)) {
-                Timber.d("Permissions successfully granted")
+            if (granted.containsAll(ALL_PERMISSION)) {
+                Timber.d("Permissions successfully granted: ${ALL_PERMISSION}")
 
                 updateButtonState(HealthConnectConnectionState.CONNECTED)
                 scope.launch {
@@ -143,7 +156,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
 
                 HealthConnectConnectionState.INSTALLED -> {
-                    requestPermissions.launch(PERMISSIONS)
+                    requestPermissions.launch(ALL_PERMISSION)
                 }
 
                 HealthConnectConnectionState.CONNECTED -> {
@@ -256,10 +269,18 @@ class HealthConnectActivity : AppCompatActivity() {
 
         healthConnectClient = getHealthConnectClient()
 
-        Timber.d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}")
+        if (
+            healthConnectClient!!.features.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) ==
+            HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+        ) {
+            dataBeyond30DaysIsAllowed = true
+        }
+
+        Timber.tag("mytag")
+            .d("healthConnectClient hashcode: ${healthConnectClient.hashCode()}, dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed")
 
         val granted = healthConnectClient!!.permissionController.getGrantedPermissions()
-        if (granted.containsAll(PERMISSIONS)) {
+        if (granted.containsAll(HEALTH_PERMISSIONS)) {
 
             updateButtonState(HealthConnectConnectionState.CONNECTED)
 
@@ -267,16 +288,19 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1732165563000L //current time
+            var timeStamp = 1769916502000L //current time
 //            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
 
 //                Tutorials(healthConnectClient!!).fetchData()
 
-//                getDailySyncData(timeStamp)
+                getDailySyncData(
+                    timeStamp = timeStamp,
+                    dataBeyond30DaysIsAllowed = dataBeyond30DaysIsAllowed
+                )
 //                getHourlySyncData(timeStamp)
-                exhaustHealthConnectQueryLimitTest(timeStamp)
+//                exhaustHealthConnectQueryLimitTest(timeStamp)
 
 //                getDailyStepAndSleepData()
 
@@ -296,7 +320,7 @@ class HealthConnectActivity : AppCompatActivity() {
 //                getActivityData(type = "sleep", frequency = "week", timeStamp = timeStamp)
             }
         } else {
-            Timber.d("Permission Not present")
+            Timber.d("Permission Not present. granted: $granted")
             updateButtonState(HealthConnectConnectionState.INSTALLED)
         }
     }
@@ -493,11 +517,19 @@ class HealthConnectActivity : AppCompatActivity() {
     }
 
 
-    suspend fun getDailySyncData(timeStamp: Long): DailyStepSyncRequest {
+    suspend fun getDailySyncData(
+        timeStamp: Long,
+        dataBeyond30DaysIsAllowed: Boolean
+    ): DailyStepSyncRequest {
 
         val dailySyncManager = DailySyncManager(getHealthConnectClient())
+
         val dailySyncData: List<DailySyncHealthMetric> =
-            dailySyncManager.getDailySyncData(timeStamp)
+            dailySyncManager.getDailySyncData(
+                dailyLastSyncTimeStamp = timeStamp,
+                dataBeyond30DaysIsAllowed = dataBeyond30DaysIsAllowed
+            )
+
         val requestBody = DailyStepSyncRequest(fitnessData = dailySyncData, platform = "ANDROID")
 
         Timber.d("getDailySyncData: requestBody: ${Gson().toJson(requestBody)}")
