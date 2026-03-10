@@ -8,9 +8,12 @@ import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup
 import android.widget.RelativeLayout
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.health.connect.client.PermissionController
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener
 import com.getvisitapp.google_fit.data.VisitStepSyncHelper
@@ -59,6 +62,7 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         //Initializing it programmatically, as we don't want any layout file, because when building the .aar file,
         //the layout file will also get shipped which react native won't accept it.
@@ -77,6 +81,11 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         relativeLayout.addView(mWebView)
 
         setContentView(relativeLayout)
+        ViewCompat.setOnApplyWindowInsetsListener(relativeLayout) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            windowInsets
+        }
 
 
 
@@ -347,4 +356,3 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
 
 
 }
-
