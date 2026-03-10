@@ -29,7 +29,10 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
     private val sleepHelper = SleepHelper(healthConnectClient)
 
 
-    suspend fun getDailySyncData(dailyLastSyncTimeStamp: Long): List<DailySyncHealthMetric> {
+    suspend fun getDailySyncData(
+        dailyLastSyncTimeStamp: Long,
+        dataBeyond30DaysIsAllowed: Boolean = false
+    ): List<DailySyncHealthMetric> {
 
         //Case 1: If the timestamp is 0, then take last 30day timestamp and sync it from there.
         //Case 2: If the timestamp is older then 30 days, then only sync the data for last 30 days.
@@ -57,20 +60,24 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
         var daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
             .toInt() + 1 // "+1" because current days is not included
 
-        Timber.d("startDate: $startDate, endDate: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween")
+        Timber.tag("mytag")
+            .d("startDate: $startDate, endDate: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween")
 
 
         //Case 2:
-        if (daysInBetween > 30) {
-            startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
-                .atZone(ZoneId.systemDefault()).toInstant()
+        if (!dataBeyond30DaysIsAllowed) {
+            if (daysInBetween > 30) {
+                startDate = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusDays(30)
+                    .atZone(ZoneId.systemDefault()).toInstant()
 
-            daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
-                .toInt() + 1 // "+1" because current days is not included
+                daysInBetween = ChronoUnit.DAYS.between(startDate, endDate)
+                    .toInt() + 1 // "+1" because current days is not included
+            }
         }
 
 
-        Timber.d("startTime: $startDate, endTime: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween")
+        Timber.tag("mytag")
+            .d("After normalization: startTime: $startDate, endTime: $endDate, normalizedDateTime: $normalizedDateTime, daysBetween: $daysInBetween, dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed")
 
 
         val dailyHealthMetric: List<DailySyncHealthMetric> = aggregateHealthMetricBasedOnDuration(
@@ -165,7 +172,7 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
 
             }
 
-            Timber.d(
+            Timber.tag("mytag").d(
                 "bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime, " + "steps total: ${result.result[StepsRecord.COUNT_TOTAL]} " + "distance total: ${result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters} " + "exercise total: ${result.result[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()} " + "calorie total: ${result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories} " + "sleep total: ${result.result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes()} " + "startTime:${result.startTime} ," + "endTime: ${result.endTime}," + "sleepMetric: $sleepMetric"
             )
 
