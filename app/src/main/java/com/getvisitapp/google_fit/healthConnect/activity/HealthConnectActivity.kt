@@ -20,8 +20,8 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
-import com.getvisitapp.google_fit.R
-import com.getvisitapp.google_fit.databinding.HealthConnectActivityBinding
+import com.example.googlefitsdk.R
+import com.example.googlefitsdk.databinding.HealthConnectActivityBinding
 import com.getvisitapp.google_fit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.google_fit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.google_fit.healthConnect.helper.DailySyncManager
@@ -537,7 +537,6 @@ class HealthConnectActivity : AppCompatActivity() {
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-
 
 
 
