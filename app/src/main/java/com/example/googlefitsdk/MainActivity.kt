@@ -152,10 +152,12 @@ class MainActivity : AppCompatActivity() {
                 VisitEventType.AskForFitnessPermission -> {
 
                 }
+
                 VisitEventType.AskForLocationPermission -> {
 
 
                 }
+
                 is VisitEventType.FitnessPermissionGranted -> {
                     val data = event.eventType as VisitEventType.FitnessPermissionGranted
 
@@ -179,22 +181,26 @@ class MainActivity : AppCompatActivity() {
                     )
 
                 }
+
                 is VisitEventType.RequestHealthDataForDetailedGraph -> {
 
                     val graphEvent =
                         event.eventType as VisitEventType.RequestHealthDataForDetailedGraph
 
                 }
+
                 is VisitEventType.StartVideoCall -> {
                     val callEvent =
                         event.eventType as VisitEventType.StartVideoCall
 
 
                 }
+
                 is VisitEventType.HRA_Completed -> {
 
 
                 }
+
                 is VisitEventType.GoogleFitConnectedAndSavedInPWA -> {
                     Handler(Looper.getMainLooper()).postDelayed({
                         //passing event to Visit PWA to close itself
@@ -203,6 +209,7 @@ class MainActivity : AppCompatActivity() {
 
                     }, 200)
                 }
+
                 is VisitEventType.HRAQuestionAnswered -> {
                     // can be used for analytics events
                     val hraQuestionEvent = event.eventType as VisitEventType.HRAQuestionAnswered
@@ -211,6 +218,7 @@ class MainActivity : AppCompatActivity() {
                         "current:${hraQuestionEvent.current} total:${hraQuestionEvent.total}"
                     )
                 }
+
                 VisitEventType.ConsultationBooked -> {
                     Log.d("mytag", "MainActivity ConsultationBooked event")
                 }
@@ -231,6 +239,7 @@ class MainActivity : AppCompatActivity() {
 
                     Log.d("mytag", "eventData: ${eventData.message}")
                 }
+
                 is VisitEventType.NetworkError -> {
                     val eventData = event.eventType as VisitEventType.NetworkError
 
@@ -241,6 +250,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("mytag", "errStatus: $errStatus, error: $error")
 
                 }
+
                 is VisitEventType.VisitCallBack -> {
                     val eventData = event.eventType as VisitEventType.VisitCallBack
 
@@ -250,6 +260,16 @@ class MainActivity : AppCompatActivity() {
 
                     Log.d("mytag", "VisitCallBack message: $message, failureReason: $failureReason")
 
+                }
+
+                is VisitEventType.VisitAnalyticsEvent -> {
+                    val eventData = event.eventType as VisitEventType.VisitAnalyticsEvent
+
+                    val eventName: String = eventData.eventName
+
+                    val properties: Map<String, Any?>? = eventData.properties
+
+                    Log.d("mytag", "VisitAnalyticsEvent eventName: $eventName, properties: $properties")
                 }
             }
 
@@ -263,7 +283,7 @@ class MainActivity : AppCompatActivity() {
 //            "https://web.getvisitapp.xyz/"
 
         val magicLink =
-            "https://tata-aig.getvisitapp.net/sso?userParams=IB8TblsHsykEk5G4ozVgeJd67ZTJtZdir7kK6DvNNOO3sZpHVNNenCzwKIeOu8hYSSlUnnGcvxMkk3D5hbx7momUBbBgrQoffKISVpm7I4vHPtCdcZLd7wlQwaYRoHL94UJyv2WX5WTwV3JmAMRZK1RFlo7zNiEyMkDowRvJLD-ThfMSEGSkxQmzN5t-rq22QhXwV2kbos06h2Mry5YQ1XBQCqMJcjHBREGt_mhowMcrB37__K6pDvxuSMPVtZOGMc-V9h_wf7uRoqUG7ORH3x8OW37VdVs6XflrpgDYxbWxTgvUFwzBNeqCuPbnLFBcH3UjwVvk7SBNakW5oAh74Q&clientId=tata-aig-a8b455"
+            "https://tata-aig.getvisitapp.net/sso?userParams=At6V7tPxcrYRO5JeYpeIuYLHq5zgULTvEkWv3_67ETMa7mfhKQ2XH-dVDLTxl8eQq-_EFAMU_tEzHTNdLiXN-Jzw4UUKw5EpSZYlb3X8jdI_uRO1P0CfkTutC_nVwD22PagSR-8KzPmGVNdk87aksPL2VKTDAFVWpp88Bjq2_9mnN1QhyidVPcq9CkZ6wVYN1xNbgBm3EByeHsi-RSyJq66YheL3TQNOIGvagABOMJAkvkQIwFhmW-DYqOm_7zYbF2wnqDIFv2Hxawf5vKo-2BX5EDjMSVMV1Dq5XgwS1QOGmqZirgyad6QsbraRxt6f&clientId=tata-aig-a8b455"
 
 
 //        val magicLink =
