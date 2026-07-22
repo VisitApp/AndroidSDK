@@ -4,10 +4,6 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
-def localProperties = new Properties()
-localProperties.load(new FileInputStream(rootProject.file("local.properties")))
-
-
 android {
     compileSdk 36
 
