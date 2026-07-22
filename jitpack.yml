@@ -3,4 +3,4 @@ jdk:
 before_install:
   - chmod +x gradlew
 install:
-  - ./gradlew :google_fit:publishReleasePublicationToMavenLocal --no-daemon --console=plain
+  - ./gradlew :visit:publishReleasePublicationToMavenLocal --no-daemon --console=plain

@@ -31,7 +31,7 @@
         <activity
             android:name="com.getvisitapp.visit.healthConnect.activity.ViewPermissionUsageActivity"
             android:exported="true"
-            android:targetActivity="com.getvisitapp.google_fit.PermissionsRationaleActivity">
+            android:targetActivity=".PermissionsRationaleActivity">
 
             <!-- For supported versions through Android 13, create an activity to show the rationale
 of Health Connect permissions once users click the privacy policy link. -->
