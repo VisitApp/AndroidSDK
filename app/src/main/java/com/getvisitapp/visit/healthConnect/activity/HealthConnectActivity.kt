@@ -6,13 +6,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.databinding.DataBindingUtil
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
@@ -25,7 +25,6 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.example.googlefitsdk.R
-import com.example.googlefitsdk.databinding.HealthConnectActivityBinding
 import com.getvisitapp.visit.healthConnect.data.GraphDataOperationsHelper
 import com.getvisitapp.visit.healthConnect.enums.HealthConnectConnectionState
 import com.getvisitapp.visit.healthConnect.helper.DailySyncManager
@@ -46,7 +45,7 @@ import timber.log.Timber
 class HealthConnectActivity : AppCompatActivity() {
 
     val TAG = "HealthConnectActivity"
-    lateinit var binding: HealthConnectActivityBinding
+    private lateinit var initialHealthConnectButton: Button
 
     val graphDataOperationsHelper by lazy { GraphDataOperationsHelper(getHealthConnectClient()) }
     var dataBeyond30DaysIsAllowed: Boolean = false
@@ -128,8 +127,16 @@ class HealthConnectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_health_connect)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { view, windowInsets ->
+        setContentView(R.layout.activity_health_connect)
+
+        val checkHealthConnectAvailabilityStatusButton =
+            findViewById<Button>(R.id.checkHealthConnectAvailabilityStatus)
+        initialHealthConnectButton = findViewById(R.id.initialHealthConnect)
+        val openHealthConnectAppButton = findViewById<Button>(R.id.openHealthConnectApp)
+        val removeHealthConnectPermissionButton =
+            findViewById<Button>(R.id.removeHealthConnectPermission)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
             windowInsets
@@ -139,11 +146,11 @@ class HealthConnectActivity : AppCompatActivity() {
 
 
 
-        binding.checkHealthConnectAvailabilityStatus.setOnClickListener {
+        checkHealthConnectAvailabilityStatusButton.setOnClickListener {
             checkAvailability()
         }
 
-        binding.initialHealthConnect.setOnClickListener {
+        initialHealthConnectButton.setOnClickListener {
 
             when (healthConnectConnectionState) {
                 HealthConnectConnectionState.NOT_INSTALLED -> {
@@ -183,13 +190,13 @@ class HealthConnectActivity : AppCompatActivity() {
             }
         }
 
-        binding.openHealthConnectApp.setOnClickListener {
+        openHealthConnectAppButton.setOnClickListener {
             val settingsIntent = Intent()
             settingsIntent.action = HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS
             startActivity(settingsIntent)
         }
 
-        binding.removeHealthConnectPermission.setOnClickListener {
+        removeHealthConnectPermissionButton.setOnClickListener {
             scope.launch {
                 if (healthConnectClient != null) {
                     healthConnectClient!!.permissionController.revokeAllPermissions()
@@ -257,7 +264,7 @@ class HealthConnectActivity : AppCompatActivity() {
         }
 
         Handler(Looper.getMainLooper()).post {
-            binding.initialHealthConnect.text = text
+            initialHealthConnectButton.text = text
         }
 
         return text
