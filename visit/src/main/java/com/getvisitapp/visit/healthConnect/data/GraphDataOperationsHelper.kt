@@ -1,7 +1,9 @@
 package com.getvisitapp.visit.healthConnect.data
 
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertEpochMillisToLocalDateTime
@@ -71,11 +73,9 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
     suspend fun getTodaySteps(
         healthConnectClient: HealthConnectClient
     ): Long {
-
         val stepsStartTime =
             LocalDateTime.of(LocalDate.now(), LocalTime.MIN).atZone(ZoneId.systemDefault())
                 .toInstant()
-
 
         val stepsEndTime =
             LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
@@ -89,7 +89,6 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
             )
         )
 
-
         // The result may be null if no data is available in the time range
         val stepCount: Long = stepsResponse[StepsRecord.COUNT_TOTAL] ?: 0L
 
@@ -98,6 +97,63 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         )
 
         return stepCount
+    }
+
+    suspend fun getTodaySleepMinutes(
+        healthConnectClient: HealthConnectClient
+    ): Long {
+        val sleepStartTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusHours(2)
+                .atZone(ZoneId.systemDefault()).toInstant()
+
+        val sleepEndTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusHours(7)
+                .atZone(ZoneId.systemDefault()).toInstant()
+
+        val sleepResponse = healthConnectClient.aggregate(
+            AggregateRequest(
+                metrics = setOf(
+                    SleepSessionRecord.SLEEP_DURATION_TOTAL
+                ), timeRangeFilter = TimeRangeFilter.between(sleepStartTime, sleepEndTime)
+            )
+        )
+
+        val sleepMinutes = sleepResponse[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes() ?: 0L
+
+        Timber.d(
+            "Sleep minutes: $sleepMinutes"
+        )
+
+        return sleepMinutes
+    }
+
+    suspend fun getTodayCalorieCount(
+        healthConnectClient: HealthConnectClient
+    ): Long {
+        val caloriesStartTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).atZone(ZoneId.systemDefault())
+                .toInstant()
+
+        val caloriesEndTime =
+            LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
+                .toInstant()
+
+        val caloriesResponse = healthConnectClient.aggregate(
+            AggregateRequest(
+                metrics = setOf(
+                    TotalCaloriesBurnedRecord.ENERGY_TOTAL
+                ), timeRangeFilter = TimeRangeFilter.between(caloriesStartTime, caloriesEndTime)
+            )
+        )
+
+        val calories =
+            caloriesResponse[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toLong() ?: 0L
+
+        Timber.d(
+            "Calories: $calories"
+        )
+
+        return calories
     }
 
     /**
