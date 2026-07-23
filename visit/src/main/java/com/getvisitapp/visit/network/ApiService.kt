@@ -17,7 +17,7 @@ interface ApiService {
         @Body requestBody: DailyStepSyncRequest
     ): SyncResponse?
 
-    @POST(" users/embellish-sync")
+    @POST("users/embellish-sync")
     suspend fun uploadHourlyHealthData(
         @Query("isPWA") isPWA: String = "yes",
         @Body requestBody: HourlyDataSyncRequest

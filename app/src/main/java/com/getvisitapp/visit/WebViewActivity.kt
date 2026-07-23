@@ -228,11 +228,27 @@ class WebViewActivity : AppCompatActivity(), AdvancedWebView.Listener, GoogleFit
         baseUrl: String?, authToken: String?, googleFitLastSync: Long, gfHourlyLastSync: Long
     ) {
         Timber.d("mytag: baseUrl: $baseUrl")
+        if (baseUrl.isNullOrBlank() || authToken.isNullOrBlank()) {
+            Timber.d("mytag: syncDataWithServer() skipped. Required credentials are missing")
+            return
+        }
+
         if (!syncDataWithServer) {
             Timber.d("mytag: syncDataWithServer() called")
 
             visitStepSyncHelper.sendDataToVisitServer(
-                healthConnectUtil, googleFitLastSync, gfHourlyLastSync, "$baseUrl/", authToken!!
+                healthConnectUtil,
+                googleFitLastSync,
+                gfHourlyLastSync,
+                baseUrl,
+                authToken,
+                onSuccess = { message ->
+                    Timber.d("mytag: syncDataWithServer() completed. $message")
+                },
+                onFailure = { reason ->
+                    Timber.d("mytag: syncDataWithServer() failed. $reason")
+                    syncDataWithServer = false
+                }
             )
 
             syncDataWithServer = true

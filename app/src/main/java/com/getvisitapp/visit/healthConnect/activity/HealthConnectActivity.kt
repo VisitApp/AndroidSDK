@@ -77,7 +77,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
     private fun updateHistoryReadAccess(grantedPermissions: Set<String>) {
         dataBeyond30DaysIsAllowed = isHistoryReadFeatureAvailable() &&
-            grantedPermissions.contains(PERMISSION_READ_HEALTH_DATA_HISTORY)
+                grantedPermissions.contains(PERMISSION_READ_HEALTH_DATA_HISTORY)
     }
 
     private val coroutineExceptionHandler =
@@ -284,8 +284,8 @@ class HealthConnectActivity : AppCompatActivity() {
 
         Timber.tag("mytag").d(
             "healthConnectClient hashcode: ${healthConnectClient.hashCode()}, " +
-                "historyFeatureAvailable: ${isHistoryReadFeatureAvailable()}, " +
-                "dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed, granted: $granted"
+                    "historyFeatureAvailable: ${isHistoryReadFeatureAvailable()}, " +
+                    "dataBeyond30DaysIsAllowed: $dataBeyond30DaysIsAllowed, granted: $granted"
         )
 
         if (granted.containsAll(ALL_PERMISSION)) {
@@ -296,7 +296,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1769916502000L //current time
+            var timeStamp = 1782906461000L //current time
 //            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
@@ -584,4 +584,3 @@ class HealthConnectActivity : AppCompatActivity() {
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-

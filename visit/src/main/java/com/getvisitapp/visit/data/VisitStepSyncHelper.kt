@@ -9,9 +9,6 @@ import com.getvisitapp.visit.healthConnect.model.apiRequestModel.HourlyDataSyncR
 import com.getvisitapp.visit.healthConnect.model.apiRequestModel.SyncResponse
 import com.getvisitapp.visit.network.APIServiceInstance
 import com.getvisitapp.visit.network.ApiService
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -21,67 +18,76 @@ class VisitStepSyncHelper(var context: Context) {
 
     private fun getVisitApiService(baseUrl: String, visitAuthToken: String): ApiService {
 
-        Timber.d("mytag: getVisitApiService authToken: $visitAuthToken, baseUrl: $baseUrl")
+        Timber.d("mytag: getVisitApiService baseUrl: $baseUrl")
 
         return APIServiceInstance.getApiService(
-            baseUrl, context, visitAuthToken, true
+            normalizeBaseUrl(baseUrl), context, visitAuthToken, true
         )
     }
-
-    val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        Timber.d("HealthConnectUtil coroutineExceptionHandler")
-        throwable.printStackTrace()
-    }
-
 
     fun sendDataToVisitServer(
         healthConnectUtil: HealthConnectUtil,
         googleFitLastSync: Long,
         gfHourlyLastSync: Long,
         visitBaseUrl: String,
-        visitAuthToken: String
+        visitAuthToken: String,
+        onSuccess: ((String) -> Unit)? = null,
+        onFailure: ((String) -> Unit)? = null
     ) {
 
         Timber.d("sendDataToVisitServer: googleFitLastSync: $googleFitLastSync, gfHourlyLastSync: $gfHourlyLastSync")
 
-        CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).launch {
+        healthConnectUtil.scope.launch {
             try {
-                if (healthConnectUtil.healthConnectConnectionState == HealthConnectConnectionState.CONNECTED) {
-                    val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)
-                    val dailySyncResponse = syncDailyHealthData(
-                        dailyStepSyncRequest = dailySyncRequestBody,
-                        visitBaseUrl = visitBaseUrl,
-                        visitAuthToken = visitAuthToken
-                    )
-
-                    Timber.d("dailySyncResponse: $dailySyncResponse")
-
-                    if (dailySyncResponse?.message == "success") {
-
-                    } else {
-
-                    }
-
-                    val hourlyDataSyncRequestBody =
-                        healthConnectUtil.getHourlySyncData(gfHourlyLastSync)
-
-                    val hourlySyncResponse = syncHourlyHealthData(
-                        hourlyDataSyncRequest = hourlyDataSyncRequestBody,
-                        visitBaseUrl = visitBaseUrl,
-                        visitAuthToken = visitAuthToken
-                    )
-
-                    Timber.d("hourlySyncResponse: $hourlySyncResponse")
-
-                    if (hourlySyncResponse?.message == "success") {
-
-                    } else {
-
-                    }
+                if (healthConnectUtil.healthConnectConnectionState != HealthConnectConnectionState.CONNECTED) {
+                    val reason = "Health Connect is not connected"
+                    Timber.d("sendDataToVisitServer skipped: $reason")
+                    onFailure?.invoke(reason)
+                    return@launch
                 }
 
+                if (visitBaseUrl.isBlank() || visitAuthToken.isBlank()) {
+                    val reason = "Visit sync credentials are missing"
+                    Timber.d("sendDataToVisitServer skipped: $reason")
+                    onFailure?.invoke(reason)
+                    return@launch
+                }
+
+                val normalizedVisitBaseUrl = normalizeBaseUrl(visitBaseUrl)
+                val dailySyncRequestBody = healthConnectUtil.getDailySyncData(googleFitLastSync)
+                val dailySyncResponse = syncDailyHealthData(
+                    dailyStepSyncRequest = dailySyncRequestBody,
+                    visitBaseUrl = normalizedVisitBaseUrl,
+                    visitAuthToken = visitAuthToken
+                )
+
+                Timber.d("dailySyncResponse: $dailySyncResponse")
+
+                if (!dailySyncResponse.isSuccess()) {
+                    onFailure?.invoke(dailySyncResponse.failureReason("Daily health data sync failed"))
+                    return@launch
+                }
+
+                val hourlyDataSyncRequestBody =
+                    healthConnectUtil.getHourlySyncData(gfHourlyLastSync)
+
+                val hourlySyncResponse = syncHourlyHealthData(
+                    hourlyDataSyncRequest = hourlyDataSyncRequestBody,
+                    visitBaseUrl = normalizedVisitBaseUrl,
+                    visitAuthToken = visitAuthToken
+                )
+
+                Timber.d("hourlySyncResponse: $hourlySyncResponse")
+
+                if (!hourlySyncResponse.isSuccess()) {
+                    onFailure?.invoke(hourlySyncResponse.failureReason("Hourly health data sync failed"))
+                    return@launch
+                }
+
+                onSuccess?.invoke("Health data sync completed")
             } catch (e: Exception) {
                 e.printStackTrace()
+                onFailure?.invoke(e.message ?: "Health data sync failed")
             }
 
         }
@@ -109,6 +115,21 @@ class VisitStepSyncHelper(var context: Context) {
         val response = visitApiService.uploadHourlyHealthData(requestBody = hourlyDataSyncRequest)
 
         return response
+    }
+
+    private fun normalizeBaseUrl(baseUrl: String): String {
+        val trimmedBaseUrl = baseUrl.trim()
+        return if (trimmedBaseUrl.endsWith("/")) trimmedBaseUrl else "$trimmedBaseUrl/"
+    }
+
+    private fun SyncResponse?.isSuccess(): Boolean {
+        return this?.message?.equals("success", ignoreCase = true) == true
+    }
+
+    private fun SyncResponse?.failureReason(defaultReason: String): String {
+        return this?.errorMessage?.takeIf { it.isNotBlank() }
+            ?: this?.message?.takeIf { it.isNotBlank() }?.let { "$defaultReason: $it" }
+            ?: defaultReason
     }
 
 
