@@ -41,8 +41,8 @@ android {
 }
 
 dependencies {
-//    implementation project(':visit')
-    implementation "com.github.VisitApp:AndroidSDK:v3.03"
+    implementation project(':visit')
+//    implementation "com.github.VisitApp:AndroidSDK:v3.03"
 //
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
