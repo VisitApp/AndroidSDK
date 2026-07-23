@@ -47,22 +47,22 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:2.3.10"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.25"
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.13.0'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
 
 
-    def retrofit_version = "3.0.0"
+    def retrofit_version = "2.11.0"
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation 'de.hdodenhof:circleimageview:3.1.0'
-    implementation 'com.squareup.okhttp3:okhttp:5.3.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
-    implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation "androidx.health.connect:connect-client:1.1.0"
     implementation "com.jakewharton.timber:timber:5.0.1"
@@ -80,9 +80,9 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
 
-                groupId = 'com.getvisitapp'
-                artifactId = 'visit'
-                version = '3.04'
+                groupId = 'com.github.VisitApp'
+                artifactId = 'AndroidSDK'
+                version = 'v3.05'
             }
         }
     }

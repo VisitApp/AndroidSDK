@@ -41,8 +41,8 @@ android {
 }
 
 dependencies {
-    implementation project(':visit')
-//    implementation "com.github.VisitApp:AndroidSDK:v3.03"
+//    implementation project(':visit')
+    implementation "com.github.VisitApp:AndroidSDK:v3.05"
 //
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
@@ -56,11 +56,11 @@ dependencies {
 
 
     implementation 'com.google.code.gson:gson:2.13.2'
-    implementation 'com.squareup.okhttp3:okhttp:5.3.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.github.delight-im:Android-AdvancedWebView:v3.2.1'
     implementation "com.jakewharton.timber:timber:5.0.1"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
     implementation "androidx.health.connect:connect-client:1.1.0"
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
