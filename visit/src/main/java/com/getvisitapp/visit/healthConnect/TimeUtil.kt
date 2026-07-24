@@ -2,6 +2,7 @@ package com.getvisitapp.visit.healthConnect
 
 import com.getvisitapp.visit.healthConnect.model.internal.MonthProperties
 import timber.log.Timber
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -50,6 +51,17 @@ object TimeUtil {
 
 
         Timber.d("getSelectedDateStartTimeAndEndTimeInstant startTime: $startTime, endTime: $endTime")
+        return Pair(startTime, endTime)
+    }
+
+    fun getTodayElapsedTimeRangeInstant(
+        clock: Clock = Clock.system(ZoneId.systemDefault())
+    ): Pair<Instant, Instant> {
+        val today = LocalDate.now(clock)
+        val startTime = LocalDateTime.of(today, LocalTime.MIN).atZone(clock.zone).toInstant()
+        val endTime = clock.instant()
+
+        Timber.d("getTodayElapsedTimeRangeInstant startTime: $startTime, endTime: $endTime")
         return Pair(startTime, endTime)
     }
 

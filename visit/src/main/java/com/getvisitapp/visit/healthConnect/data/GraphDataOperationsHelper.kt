@@ -6,6 +6,7 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.getvisitapp.visit.healthConnect.TimeUtil
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertEpochMillisToLocalDateTime
 import com.getvisitapp.visit.healthConnect.model.internal.HealthMetricData
 import com.getvisitapp.visit.healthConnect.model.internal.SleepModel
@@ -130,13 +131,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
     suspend fun getTodayCalorieCount(
         healthConnectClient: HealthConnectClient
     ): Long {
-        val caloriesStartTime =
-            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).atZone(ZoneId.systemDefault())
-                .toInstant()
-
-        val caloriesEndTime =
-            LocalDateTime.of(LocalDate.now(), LocalTime.MAX).atZone(ZoneId.systemDefault())
-                .toInstant()
+        val (caloriesStartTime, caloriesEndTime) = TimeUtil.getTodayElapsedTimeRangeInstant()
 
         val caloriesResponse = healthConnectClient.aggregate(
             AggregateRequest(
