@@ -1,7 +1,6 @@
 package com.getvisitapp.visit.healthConnect.data
 
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
@@ -100,26 +99,9 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         return stepCount
     }
 
-    suspend fun getTodaySleepMinutes(
-        healthConnectClient: HealthConnectClient
-    ): Long {
-        val sleepStartTime =
-            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).minusHours(2)
-                .atZone(ZoneId.systemDefault()).toInstant()
-
-        val sleepEndTime =
-            LocalDateTime.of(LocalDate.now(), LocalTime.MIN).plusHours(7)
-                .atZone(ZoneId.systemDefault()).toInstant()
-
-        val sleepResponse = healthConnectClient.aggregate(
-            AggregateRequest(
-                metrics = setOf(
-                    SleepSessionRecord.SLEEP_DURATION_TOTAL
-                ), timeRangeFilter = TimeRangeFilter.between(sleepStartTime, sleepEndTime)
-            )
-        )
-
-        val sleepMinutes = sleepResponse[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes() ?: 0L
+    suspend fun getTodaySleepMinutes(): Long {
+        val sleepMetric = sleepHelper.getDailySleepData(LocalDate.now())
+        val sleepMinutes = sleepMetric.sleepDuration.toMinutes()
 
         Timber.d(
             "Sleep minutes: $sleepMinutes"

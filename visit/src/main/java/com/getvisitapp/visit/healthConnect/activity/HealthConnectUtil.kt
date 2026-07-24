@@ -191,7 +191,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     suspend fun getTodaySleepData(): Long {
         val sleepMinutes =
-            graphDataOperationsHelper.getTodaySleepMinutes(getHealthConnectClient())
+            graphDataOperationsHelper.getTodaySleepMinutes()
         return sleepMinutes
     }
 
@@ -560,4 +560,3 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
  * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
  * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
  */
-
