@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -25,13 +24,14 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.getvisitapp.visit.R
 import com.getvisitapp.visit.connectivity.ConnectivityObserver
@@ -45,7 +45,9 @@ import com.getvisitapp.visit.util.makeStatusBarTransparent
 import com.getvisitapp.visit.view.GoogleFitStatusListener
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 
@@ -75,10 +77,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     var TAG = "mytag"
 
 
-    val LOCATION_PERMISSION_REQUEST_CODE = 787
-    val REQUEST_CODE_FILE_PICKER = 51426
-
-
     var isDebug: Boolean = false
     lateinit var magicLink: String
 
@@ -91,6 +89,67 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     lateinit var connectivityObserver: ConnectivityObserver
     var mFileUploadCallbackSecond: ValueCallback<Array<Uri>>? = null
+
+    private data class PendingGeolocationPermissionRequest(
+        val origin: String?,
+        val callback: GeolocationPermissions.Callback,
+    )
+
+    private val pendingGeolocationPermissionRequests =
+        mutableListOf<PendingGeolocationPermissionRequest>()
+    private var isResolvingLocationAccessRequest = false
+
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val preciseLocationGranted =
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    locationTrackerUtil.isPreciseLocationPermissionAllowed()
+
+        Timber.tag(TAG).d(
+            "location permission ActivityResult received: permissions=$permissions, preciseLocationGranted=$preciseLocationGranted"
+        )
+
+        if (preciseLocationGranted) {
+            requestGpsSettings(allowResolution = true)
+        } else {
+            finishLocationAccessRequest(granted = false)
+        }
+    }
+
+    private val gpsSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        Timber.tag(TAG).d(
+            "GPS settings ActivityResult received: resultCode=${result.resultCode}"
+        )
+        if (result.resultCode == Activity.RESULT_OK) {
+            Timber.tag(TAG).d(
+                "GPS settings ActivityResult OK; re-checking GPS settings with allowResolution=false and one delayed retry"
+            )
+            requestGpsSettings(allowResolution = false, remainingDelayedRetries = 1)
+        } else {
+            Timber.tag(TAG).d("GPS settings ActivityResult cancelled; completing granted=false")
+            finishLocationAccessRequest(granted = false)
+        }
+    }
+
+    private val filePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val dataUris = if (result.resultCode == Activity.RESULT_OK) {
+            getSelectedFileUris(result.data)
+        } else {
+            null
+        }
+
+        Timber.tag(TAG).d(
+            "file picker ActivityResult received: resultCode=${result.resultCode}, hasData=${result.data != null}, selectedUriCount=${dataUris?.size ?: 0}"
+        )
+
+        mFileUploadCallbackSecond?.onReceiveValue(dataUris)
+        mFileUploadCallbackSecond = null
+    }
 
 
     var webChromeClient: WebChromeClient = MyChrome()
@@ -184,6 +243,12 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         webview.webChromeClient = webChromeClient
         webview.webViewClient = webViewClient
 
+        webAppInterface = WebAppInterface(this)
+        webview.addJavascriptInterface(webAppInterface, "Android")
+
+        pdfDownloader = PdfDownloader()
+        locationTrackerUtil = LocationTrackerUtil(this)
+
         webview.setDownloadListener(object : DownloadListener {
             override fun onDownloadStart(
                 url: String?,
@@ -232,13 +297,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
         webview.loadUrl(magicLink)
 
-
-        webAppInterface = WebAppInterface(this)
-        webview.addJavascriptInterface(webAppInterface, "Android")
-
-        pdfDownloader = PdfDownloader()
-        locationTrackerUtil = LocationTrackerUtil(this)
-
         connectivityObserver = NetworkConnectivityObserver(this)
 
         connectivityObserver.observe().onEach { networkStatus ->
@@ -263,42 +321,33 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }.launchIn(lifecycleScope)
 
 
-        ViewCompat.setOnApplyWindowInsetsListener(parentLayout) { view, windowInsets ->
+        val initialParentPaddingLeft = parentLayout.paddingLeft
+        val initialParentPaddingTop = parentLayout.paddingTop
+        val initialParentPaddingRight = parentLayout.paddingRight
+        val initialParentPaddingBottom = parentLayout.paddingBottom
 
-
-            val statusBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
-            val navigationBarInsets =
-                windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
-
-            val imeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime())
+        ViewCompat.setOnApplyWindowInsetsListener(parentLayout) { _, windowInsets ->
+            val systemBars = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
             val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            val imeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime())
+            val bottomInset = maxOf(systemBars.bottom, imeInsets.bottom)
 
+            Timber.tag(TAG).d(
+                "window insets applied: systemBars=$systemBars, ime=$imeInsets, imeVisible=$imeVisible, bottomInset=$bottomInset"
+            )
 
-//            Timber.tag(
-//                TAG
-//            ).d(
-//                "imeInsets(bottom: ${imeInsets.bottom}), navigationBarInsets: (bottom: ${navigationBarInsets.bottom}), imeVisible: ${imeVisible} "
-//            )
+            parentLayout.setPadding(
+                initialParentPaddingLeft + systemBars.left,
+                initialParentPaddingTop,
+                initialParentPaddingRight + systemBars.right,
+                initialParentPaddingBottom + bottomInset
+            )
 
-            webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                this.bottomMargin = navigationBarInsets.bottom
-            }
-
-            if (imeVisible) {
-                webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                    this.bottomMargin = imeInsets.bottom
-                }
-            } else {
-                webview.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                    this.bottomMargin = 0
-                }
-            }
-
-//
-//            // Return CONSUMED if you don't want want the window insets to keep passing
-//            // down to descendant views.
             WindowInsetsCompat.CONSUMED
         }
+        ViewCompat.requestApplyInsets(parentLayout)
 
 
     }
@@ -314,75 +363,139 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        Timber.tag(TAG)
-            .d("onActivityResult called. requestCode: $requestCode resultCode: $resultCode")
+    private fun startLocationAccessRequest(
+        origin: String? = null,
+        callback: GeolocationPermissions.Callback? = null,
+    ) {
+        runOnUiThread {
+            callback?.let {
+                pendingGeolocationPermissionRequests.add(
+                    PendingGeolocationPermissionRequest(origin, it)
+                )
+            }
 
-        super.onActivityResult(requestCode, resultCode, intent)
+            if (isResolvingLocationAccessRequest) {
+                return@runOnUiThread
+            }
 
-        if (requestCode == 1000 && resultCode == RESULT_OK) {
-            Timber.tag(TAG).d("resultCode: $requestCode")
+            isResolvingLocationAccessRequest = true
 
-            webview.webChromeClient = webChromeClient
-            webview.webViewClient = webViewClient
-
-
-        } else if (requestCode == REQUEST_CODE_FILE_PICKER) {
-            if (resultCode == Activity.RESULT_OK) {
-                var dataUris: Array<Uri>? = null
-
-                try {
-                    if (intent!!.dataString != null) {
-                        dataUris = arrayOf(Uri.parse(intent.dataString))
-                    } else {
-                        if (intent.clipData != null) {
-                            val count = intent.clipData!!.itemCount
-                            dataUris = Array(count) { index ->
-                                intent.clipData!!.getItemAt(index).uri
-                            }
-                        }
-                    }
-                } catch (ignored: java.lang.Exception) {
-
-                }
-
-                mFileUploadCallbackSecond!!.onReceiveValue(dataUris)
-                mFileUploadCallbackSecond = null
+            if (locationTrackerUtil.isPreciseLocationPermissionAllowed()) {
+                requestGpsSettings(allowResolution = true)
             } else {
-                if (mFileUploadCallbackSecond != null) {
-                    mFileUploadCallbackSecond!!.onReceiveValue(null)
-                    mFileUploadCallbackSecond = null
+                try {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                } catch (e: Exception) {
+                    Timber.tag(TAG).d("locationPermissionLauncher failed: ${e.message}")
+                    finishLocationAccessRequest(granted = false)
                 }
             }
         }
     }
 
-    override fun askForLocationPermission() {
-
+    private fun requestGpsSettings(
+        allowResolution: Boolean,
+        remainingDelayedRetries: Int = 0,
+    ) {
         runOnUiThread {
-            if (locationTrackerUtil.isLocationPermissionAllowed()) {
-                if (locationTrackerUtil.isGPSEnabled()) {
-                    runOnUiThread {
-                        webview.evaluateJavascript(
-                            "window.checkTheGpsPermission(true)", null
+            Timber.tag(TAG).d(
+                "requestGpsSettings called: allowResolution=$allowResolution, remainingDelayedRetries=$remainingDelayedRetries"
+            )
+            locationTrackerUtil.promptUserToTurnOnGPS(
+                onSuccessListener = {
+                    Timber.tag(TAG).d(
+                        "GPS settings onSuccessListener called: allowResolution=$allowResolution, remainingDelayedRetries=$remainingDelayedRetries, completing granted=true"
+                    )
+                    finishLocationAccessRequest(granted = true)
+                },
+                onResolutionRequiredListener = { intentSenderRequest: IntentSenderRequest ->
+                    Timber.tag(TAG).d(
+                        "GPS settings onResolutionRequiredListener called: allowResolution=$allowResolution, remainingDelayedRetries=$remainingDelayedRetries"
+                    )
+                    if (allowResolution) {
+                        try {
+                            Timber.tag(TAG).d("launching GPS settings resolution prompt")
+                            gpsSettingsLauncher.launch(intentSenderRequest)
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).d("gpsSettingsLauncher failed: ${e.message}")
+                            finishLocationAccessRequest(granted = false)
+                        }
+                    } else if (remainingDelayedRetries > 0) {
+                        Timber.tag(TAG).d(
+                            "GPS settings immediate re-check still requires resolution; scheduling delayed retry in 500ms"
                         )
-                        Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
+                        lifecycleScope.launch {
+                            delay(500)
+                            Timber.tag(TAG).d(
+                                "executing delayed GPS settings retry; remainingDelayedRetries=${remainingDelayedRetries - 1}"
+                            )
+                            requestGpsSettings(
+                                allowResolution = false,
+                                remainingDelayedRetries = remainingDelayedRetries - 1
+                            )
+                        }
+                    } else {
+                        Timber.tag(TAG).d(
+                            "GPS settings retry exhausted and still requires resolution; completing granted=false"
+                        )
+                        finishLocationAccessRequest(granted = false)
                     }
-                } else {
-                    locationTrackerUtil.showGPS_NotEnabledDialog()
+                },
+                onFailureListener = { exception ->
+                    Timber.tag(TAG).d(
+                        "GPS settings onFailureListener called: exception=${exception::class.java.simpleName}, message=${exception.message}"
+                    )
+                    finishLocationAccessRequest(granted = false)
                 }
-            } else {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+    private fun finishLocationAccessRequest(granted: Boolean) {
+        runOnUiThread {
+            if (!isResolvingLocationAccessRequest && pendingGeolocationPermissionRequests.isEmpty()) {
+                return@runOnUiThread
+            }
+
+            isResolvingLocationAccessRequest = false
+
+            val pendingRequests = pendingGeolocationPermissionRequests.toList()
+            pendingGeolocationPermissionRequests.clear()
+            pendingRequests.forEach { request ->
+                Timber.tag(TAG).d(
+                    "sending WebView geolocation callback: origin=${request.origin}, granted=$granted"
                 )
+                request.callback.invoke(request.origin, granted, false)
             }
         }
+    }
 
+    private fun getSelectedFileUris(intent: Intent?): Array<Uri>? {
+        if (intent == null) {
+            return null
+        }
 
+        intent.data?.let { uri ->
+            return arrayOf(uri)
+        }
+
+        val clipData = intent.clipData ?: return null
+        if (clipData.itemCount == 0) {
+            return null
+        }
+
+        return Array(clipData.itemCount) { index ->
+            clipData.getItemAt(index).uri
+        }
     }
 
     override fun visitCallback(jsonObject: String?) {
+        Timber.tag(TAG).d("web event received: visitCallback")
 
         jsonObject?.let {
 
@@ -393,11 +506,14 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
             val eventName = eventData["eventName"].toString()
 
+            Timber.tag(TAG).d("web event received: visitCallback eventName=$eventName")
+            Timber.tag(TAG).d("sending SDK host event callback: eventName=$eventName")
             userEventCallback?.invoke(eventName)
         }
     }
 
     override fun errorCallback(jsonObject: String?) {
+        Timber.tag(TAG).d("web event received: errorCallback")
 
         jsonObject?.let {
 
@@ -411,6 +527,12 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             val errorTitle: String = eventData["errorTitle"].toString()
             val errorDesc: String? = eventData["errorDesc"]?.toString()
 
+            Timber.tag(TAG).d(
+                "web event received: errorCallback errorTitle=$errorTitle, errorDesc=$errorDesc"
+            )
+            Timber.tag(TAG).d(
+                "sending SDK host error callback: errorTitle=$errorTitle, errorDesc=$errorDesc"
+            )
             errorEventCallback?.invoke(errorTitle, errorDesc)
         }
 
@@ -426,49 +548,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         return map
     }
 
-    override fun onRestart() {
-        super.onRestart()
-        if (locationTrackerUtil.isLocationPermissionAllowed() && locationTrackerUtil.isGPSEnabled()) {
-            runOnUiThread {
-                webview.evaluateJavascript(
-                    "window.checkTheGpsPermission(true)", null
-                )
-                Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
-            }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty()) {
-                    val locationPermissionGranted =
-                        (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-
-                    if (locationPermissionGranted) {
-                        if (!locationTrackerUtil.isGPSEnabled()) {
-                            locationTrackerUtil.showGPS_NotEnabledDialog()
-                        } else {
-                            runOnUiThread {
-                                webview.evaluateJavascript(
-                                    "window.checkTheGpsPermission(true)", null
-                                )
-                                Timber.tag(TAG).d("window.checkTheGpsPermission(true) called")
-                            }
-                        }
-                    } else {
-                        locationTrackerUtil.showLocationPermissionDeniedAlertDialog()
-                    }
-                }
-            }
-        }
-    }
-
     override fun closeView() {
+        Timber.tag(TAG).d("web event received: closeView")
         finish()
     }
 
@@ -495,12 +576,14 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     override fun onDestroy() {
         Timber.tag(TAG).d("onDestroy called")
+        finishLocationAccessRequest(granted = false)
         userEventCallback = null
         super.onDestroy()
     }
 
 
     override fun openLink(url: String?) {
+        Timber.tag(TAG).d("web event received: openLink url=$url")
         runOnUiThread {
             try {
                 val uri = Uri.parse(url)
@@ -533,6 +616,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             if (mFileUploadCallbackSecond != null) {
                 mFileUploadCallbackSecond!!.onReceiveValue(null)
             }
+            if (filePathCallback == null) {
+                return false
+            }
             mFileUploadCallbackSecond = filePathCallback
 
             val i = Intent(Intent.ACTION_GET_CONTENT)
@@ -542,9 +628,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
             i.type = "*/*"
 
-            startActivityForResult(
-                Intent.createChooser(i, "Choose a file"), REQUEST_CODE_FILE_PICKER
-            )
+            filePickerLauncher.launch(Intent.createChooser(i, "Choose a file"))
 
             return true
 
@@ -579,13 +663,14 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         override fun onGeolocationPermissionsShowPrompt(
             origin: String?, callback: GeolocationPermissions.Callback?
         ) {
-            Timber.tag(TAG).d("onGeolocationPermissionsShowPrompt called")
-            super.onGeolocationPermissionsShowPrompt(origin, callback);
-            callback?.invoke(origin, true, false);
+            Timber.tag(TAG).d(
+                "web geolocation request received: origin=$origin, hasCallback=${callback != null}"
+            )
+            startLocationAccessRequest(origin, callback)
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
-            Timber.tag(TAG).d("onGeolocationPermissionsHidePrompt called")
+            Timber.tag(TAG).d("web geolocation request hidden")
             super.onGeolocationPermissionsHidePrompt()
 
         }
@@ -601,7 +686,3 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         webview.restoreState(savedInstanceState)
     }
 }
-
-
-
-

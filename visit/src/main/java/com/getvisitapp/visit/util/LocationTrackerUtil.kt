@@ -1,15 +1,26 @@
 package com.getvisitapp.visit.util
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.Keep
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.Priority
+import com.google.android.gms.location.SettingsClient
+import com.google.android.gms.tasks.Task
 
 
 @Keep
@@ -26,6 +37,12 @@ class LocationTrackerUtil(
         //checking if GPS is enabled or not
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    fun isPreciseLocationPermissionAllowed(): Boolean {
+        return ActivityCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     fun isLocationPermissionAllowed(): Boolean {
@@ -88,6 +105,51 @@ class LocationTrackerUtil(
             "Cancel"
         ) { dialog, which -> dialog.cancel() }
         alertDialog.show()
+    }
+
+    fun promptUserToTurnOnGPS(
+        onSuccessListener: () -> Unit,
+        onResolutionRequiredListener: (intentSenderRequest: IntentSenderRequest) -> Unit,
+        onFailureListener: (exception: Exception) -> Unit,
+    ) {
+        val activity = context as? Activity
+        if (activity == null) {
+            onFailureListener(IllegalStateException("Location settings prompt requires an Activity context."))
+            return
+        }
+
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5 * 1000)
+            .setWaitForAccurateLocation(true)
+            .setMinUpdateIntervalMillis(2 * 1000)
+            .setMaxUpdateDelayMillis(5 * 1000)
+            .build()
+
+        val locationSettingsRequest = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+            .setAlwaysShow(true)
+            .build()
+
+        val settingsClient: SettingsClient = LocationServices.getSettingsClient(activity)
+        val task: Task<LocationSettingsResponse> =
+            settingsClient.checkLocationSettings(locationSettingsRequest)
+
+        task.addOnSuccessListener(activity) {
+            onSuccessListener()
+        }
+
+        task.addOnFailureListener(activity) { exception ->
+            if (exception is ResolvableApiException) {
+                try {
+                    onResolutionRequiredListener(
+                        IntentSenderRequest.Builder(exception.resolution).build()
+                    )
+                } catch (sendIntentException: IntentSender.SendIntentException) {
+                    onFailureListener(sendIntentException)
+                }
+            } else {
+                onFailureListener(exception)
+            }
+        }
     }
 
 

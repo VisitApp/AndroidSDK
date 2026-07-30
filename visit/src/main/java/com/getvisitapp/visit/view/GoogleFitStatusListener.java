@@ -9,8 +9,6 @@ public interface GoogleFitStatusListener {
 
     void closeView();
 
-    void askForLocationPermission();
-
     void visitCallback(String jsonObject);
 
     void errorCallback(String jsonObject);

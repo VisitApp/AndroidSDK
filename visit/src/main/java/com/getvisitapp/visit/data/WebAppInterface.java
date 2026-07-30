@@ -1,6 +1,5 @@
 package com.getvisitapp.visit.data;
 
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import androidx.annotation.Keep;
@@ -15,14 +14,6 @@ public class WebAppInterface {
 
     public WebAppInterface(GoogleFitStatusListener listener) {
         this.listener = listener;
-    }
-
-
-    @JavascriptInterface
-    public void getLocationPermissions() {
-        Timber.tag("mytag")
-                .d( "getLocationPermissions() called.");
-        listener.askForLocationPermission();
     }
 
 
