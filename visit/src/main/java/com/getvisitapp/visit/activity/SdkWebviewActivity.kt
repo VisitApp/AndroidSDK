@@ -463,6 +463,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             }
 
             isResolvingLocationAccessRequest = false
+            sendLegacyLocationPermissionCallback(granted)
 
             val pendingRequests = pendingGeolocationPermissionRequests.toList()
             pendingGeolocationPermissionRequests.clear()
@@ -472,6 +473,21 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                 )
                 request.callback.invoke(request.origin, granted, false)
             }
+        }
+    }
+
+    private fun sendLegacyLocationPermissionCallback(granted: Boolean) {
+        if (!::webview.isInitialized) {
+            return
+        }
+
+        val script =
+            "window.checkTheGpsPermission($granted)"
+        Timber.tag(TAG).d("sending JS GPS callback: window.checkTheGpsPermission($granted)")
+        webview.evaluateJavascript(script) { result ->
+            Timber.tag(TAG).d(
+                "sent JS GPS callback: window.checkTheGpsPermission($granted), result=$result"
+            )
         }
     }
 
@@ -546,6 +562,13 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
 
         return map
+    }
+
+    override fun askForLocationPermission() {
+        Timber.tag(TAG).d("web event received: getLocationPermissions")
+        runOnUiThread {
+            startLocationAccessRequest()
+        }
     }
 
     override fun closeView() {

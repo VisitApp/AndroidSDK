@@ -5,6 +5,8 @@ import androidx.annotation.Keep;
 @Keep
 public interface GoogleFitStatusListener {
 
+    void askForLocationPermission();
+
     void openLink(String url);
 
     void closeView();
