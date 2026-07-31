@@ -238,6 +238,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     companion object {
         private const val CAMERA_PERMISSION_TYPE = "CAMERA"
+        private const val LOCATION_PERMISSION_TYPE = "LOCATION"
         private const val CAMERA_CAPTURE_DIRECTORY = "files/cameraCaptures"
         private const val CAMERA_CAPTURE_FILE_PREFIX = "camera_capture_"
         private const val CAMERA_CAPTURE_FILE_SUFFIX = ".jpg"
@@ -768,16 +769,23 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     override fun requestPermission(type: String?) {
         Timber.tag(TAG).d("web event received: requestPermission type=$type")
         runOnUiThread {
-            if (!type.equals(CAMERA_PERMISSION_TYPE, ignoreCase = true)) {
-                sendCameraPermissionCallback(
-                    granted = false,
-                    uri = null,
-                    errorCode = CAMERA_ERROR_UNSUPPORTED_TYPE
-                )
-                return@runOnUiThread
-            }
+            when {
+                type.equals(CAMERA_PERMISSION_TYPE, ignoreCase = true) -> {
+                    startCameraPermissionRequest()
+                }
 
-            startCameraPermissionRequest()
+                type.equals(LOCATION_PERMISSION_TYPE, ignoreCase = true) -> {
+                    startLocationAccessRequest()
+                }
+
+                else -> {
+                    sendCameraPermissionCallback(
+                        granted = false,
+                        uri = null,
+                        errorCode = CAMERA_ERROR_UNSUPPORTED_TYPE
+                    )
+                }
+            }
         }
     }
 
