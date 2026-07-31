@@ -15,4 +15,7 @@ public interface GoogleFitStatusListener {
 
     void errorCallback(String jsonObject);
 
+    void requestPermission(String type);
+
+
 }

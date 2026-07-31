@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -29,6 +30,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -49,7 +51,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.onEach
+import org.json.JSONObject
 import timber.log.Timber
+import java.io.File
 
 
 /**
@@ -89,6 +93,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     lateinit var connectivityObserver: ConnectivityObserver
     var mFileUploadCallbackSecond: ValueCallback<Array<Uri>>? = null
+    private var pendingCameraCaptureUri: Uri? = null
+    private var pendingCameraCaptureFile: File? = null
+    private var isCameraCaptureInProgress = false
 
     private data class PendingGeolocationPermissionRequest(
         val origin: String?,
@@ -131,6 +138,44 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         } else {
             Timber.tag(TAG).d("GPS settings ActivityResult cancelled; completing granted=false")
             finishLocationAccessRequest(granted = false)
+        }
+    }
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        Timber.tag(TAG).d("camera permission ActivityResult received: isGranted=$isGranted")
+        if (isGranted) {
+            launchCameraCapture()
+        } else {
+            finishCameraCaptureRequest(
+                granted = false,
+                uri = null,
+                errorCode = CAMERA_ERROR_PERMISSION_DENIED
+            )
+        }
+    }
+
+    private val cameraCaptureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { isCaptured ->
+        val capturedUri = pendingCameraCaptureUri
+        Timber.tag(TAG).d(
+            "camera capture ActivityResult received: isCaptured=$isCaptured, uri=$capturedUri"
+        )
+        if (isCaptured && capturedUri != null) {
+            finishCameraCaptureRequest(
+                granted = true,
+                uri = capturedUri,
+                errorCode = null,
+                deletePendingFile = false
+            )
+        } else {
+            finishCameraCaptureRequest(
+                granted = false,
+                uri = null,
+                errorCode = if (isCaptured) CAMERA_ERROR_CAPTURE_FAILED else CAMERA_ERROR_CAPTURE_CANCELLED
+            )
         }
     }
 
@@ -192,6 +237,16 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
 
     companion object {
+        private const val CAMERA_PERMISSION_TYPE = "CAMERA"
+        private const val CAMERA_CAPTURE_DIRECTORY = "files/cameraCaptures"
+        private const val CAMERA_CAPTURE_FILE_PREFIX = "camera_capture_"
+        private const val CAMERA_CAPTURE_FILE_SUFFIX = ".jpg"
+        private const val CAMERA_ERROR_UNSUPPORTED_TYPE = "UNSUPPORTED_TYPE"
+        private const val CAMERA_ERROR_PERMISSION_DENIED = "PERMISSION_DENIED"
+        private const val CAMERA_ERROR_CAMERA_UNAVAILABLE = "CAMERA_UNAVAILABLE"
+        private const val CAMERA_ERROR_CAPTURE_CANCELLED = "CAPTURE_CANCELLED"
+        private const val CAMERA_ERROR_CAPTURE_FAILED = "CAPTURE_FAILED"
+        private const val CAMERA_ERROR_REQUEST_IN_PROGRESS = "REQUEST_IN_PROGRESS"
 
         fun getIntent(
             context: Context,
@@ -491,6 +546,145 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
     }
 
+    private fun startCameraPermissionRequest() {
+        if (isCameraCaptureInProgress) {
+            Timber.tag(TAG).d("camera request ignored because another request is in progress")
+            sendCameraPermissionCallback(
+                granted = false,
+                uri = null,
+                errorCode = CAMERA_ERROR_REQUEST_IN_PROGRESS
+            )
+            return
+        }
+
+        isCameraCaptureInProgress = true
+
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            finishCameraCaptureRequest(
+                granted = false,
+                uri = null,
+                errorCode = CAMERA_ERROR_CAMERA_UNAVAILABLE
+            )
+            return
+        }
+
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            launchCameraCapture()
+        } else {
+            try {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            } catch (e: Exception) {
+                Timber.tag(TAG).d("cameraPermissionLauncher failed: ${e.message}")
+                finishCameraCaptureRequest(
+                    granted = false,
+                    uri = null,
+                    errorCode = CAMERA_ERROR_PERMISSION_DENIED
+                )
+            }
+        }
+    }
+
+    private fun launchCameraCapture() {
+        try {
+            val outputUri = createCameraCaptureUri()
+            Timber.tag(TAG).d("launching camera capture with uri=$outputUri")
+            cameraCaptureLauncher.launch(outputUri)
+        } catch (e: Exception) {
+            Timber.tag(TAG).d("camera capture launch failed: ${e.message}")
+            finishCameraCaptureRequest(
+                granted = false,
+                uri = null,
+                errorCode = CAMERA_ERROR_CAPTURE_FAILED
+            )
+        }
+    }
+
+    private fun createCameraCaptureUri(): Uri {
+        val captureDir = File(filesDir, CAMERA_CAPTURE_DIRECTORY)
+        if (!captureDir.exists() && !captureDir.mkdirs()) {
+            error("Unable to create camera capture directory")
+        }
+
+        val captureFile = File.createTempFile(
+            CAMERA_CAPTURE_FILE_PREFIX,
+            CAMERA_CAPTURE_FILE_SUFFIX,
+            captureDir
+        )
+        pendingCameraCaptureFile = captureFile
+
+        val captureUri = FileProvider.getUriForFile(
+            this,
+            applicationContext.packageName + AUTHORITY_SUFFIX,
+            captureFile
+        )
+
+        pendingCameraCaptureUri = captureUri
+        return captureUri
+    }
+
+    private fun finishCameraCaptureRequest(
+        granted: Boolean,
+        uri: Uri?,
+        errorCode: String?,
+        deletePendingFile: Boolean = true
+    ) {
+        runOnUiThread {
+            if (!granted && deletePendingFile) {
+                deletePendingCameraCaptureFile()
+            }
+
+            sendCameraPermissionCallback(
+                granted = granted,
+                uri = uri,
+                errorCode = errorCode
+            )
+            clearPendingCameraCapture(deletePendingFile = false)
+        }
+    }
+
+    private fun sendCameraPermissionCallback(
+        granted: Boolean,
+        uri: Uri?,
+        errorCode: String?
+    ) {
+        if (!::webview.isInitialized) {
+            return
+        }
+
+        val uriArgument = uri?.toString()?.let { JSONObject.quote(it) } ?: "null"
+        val errorArgument = errorCode?.let { JSONObject.quote(it) } ?: "null"
+        val script = "window.checkTheCameraPermission($granted, $uriArgument, $errorArgument)"
+        Timber.tag(TAG).d("sending JS camera callback: $script")
+        webview.evaluateJavascript(script) { result ->
+            Timber.tag(TAG).d("sent JS camera callback, result=$result")
+        }
+    }
+
+    private fun clearPendingCameraCapture(deletePendingFile: Boolean) {
+        if (deletePendingFile) {
+            deletePendingCameraCaptureFile()
+        }
+        pendingCameraCaptureUri = null
+        pendingCameraCaptureFile = null
+        isCameraCaptureInProgress = false
+    }
+
+    private fun deletePendingCameraCaptureFile() {
+        try {
+            val file = pendingCameraCaptureFile
+            if (file?.exists() == true) {
+                file.delete()
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).d("delete pending camera capture failed: ${e.message}")
+        }
+    }
+
     private fun getSelectedFileUris(intent: Intent?): Array<Uri>? {
         if (intent == null) {
             return null
@@ -571,6 +765,22 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         }
     }
 
+    override fun requestPermission(type: String?) {
+        Timber.tag(TAG).d("web event received: requestPermission type=$type")
+        runOnUiThread {
+            if (!type.equals(CAMERA_PERMISSION_TYPE, ignoreCase = true)) {
+                sendCameraPermissionCallback(
+                    granted = false,
+                    uri = null,
+                    errorCode = CAMERA_ERROR_UNSUPPORTED_TYPE
+                )
+                return@runOnUiThread
+            }
+
+            startCameraPermissionRequest()
+        }
+    }
+
     override fun closeView() {
         Timber.tag(TAG).d("web event received: closeView")
         finish()
@@ -600,6 +810,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     override fun onDestroy() {
         Timber.tag(TAG).d("onDestroy called")
         finishLocationAccessRequest(granted = false)
+        clearPendingCameraCapture(deletePendingFile = true)
         userEventCallback = null
         super.onDestroy()
     }
@@ -636,6 +847,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             filePathCallback: ValueCallback<Array<Uri>>?,
             fileChooserParams: FileChooserParams?
         ): Boolean {
+
+            Timber.d("filePath: $filePathCallback, fileChooserParams: $fileChooserParams")
+
             if (mFileUploadCallbackSecond != null) {
                 mFileUploadCallbackSecond!!.onReceiveValue(null)
             }

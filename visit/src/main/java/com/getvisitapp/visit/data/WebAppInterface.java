@@ -53,5 +53,12 @@ public class WebAppInterface {
         listener.errorCallback(jsonObject);
     }
 
+    @JavascriptInterface
+    public void requestPermission(String type) {
+        Timber.tag("mytag")
+                .d("requestPermission() called. type:" + type);
+        listener.requestPermission(type);
+    }
+
 
 }
