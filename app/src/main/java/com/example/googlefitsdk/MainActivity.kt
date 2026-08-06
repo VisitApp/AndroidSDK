@@ -2,6 +2,7 @@ package com.example.googlefitsdk
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.example.app.R
 import com.getvisitapp.visit.VisitSDK
@@ -10,9 +11,13 @@ import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var ssoLinkEditText: EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        ssoLinkEditText = findViewById(R.id.ssoLinkEditText)
 
         findViewById<Button>(R.id.button).setOnClickListener {
             init()
@@ -33,8 +38,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun init() {
 
-        val ssoLink =
-            "https://niva-bupa-visit.getvisitapp.net/sso?userParams=23dunqltP9O2DMyulwb-QtVyWXud2_inHkw-IXo0LCTavm4b4dxrddNu9tREryI3nM8dMnea6jBLeRH6lHS3PRGoRozW2rpkPtcaemIaKh0RDKfi6uKjoKguyGHYrTvD7vQtEoE-iqwKWoHgbx5UW5YfB2HQrJwuSzW0yTt6g9tw0PLELX47Epjc17Ipw1MNWiwJ2Q1yWn2cxWWTIoYJuN4gBHDmEioS2bJyMQlvDDFoVjn4wzBbYnKD-UEi9zWX3Thy1n6bwicAnlDxh2jSbIH7b_E5z6g9SDBRzJnis9HyQZ4xmYG405WKkypEUWW6_KJRqCBDEJjt5iFAuzrO8cERpQmPO-nkhBJAgNpJ8VrCFhG_XIZX07oJKmuK5xTKsDQUV5Y9wya6nV0niYMq1KYcGABdm_qLY4IWXcmHO7KNi3LDcBZLuAT2QZikxQtqKAi6sxJ7d30vvXBmw6Isl8rvLUfsnPecqocncwl3YpOLKqVwoBTx_ONmFZeEr5GX&clientId=NIVA_BUPA"
+        val ssoLink = ssoLinkEditText.text.toString().trim()
+        if (ssoLink.isBlank()) {
+            ssoLinkEditText.error = "SSO link is required"
+            return
+        }
 
         VisitSDK.init(
             this, false, ssoLink
@@ -42,4 +50,3 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
