@@ -17,14 +17,6 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public void getLocationPermissions() {
-        Timber.tag("mytag")
-                .d( "getLocationPermissions() called");
-        listener.askForLocationPermission();
-    }
-
-
-    @JavascriptInterface
     public void closeView() {
         Timber.tag("mytag")
                 .d( "closeView() called");

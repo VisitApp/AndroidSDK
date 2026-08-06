@@ -1,6 +1,7 @@
 package com.getvisitapp.visit.util
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -8,20 +9,30 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Looper
 import android.provider.Settings
 import androidx.activity.result.IntentSenderRequest
 import androidx.annotation.Keep
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.Task
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
+
+@Keep
+data class LocationCoordinate(val lat: Double, val lng: Double)
 
 @Keep
 class LocationTrackerUtil(
@@ -148,6 +159,90 @@ class LocationTrackerUtil(
                 }
             } else {
                 onFailureListener(exception)
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    suspend fun awaitSingleHighAccuracyLocation(
+        timeoutMillis: Long = 10_000L
+    ): LocationCoordinate {
+        if (!isPreciseLocationPermissionAllowed()) {
+            throw SecurityException("Location permission not granted.")
+        }
+
+        if (!isGPSEnabled()) {
+            throw IllegalStateException("GPS is disabled.")
+        }
+
+        return withTimeout(timeoutMillis) {
+            suspendCancellableCoroutine { continuation ->
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+                val locationRequest =
+                    LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5 * 1000)
+                        .setWaitForAccurateLocation(true)
+                        .setMinUpdateIntervalMillis(2 * 1000)
+                        .setMaxUpdateDelayMillis(5 * 1000)
+                        .build()
+
+                var locationCallback: LocationCallback? = null
+
+                fun stopLocationUpdates() {
+                    locationCallback?.let { callback ->
+                        fusedLocationClient.removeLocationUpdates(callback)
+                    }
+                    locationCallback = null
+                }
+
+                locationCallback = object : LocationCallback() {
+                    override fun onLocationResult(locationResult: LocationResult) {
+                        val location =
+                            locationResult.lastLocation ?: locationResult.locations.firstOrNull()
+                        stopLocationUpdates()
+
+                        if (!continuation.isActive) {
+                            return
+                        }
+
+                        if (location != null) {
+                            continuation.resume(
+                                LocationCoordinate(
+                                    lat = location.latitude,
+                                    lng = location.longitude
+                                )
+                            )
+                        } else {
+                            continuation.resumeWithException(
+                                IllegalStateException("Unable to get your current location.")
+                            )
+                        }
+                    }
+                }
+
+                continuation.invokeOnCancellation {
+                    stopLocationUpdates()
+                }
+
+                try {
+                    val activeLocationCallback = locationCallback
+                        ?: throw IllegalStateException("Location callback was not created.")
+
+                    fusedLocationClient.requestLocationUpdates(
+                        locationRequest,
+                        activeLocationCallback,
+                        Looper.getMainLooper()
+                    ).addOnFailureListener { exception ->
+                        stopLocationUpdates()
+                        if (continuation.isActive) {
+                            continuation.resumeWithException(exception)
+                        }
+                    }
+                } catch (exception: Exception) {
+                    stopLocationUpdates()
+                    if (continuation.isActive) {
+                        continuation.resumeWithException(exception)
+                    }
+                }
             }
         }
     }

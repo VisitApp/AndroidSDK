@@ -15,7 +15,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.DownloadListener
-import android.webkit.GeolocationPermissions
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -42,6 +41,7 @@ import com.getvisitapp.visit.connectivity.NetworkConnectivityObserver
 import com.getvisitapp.visit.data.WebAppInterface
 import com.getvisitapp.visit.util.Constants.IS_DEBUG
 import com.getvisitapp.visit.util.Constants.WEB_URL
+import com.getvisitapp.visit.util.LocationCoordinate
 import com.getvisitapp.visit.util.LocationTrackerUtil
 import com.getvisitapp.visit.util.PdfDownloader
 import com.getvisitapp.visit.util.makeStatusBarTransparent
@@ -49,6 +49,7 @@ import com.getvisitapp.visit.view.GoogleFitStatusListener
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
@@ -100,13 +101,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     private var pendingCameraCaptureFile: File? = null
     private var isCameraCaptureInProgress = false
 
-    private data class PendingGeolocationPermissionRequest(
-        val origin: String?,
-        val callback: GeolocationPermissions.Callback,
-    )
-
-    private val pendingGeolocationPermissionRequests =
-        mutableListOf<PendingGeolocationPermissionRequest>()
     private var isResolvingLocationAccessRequest = false
 
     private val locationPermissionLauncher = registerForActivityResult(
@@ -123,7 +117,10 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         if (preciseLocationGranted) {
             requestGpsSettings(allowResolution = true)
         } else {
-            finishLocationAccessRequest(granted = false)
+            finishLocationAccessRequest(
+                granted = false,
+                errorArgument = LOCATION_ERROR_PERMISSION_DENIED
+            )
         }
     }
 
@@ -140,7 +137,10 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             requestGpsSettings(allowResolution = false, remainingDelayedRetries = 1)
         } else {
             Timber.tag(TAG).d("GPS settings ActivityResult cancelled; completing granted=false")
-            finishLocationAccessRequest(granted = false)
+            finishLocationAccessRequest(
+                granted = false,
+                errorArgument = LOCATION_ERROR_GPS_SETTINGS_CANCELLED
+            )
         }
     }
 
@@ -264,6 +264,15 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         private const val CAMERA_ERROR_CAPTURE_CANCELLED = "CAPTURE_CANCELLED"
         private const val CAMERA_ERROR_CAPTURE_FAILED = "CAPTURE_FAILED"
         private const val CAMERA_ERROR_REQUEST_IN_PROGRESS = "REQUEST_IN_PROGRESS"
+        private const val LOCATION_ERROR_PERMISSION_DENIED = "LOCATION_PERMISSION_DENIED"
+        private const val LOCATION_ERROR_PERMISSION_REQUEST_FAILED =
+            "LOCATION_PERMISSION_REQUEST_FAILED"
+        private const val LOCATION_ERROR_GPS_SETTINGS_CANCELLED = "GPS_SETTINGS_CANCELLED"
+        private const val LOCATION_ERROR_GPS_SETTINGS_DISABLED = "GPS_SETTINGS_DISABLED"
+        private const val LOCATION_ERROR_GPS_SETTINGS_UNAVAILABLE = "GPS_SETTINGS_UNAVAILABLE"
+        private const val LOCATION_ERROR_LOCATION_UNAVAILABLE = "LOCATION_UNAVAILABLE"
+        private const val LOCATION_ERROR_LOCATION_TIMEOUT = "LOCATION_TIMEOUT"
+        private const val LOCATION_ERROR_ACTIVITY_DESTROYED = "ACTIVITY_DESTROYED"
 
         fun getIntent(
             context: Context,
@@ -308,7 +317,7 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         webview.settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true)
-        webview.settings.setGeolocationEnabled(true)
+        webview.settings.setGeolocationEnabled(false)
         webview.settings.domStorageEnabled = true;
         webview.settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
@@ -435,17 +444,8 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
     }
 
 
-    private fun startLocationAccessRequest(
-        origin: String? = null,
-        callback: GeolocationPermissions.Callback? = null,
-    ) {
+    private fun startLocationAccessRequest() {
         runOnUiThread {
-            callback?.let {
-                pendingGeolocationPermissionRequests.add(
-                    PendingGeolocationPermissionRequest(origin, it)
-                )
-            }
-
             if (isResolvingLocationAccessRequest) {
                 return@runOnUiThread
             }
@@ -464,7 +464,10 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                     )
                 } catch (e: Exception) {
                     Timber.tag(TAG).d("locationPermissionLauncher failed: ${e.message}")
-                    finishLocationAccessRequest(granted = false)
+                    finishLocationAccessRequest(
+                        granted = false,
+                        errorArgument = LOCATION_ERROR_PERMISSION_REQUEST_FAILED
+                    )
                 }
             }
         }
@@ -481,9 +484,9 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             locationTrackerUtil.promptUserToTurnOnGPS(
                 onSuccessListener = {
                     Timber.tag(TAG).d(
-                        "GPS settings onSuccessListener called: allowResolution=$allowResolution, remainingDelayedRetries=$remainingDelayedRetries, completing granted=true"
+                        "GPS settings onSuccessListener called: allowResolution=$allowResolution, remainingDelayedRetries=$remainingDelayedRetries, requesting current location"
                     )
-                    finishLocationAccessRequest(granted = true)
+                    fetchCurrentLocationAndFinish()
                 },
                 onResolutionRequiredListener = { intentSenderRequest: IntentSenderRequest ->
                     Timber.tag(TAG).d(
@@ -495,7 +498,10 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                             gpsSettingsLauncher.launch(intentSenderRequest)
                         } catch (e: Exception) {
                             Timber.tag(TAG).d("gpsSettingsLauncher failed: ${e.message}")
-                            finishLocationAccessRequest(granted = false)
+                            finishLocationAccessRequest(
+                                granted = false,
+                                errorArgument = LOCATION_ERROR_GPS_SETTINGS_UNAVAILABLE
+                            )
                         }
                     } else if (remainingDelayedRetries > 0) {
                         Timber.tag(TAG).d(
@@ -515,50 +521,111 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
                         Timber.tag(TAG).d(
                             "GPS settings retry exhausted and still requires resolution; completing granted=false"
                         )
-                        finishLocationAccessRequest(granted = false)
+                        finishLocationAccessRequest(
+                            granted = false,
+                            errorArgument = LOCATION_ERROR_GPS_SETTINGS_DISABLED
+                        )
                     }
                 },
                 onFailureListener = { exception ->
                     Timber.tag(TAG).d(
                         "GPS settings onFailureListener called: exception=${exception::class.java.simpleName}, message=${exception.message}"
                     )
-                    finishLocationAccessRequest(granted = false)
+                    finishLocationAccessRequest(
+                        granted = false,
+                        errorArgument = LOCATION_ERROR_GPS_SETTINGS_UNAVAILABLE
+                    )
                 }
             )
         }
     }
 
-    private fun finishLocationAccessRequest(granted: Boolean) {
-        runOnUiThread {
-            if (!isResolvingLocationAccessRequest && pendingGeolocationPermissionRequests.isEmpty()) {
-                return@runOnUiThread
-            }
-
-            isResolvingLocationAccessRequest = false
-            sendLegacyLocationPermissionCallback(granted)
-
-            val pendingRequests = pendingGeolocationPermissionRequests.toList()
-            pendingGeolocationPermissionRequests.clear()
-            pendingRequests.forEach { request ->
+    private fun fetchCurrentLocationAndFinish() {
+        lifecycleScope.launch {
+            try {
+                Timber.tag(TAG).d("requesting single high accuracy location")
+                val locationCoordinate = locationTrackerUtil.awaitSingleHighAccuracyLocation()
                 Timber.tag(TAG).d(
-                    "sending WebView geolocation callback: origin=${request.origin}, granted=$granted"
+                    "single high accuracy location received: lat=${locationCoordinate.lat}, lng=${locationCoordinate.lng}"
                 )
-                request.callback.invoke(request.origin, granted, false)
+                finishLocationAccessRequest(
+                    granted = true,
+                    locationCoordinate = locationCoordinate,
+                    errorArgument = null
+                )
+            } catch (exception: TimeoutCancellationException) {
+                Timber.tag(TAG).d("single high accuracy location timed out")
+                finishLocationAccessRequest(
+                    granted = false,
+                    errorArgument = LOCATION_ERROR_LOCATION_TIMEOUT
+                )
+            } catch (exception: SecurityException) {
+                Timber.tag(TAG).d("single high accuracy location security failure: ${exception.message}")
+                finishLocationAccessRequest(
+                    granted = false,
+                    errorArgument = LOCATION_ERROR_PERMISSION_DENIED
+                )
+            } catch (exception: IllegalStateException) {
+                Timber.tag(TAG).d("single high accuracy location state failure: ${exception.message}")
+                val errorArgument = if (locationTrackerUtil.isGPSEnabled()) {
+                    LOCATION_ERROR_LOCATION_UNAVAILABLE
+                } else {
+                    LOCATION_ERROR_GPS_SETTINGS_DISABLED
+                }
+                finishLocationAccessRequest(
+                    granted = false,
+                    errorArgument = errorArgument
+                )
+            } catch (exception: Exception) {
+                Timber.tag(TAG).d(
+                    "single high accuracy location failure: exception=${exception::class.java.simpleName}, message=${exception.message}"
+                )
+                finishLocationAccessRequest(
+                    granted = false,
+                    errorArgument = LOCATION_ERROR_LOCATION_UNAVAILABLE
+                )
             }
         }
     }
 
-    private fun sendLegacyLocationPermissionCallback(granted: Boolean) {
+    private fun finishLocationAccessRequest(
+        granted: Boolean,
+        locationCoordinate: LocationCoordinate? = null,
+        errorArgument: String? = null
+    ) {
+        runOnUiThread {
+            if (!isResolvingLocationAccessRequest) {
+                return@runOnUiThread
+            }
+
+            isResolvingLocationAccessRequest = false
+            sendLocationPermissionCallback(
+                granted = granted,
+                locationCoordinate = locationCoordinate,
+                errorArgument = errorArgument
+            )
+        }
+    }
+
+    private fun sendLocationPermissionCallback(
+        granted: Boolean,
+        locationCoordinate: LocationCoordinate?,
+        errorArgument: String?
+    ) {
         if (!::webview.isInitialized) {
             return
         }
 
-        val script =
-            "window.checkTheGpsPermission($granted)"
-        Timber.tag(TAG).d("sending JS GPS callback: window.checkTheGpsPermission($granted)")
+        val latArgument = locationCoordinate?.lat?.toString() ?: "null"
+        val lngArgument = locationCoordinate?.lng?.toString() ?: "null"
+        val errorJsArgument = errorArgument?.let { JSONObject.quote(it) } ?: "null"
+        val script = "window.checkTheLocationPermission($granted, $latArgument, $lngArgument, $errorJsArgument)"
+        Timber.tag(TAG).d(
+            "sending JS location callback: window.checkTheLocationPermission($granted, $latArgument, $lngArgument, $errorArgument)"
+        )
         webview.evaluateJavascript(script) { result ->
             Timber.tag(TAG).d(
-                "sent JS GPS callback: window.checkTheGpsPermission($granted), result=$result"
+                "sent JS location callback: window.checkTheLocationPermission($granted, $latArgument, $lngArgument, $errorArgument), result=$result"
             )
         }
     }
@@ -788,13 +855,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         return map
     }
 
-    override fun askForLocationPermission() {
-        Timber.tag(TAG).d("web event received: getLocationPermissions")
-        runOnUiThread {
-            startLocationAccessRequest()
-        }
-    }
-
     override fun requestPermission(type: String?) {
         Timber.tag(TAG).d("web event received: requestPermission type=$type")
         runOnUiThread {
@@ -846,7 +906,10 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
     override fun onDestroy() {
         Timber.tag(TAG).d("onDestroy called")
-        finishLocationAccessRequest(granted = false)
+        finishLocationAccessRequest(
+            granted = false,
+            errorArgument = LOCATION_ERROR_ACTIVITY_DESTROYED
+        )
         clearPendingCameraCapture(deletePendingFile = true)
         userEventCallback = null
         super.onDestroy()
@@ -934,20 +997,6 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
             window.decorView.systemUiVisibility = 3846 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
         }
 
-        override fun onGeolocationPermissionsShowPrompt(
-            origin: String?, callback: GeolocationPermissions.Callback?
-        ) {
-            Timber.tag(TAG).d(
-                "web geolocation request received: origin=$origin, hasCallback=${callback != null}"
-            )
-            startLocationAccessRequest(origin, callback)
-        }
-
-        override fun onGeolocationPermissionsHidePrompt() {
-            Timber.tag(TAG).d("web geolocation request hidden")
-            super.onGeolocationPermissionsHidePrompt()
-
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
