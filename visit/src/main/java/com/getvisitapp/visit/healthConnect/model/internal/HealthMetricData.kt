@@ -15,12 +15,8 @@ data class HealthMetricData(
     var healthMetricWithDateTime: List<HealthMetricsWithDateTime>? = null,
 
     var totalSteps: Long? = null,
-    var totalDistance: Double? = null,
-    var totalCalorie: Double? = null,
 
     var averageSteps: Long? = null,
-    var averageDistance: Double? = null,
-    var averageCalorie: Double? = null,
 
     var totalActivityTime: Duration? = null,
     var averageActivityTime: Duration? = null,

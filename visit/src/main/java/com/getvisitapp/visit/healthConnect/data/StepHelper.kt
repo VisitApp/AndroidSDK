@@ -142,8 +142,6 @@ class StepHelper(private val healthConnectClient: HealthConnectClient) {
 
         finalHealthMetricData.totalActivityTime = duration
 
-//            Timber.d("totalSteps:$totalSteps, distanceTotal: $distanceTotal, activityDurationTotal: $activityDurationTotal")
-
 //            Timber.d("stepsWithDateTimeList: $hourlyStepsWithDateTimeList")
 
 

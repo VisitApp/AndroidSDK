@@ -6,8 +6,6 @@ import java.time.LocalDateTime
 @Keep
 data class HealthMetricsWithDateTime(
     var steps: Long? = null,
-    var distance: Double? = null,
-    var calorie: Double? = null,
     val dateTime: LocalDateTime,
 ) {
     override fun equals(other: Any?): Boolean {

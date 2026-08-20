@@ -12,12 +12,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
-import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import com.getvisitapp.visit.HealthConnectListener
 import com.getvisitapp.visit.healthConnect.contants.Contants
 import com.getvisitapp.visit.healthConnect.data.GraphDataOperationsHelper
@@ -46,11 +41,6 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
 
     private val HEALTH_PERMISSIONS = setOf(
         HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getReadPermission(DistanceRecord::class),
-        HealthPermission.getReadPermission(SleepSessionRecord::class),
-        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
 
     val PERMISSIONS
@@ -302,8 +292,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         return healthConnectConnectionState
     }
 
-    // 1. For the dashboard graph.
-//           Today's steps and sleep data.
+    // For the dashboard graph.
     private fun getDailyStepAndSleepData() {
         scope.launch {
             try {
@@ -545,18 +534,3 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
     }
 
 }
-/** aggregateActivityByBucketBasedOnDuration
- * steps total: 6602 ,distance total: 3784.0138429299027 meters ,calorie total: 1714.9387687454107 kcal ,startTime:2024-08-16T18:30:00Z ,endTime: 2024-08-17T18:30:00Z
- * steps total: 2153 ,distance total: 946.9942807499685 meters ,calorie total: 1544.0814161167207 kcal ,startTime:2024-08-17T18:30:00Z ,endTime: 2024-08-18T18:30:00Z
- * steps total: 2181 ,distance total: 1217.345914414582 meters ,calorie total: 1534.8714048548898 kcal ,startTime:2024-08-18T18:30:00Z ,endTime: 2024-08-19T18:30:00Z
- * steps total: 1028 ,distance total: 414.3971366935903 meters ,calorie total: 1477.0066373640257 kcal ,startTime:2024-08-19T18:30:00Z ,endTime: 2024-08-20T18:30:00Z
- * steps total: 7444 ,distance total: 6496.074988999614 meters ,calorie total: 1941.2634706186748 kcal ,startTime:2024-08-20T18:30:00Z ,endTime: 2024-08-21T18:29:59.999Z
- */
-
-/** aggregateActivityByBucketBasedOnPeriod
- * steps total: 3771 ,distance total: 2075.2305739754383 meters ,calorie total: 1613.5464919679039 kcal ,startTime: 2024-08-16T18:30 ,endTime: 2024-08-17T18:30
- * steps total: 6607 ,distance total: 3612.4783093918018 meters ,calorie total: 1715.328791728457 kcal ,startTime: 2024-08-17T18:30 ,endTime: 2024-08-18T18:30
- * steps total: 2150 ,distance total: 1203.0787563831184 meters ,calorie total: 1532.6618118549654 kcal ,startTime: 2024-08-18T18:30 ,endTime: 2024-08-19T18:30
- * steps total: 549 ,distance total: 234.74553567468138 meters ,calorie total: 1474.9617246142407 kcal ,startTime: 2024-08-19T18:30 ,endTime: 2024-08-20T18:30
- * steps total: 7916 ,distance total: 6671.767744403136 meters ,calorie total: 1945.517986367616 kcal ,startTime: 2024-08-20T18:30 ,endTime: 2024-08-21T18:29:59.999
- */

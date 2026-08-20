@@ -2,7 +2,6 @@ package com.getvisitapp.visit.healthConnect.model.apiRequestModel
 
 import androidx.annotation.Keep
 
-
 @Keep
 data class HourlyDataSyncRequest(
     val bulkHealthData: List<BulkHealthData>,

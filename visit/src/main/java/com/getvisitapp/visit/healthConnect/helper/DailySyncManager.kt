@@ -2,16 +2,11 @@ package com.getvisitapp.visit.healthConnect.helper
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertLocalDateTimeToEpochMillis
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertToLocalDateTime
-import com.getvisitapp.visit.healthConnect.data.SleepHelper
 import com.getvisitapp.visit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import timber.log.Timber
 import java.time.Duration
@@ -24,10 +19,6 @@ import java.time.temporal.ChronoUnit
 
 
 class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
-
-    private val activityTimeHelper = ActivityTimeHelper()
-    private val sleepHelper = SleepHelper(healthConnectClient)
-
 
     suspend fun getDailySyncData(
         dailyLastSyncTimeStamp: Long,
@@ -119,10 +110,7 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
         val response = healthConnectClient.aggregateGroupByDuration(
             AggregateGroupByDurationRequest(
                 metrics = setOf(
-                    StepsRecord.COUNT_TOTAL,
-                    DistanceRecord.DISTANCE_TOTAL,
-                    ExerciseSessionRecord.EXERCISE_DURATION_TOTAL,
-                    TotalCaloriesBurnedRecord.ENERGY_TOTAL
+                    StepsRecord.COUNT_TOTAL
                 ),
                 timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant),
                 timeRangeSlicer = Duration.ofDays(1)
@@ -138,8 +126,6 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
             val bucketEndDateTime = LocalDateTime.ofInstant(result.endTime, ZoneId.systemDefault())
 
 
-            val sleepMetric = sleepHelper.getDailySleepData(bucketStartDateTime.toLocalDate())
-
             val isPresent =
                 finalHealthMetricDataList.contains(DailySyncHealthMetric(dateTime = bucketStartDateTime))
 
@@ -152,28 +138,15 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
                 )
 
                 finalHealthMetricDataList[index].steps = result.result[StepsRecord.COUNT_TOTAL] ?: 0
-
-                finalHealthMetricDataList[index].calorie =
-                    result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toLong()
-                        ?: 0L
-
-                finalHealthMetricDataList[index].distance =
-                    result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters?.toLong() ?: 0
-
-                finalHealthMetricDataList[index].activity =
-                    activityTimeHelper.getTotalActivityTimeForDay(
-                        healthConnectClient,
-                        result.startTime,
-                        result.endTime
-                    ).toSeconds()
-
-                finalHealthMetricDataList[index].sleep =
-                    "${sleepMetric.sleepStartTimeMillis}-${sleepMetric.sleepEndTimeMillis}"
-
             }
 
             Timber.tag("mytag").d(
-                "bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime, " + "steps total: ${result.result[StepsRecord.COUNT_TOTAL]} " + "distance total: ${result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters} " + "exercise total: ${result.result[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.toMinutes()} " + "calorie total: ${result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories} " + "sleep total: ${result.result[SleepSessionRecord.SLEEP_DURATION_TOTAL]?.toMinutes()} " + "startTime:${result.startTime} ," + "endTime: ${result.endTime}," + "sleepMetric: $sleepMetric"
+                "bucketStartDateTime: %s, bucketEndDateTime: %s, steps total: %s, startTime: %s, endTime: %s",
+                bucketStartDateTime,
+                bucketEndDateTime,
+                result.result[StepsRecord.COUNT_TOTAL],
+                result.startTime,
+                result.endTime
             )
 
         }
