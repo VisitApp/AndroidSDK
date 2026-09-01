@@ -132,6 +132,45 @@ class StepHelper(private val healthConnectClient: HealthConnectClient) {
 
         finalHealthMetricData.totalSteps = totalSteps
 
+        // Health Connect proportionally splits step records that cross hourly boundaries and
+        // returns each bucket as a Long, which can discard fractional steps and make the hourly
+        // sum slightly lower than the exact daily aggregate. Add that rounding difference to the
+        // last non-empty bucket so the graph buckets preserve the exact daily total.
+        if (totalSteps != null) {
+            val hourlyStepsTotal = healthMetricsWithDateTimeList.sumOf { it.steps ?: 0L }
+            val stepsDifference = totalSteps - hourlyStepsTotal
+
+            when {
+                stepsDifference > 0L -> {
+                    val lastNonEmptyBucket =
+                        healthMetricsWithDateTimeList.lastOrNull { (it.steps ?: 0L) > 0L }
+
+                    if (lastNonEmptyBucket != null) {
+                        lastNonEmptyBucket.steps =
+                            (lastNonEmptyBucket.steps ?: 0L) + stepsDifference
+                        Timber.d(
+                            "Reconciled daily hourly steps by adding %s steps to the last non-empty bucket",
+                            stepsDifference
+                        )
+                    } else {
+                        Timber.w(
+                            "Unable to reconcile daily hourly steps. Exact total=%s, hourly total=%s",
+                            totalSteps,
+                            hourlyStepsTotal
+                        )
+                    }
+                }
+
+                stepsDifference < 0L -> {
+                    Timber.w(
+                        "Daily hourly steps exceed the exact total. Exact total=%s, hourly total=%s",
+                        totalSteps,
+                        hourlyStepsTotal
+                    )
+                }
+            }
+        }
+
 
         //Here we are finding the activity time for that day.
         val duration = activityTimeHelper.getTotalActivityTimeForDay(
