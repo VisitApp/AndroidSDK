@@ -84,7 +84,7 @@ afterEvaluate {
 
                 groupId = 'com.github.VisitApp'
                 artifactId = 'AndroidSDK'
-                version = 'v3.12'
+                version = 'v3.13'
             }
         }
     }
