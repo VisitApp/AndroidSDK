@@ -303,17 +303,17 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1782906461000L //current time
+            var timeStamp = 1789043526000L //current time
 //            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
 
 //                Tutorials(healthConnectClient!!).fetchData()
 
-                getDailySyncData(
-                    timeStamp = timeStamp,
-                    dataBeyond30DaysIsAllowed = dataBeyond30DaysIsAllowed
-                )
+//                getDailySyncData(
+//                    timeStamp = timeStamp,
+//                    dataBeyond30DaysIsAllowed = dataBeyond30DaysIsAllowed
+//                )
 //                getHourlySyncData(timeStamp)
 //                exhaustHealthConnectQueryLimitTest(timeStamp)
 
@@ -327,7 +327,7 @@ class HealthConnectActivity : AppCompatActivity() {
 //                getActivityData(type = "distance", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "distance", frequency = "month", timeStamp = timeStamp)
 //
-//                getActivityData(type = "calories", frequency = "day", timeStamp = timeStamp)
+                getActivityData(type = "calories", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "calories", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "calories", frequency = "month", timeStamp = timeStamp)
 //
