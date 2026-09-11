@@ -2,7 +2,6 @@ package com.getvisitapp.visit.healthConnect.data
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
-import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.request.AggregateRequest
@@ -72,7 +71,7 @@ class CalorieHelper(private val healthConnectClient: HealthConnectClient) {
         val response = healthConnectClient.aggregateGroupByDuration(
             AggregateGroupByDurationRequest(
                 metrics = setOf(
-                    ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                    TotalCaloriesBurnedRecord.ENERGY_TOTAL,
                 ),
                 timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant),
                 timeRangeSlicer = Duration.ofHours(1)
@@ -91,7 +90,7 @@ class CalorieHelper(private val healthConnectClient: HealthConnectClient) {
                 LocalDateTime.ofInstant(result.endTime, ZoneId.systemDefault())
 
             Timber.d(
-                "active calorie total: ${result.result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories}, bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime,  " + "startTime:${result.startTime} ," + "endTime: ${result.endTime}"
+                "calorie total: ${result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories}, bucketStartDateTime: $bucketStartDateTime ," + "bucketEndDateTime: $bucketEndDateTime,  " + "startTime:${result.startTime} ," + "endTime: ${result.endTime}"
             )
 
             // Check if bucketStartDateTime is in the list
@@ -116,7 +115,7 @@ class CalorieHelper(private val healthConnectClient: HealthConnectClient) {
                             LocalDateTime.now().minusHours(1)
                         )
                     ) {
-                        result.result[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+                        result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
                     } else {
                         0.0
                     }
@@ -132,13 +131,13 @@ class CalorieHelper(private val healthConnectClient: HealthConnectClient) {
         val aggregatedData = healthConnectClient.aggregate(
             AggregateRequest(
                 metrics = setOf(
-                    ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL,
+                    TotalCaloriesBurnedRecord.ENERGY_TOTAL,
                 ), timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant)
             )
         )
 
         val totalCalorie: Double? =
-            aggregatedData[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+            aggregatedData[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
 
         finalHealthMetricData.totalCalorie = totalCalorie
 
