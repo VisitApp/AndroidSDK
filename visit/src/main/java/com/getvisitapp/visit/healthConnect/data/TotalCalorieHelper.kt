@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
-class CalorieHelper(private val healthConnectClient: HealthConnectClient) {
+class TotalCalorieHelper(private val healthConnectClient: HealthConnectClient) {
     val activityTimeHelper = ActivityTimeHelper()
 
     suspend fun getDailyCalorieData(
