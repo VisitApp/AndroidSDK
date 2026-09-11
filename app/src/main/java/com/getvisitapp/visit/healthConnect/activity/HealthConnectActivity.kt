@@ -19,6 +19,7 @@ import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.BasalMetabolicRateRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -56,6 +57,7 @@ class HealthConnectActivity : AppCompatActivity() {
         HealthPermission.getReadPermission(DistanceRecord::class),
         HealthPermission.getReadPermission(SleepSessionRecord::class),
         HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+        HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
         HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
@@ -303,7 +305,7 @@ class HealthConnectActivity : AppCompatActivity() {
 
             Timber.d("All Permission Allowed")
 
-            var timeStamp = 1789043526000L //current time
+            var timeStamp = 1788583111000L //current time
 //            var timeStamp = 1724424597000L // one week before time
 
             scope.launch {
@@ -327,9 +329,13 @@ class HealthConnectActivity : AppCompatActivity() {
 //                getActivityData(type = "distance", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "distance", frequency = "month", timeStamp = timeStamp)
 //
-                getActivityData(type = "calories", frequency = "day", timeStamp = timeStamp)
+//                getActivityData(type = "calories", frequency = "day", timeStamp = timeStamp) calories-> totalCalorie
 //                getActivityData(type = "calories", frequency = "week", timeStamp = timeStamp)
 //                getActivityData(type = "calories", frequency = "month", timeStamp = timeStamp)
+//
+                getActivityData(type = "basalCalories", frequency = "day", timeStamp = timeStamp)
+//                getActivityData(type = "basalCalories", frequency = "week", timeStamp = timeStamp)
+//                getActivityData(type = "basalCalories", frequency = "month", timeStamp = timeStamp)
 //
 //                getActivityData(type = "sleep", frequency = "day", timeStamp = timeStamp)
 //                getActivityData(type = "sleep", frequency = "week", timeStamp = timeStamp)
@@ -491,6 +497,46 @@ class HealthConnectActivity : AppCompatActivity() {
                                 }
                             }
 
+                        }
+                    }
+                }
+
+                "basalCalories" -> {
+                    when (frequency) {
+                        "day" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getDailyBasalCalorieData(timeStamp)
+                                    Timber.d("getDailyBasalCalorieData: $resultString")
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        "week" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getWeeklyBasalCalorieData(timeStamp)
+                                    Timber.d("getWeeklyBasalCalorieData: $resultString")
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        "month" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getMonthlyBasalCalorieData(timeStamp)
+                                    Timber.d("getMonthlyBasalCalorieData: $resultString")
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         }
                     }
                 }

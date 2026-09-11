@@ -13,6 +13,7 @@ import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.BasalMetabolicRateRecord
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.SleepSessionRecord
@@ -49,6 +50,7 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         HealthPermission.getReadPermission(DistanceRecord::class),
         HealthPermission.getReadPermission(SleepSessionRecord::class),
         HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
+        HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
         HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(ExerciseSessionRecord::class),
     )
@@ -199,6 +201,10 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
         val calories =
             graphDataOperationsHelper.getTodayCalorieCount(getHealthConnectClient())
         return calories
+    }
+
+    suspend fun getTodayBasalCalorieData(): Long {
+        return graphDataOperationsHelper.getTodayBasalCalorieCount()
     }
 
     fun checkHealthConnectAvailabilityStatus(): Int {
@@ -464,6 +470,46 @@ class HealthConnectUtil(val context: Context, val listener: HealthConnectListene
                                 }
                             }
 
+                        }
+                    }
+                }
+
+                "basalCalories" -> {
+                    when (frequency) {
+                        "day" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getDailyBasalCalorieData(timeStamp)
+                                    listener.loadVisitWebViewGraphData(resultString)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        "week" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getWeeklyBasalCalorieData(timeStamp)
+                                    listener.loadVisitWebViewGraphData(resultString)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+
+                        "month" -> {
+                            scope.launch {
+                                try {
+                                    val resultString =
+                                        graphDataOperationsHelper.getMonthlyBasalCalorieData(timeStamp)
+                                    listener.loadVisitWebViewGraphData(resultString)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         }
                     }
                 }

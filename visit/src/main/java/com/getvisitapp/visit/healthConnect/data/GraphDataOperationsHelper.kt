@@ -21,7 +21,8 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
 
     val stepsHelper by lazy { StepHelper(healthConnectClient) }
     val distanceHelper by lazy { DistanceHelper(healthConnectClient) }
-    val calorieHelper by lazy { CalorieHelper(healthConnectClient) }
+    val totalCalorieHelper by lazy { TotalCalorieHelper(healthConnectClient) }
+    val basalMetabolicRateHelper by lazy { BasalMetabolicRateHelper(healthConnectClient) }
     val sleepHelper by lazy { SleepHelper(healthConnectClient) }
 
 
@@ -131,6 +132,16 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         )
 
         return calories
+    }
+
+    suspend fun getTodayBasalCalorieCount(): Long {
+        val healthMetricData =
+            basalMetabolicRateHelper.getDailyBasalCalorieData(LocalDate.now())
+        val basalCalories = healthMetricData.totalCalorie?.toLong() ?: 0L
+
+        Timber.d("Basal calories: $basalCalories")
+
+        return basalCalories
     }
 
     /**
@@ -402,7 +413,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
         val requestedTimeStamp: LocalDateTime = timeStamp.convertEpochMillisToLocalDateTime()
 
         val healthMetricData: HealthMetricData =
-            calorieHelper.getDailyCalorieData(selectedDate = requestedTimeStamp.toLocalDate())
+            totalCalorieHelper.getDailyCalorieData(selectedDate = requestedTimeStamp.toLocalDate())
 
         Timber.d("getDailyCalorieData: ${healthMetricData.healthMetricWithDateTime?.size}")
 //
@@ -438,7 +449,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
 
         val requestedTimeStamp: LocalDateTime = timeStamp.convertEpochMillisToLocalDateTime()
 
-        val healthMetricData: HealthMetricData = calorieHelper.getWeeklyCalorieData(
+        val healthMetricData: HealthMetricData = totalCalorieHelper.getWeeklyCalorieData(
             selectedDate = requestedTimeStamp.toLocalDate()
         )
 
@@ -483,7 +494,7 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
 
         val requestedTimeStamp: LocalDateTime = timeStamp.convertEpochMillisToLocalDateTime()
 
-        val healthMetricData: HealthMetricData = calorieHelper.getMonthlyCalorieData(
+        val healthMetricData: HealthMetricData = totalCalorieHelper.getMonthlyCalorieData(
             requestedTimeStamp.toLocalDate()
         )
 
@@ -514,6 +525,49 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
             "DetailedGraph.updateData([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],[$calorieSeparated], 'calories', 'month','${averageActivityTime?.toMinutes()}')"
 
 
+        Timber.d("value: $webString")
+
+        return webString
+    }
+
+    /**
+     * Basal calorie reading functions
+     */
+
+    suspend fun getDailyBasalCalorieData(timeStamp: Long): String {
+        val requestedTimeStamp = timeStamp.convertEpochMillisToLocalDateTime()
+        val healthMetricData = basalMetabolicRateHelper.getDailyBasalCalorieData(
+            selectedDate = requestedTimeStamp.toLocalDate()
+        )
+        val webString = formatBasalCalorieGraphData(healthMetricData, frequency = "day")
+
+        Timber.d("getDailyBasalCalorieData: $healthMetricData")
+        Timber.d("value: $webString")
+
+        return webString
+    }
+
+    suspend fun getWeeklyBasalCalorieData(timeStamp: Long): String {
+        val requestedTimeStamp = timeStamp.convertEpochMillisToLocalDateTime()
+        val healthMetricData = basalMetabolicRateHelper.getWeeklyBasalCalorieData(
+            selectedDate = requestedTimeStamp.toLocalDate()
+        )
+        val webString = formatBasalCalorieGraphData(healthMetricData, frequency = "week")
+
+        Timber.d("getWeeklyBasalCalorieData: $healthMetricData")
+        Timber.d("value: $webString")
+
+        return webString
+    }
+
+    suspend fun getMonthlyBasalCalorieData(timeStamp: Long): String {
+        val requestedTimeStamp = timeStamp.convertEpochMillisToLocalDateTime()
+        val healthMetricData = basalMetabolicRateHelper.getMonthlyBasalCalorieData(
+            selectedDate = requestedTimeStamp.toLocalDate()
+        )
+        val webString = formatBasalCalorieGraphData(healthMetricData, frequency = "month")
+
+        Timber.d("getMonthlyBasalCalorieData: $healthMetricData")
         Timber.d("value: $webString")
 
         return webString
@@ -566,4 +620,17 @@ class GraphDataOperationsHelper(healthConnectClient: HealthConnectClient) {
 
     }
 
+}
+
+internal fun formatBasalCalorieGraphData(
+    healthMetricData: HealthMetricData,
+    frequency: String
+): String {
+    val entries = healthMetricData.healthMetricWithDateTime.orEmpty()
+    val labels = entries.indices.joinToString(separator = ",") { index -> "${index + 1}" }
+    val basalCalories = entries.joinToString(separator = ",") { entry ->
+        "${entry.calorie?.toInt() ?: 0}"
+    }
+
+    return "DetailedGraph.updateData([$labels],[$basalCalories], 'basalCalories', '$frequency','0')"
 }
