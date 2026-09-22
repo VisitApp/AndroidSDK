@@ -36,10 +36,14 @@ public class GoogleFitUtil implements GenericListener {
     private SyncStepHelper syncStepHelper;
 
 
-    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id) {
+    public GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, int upiRequestCode) {
+        this(context, listener, default_web_client_id, new WebAppInterface(context, listener, upiRequestCode));
+    }
+
+    private GoogleFitUtil(Activity context, GoogleFitStatusListener listener, String default_web_client_id, WebAppInterface webAppInterface) {
         this.context = context;
         this.listener = listener;
-        this.webAppInterface = new WebAppInterface(listener);
+        this.webAppInterface = webAppInterface;
         this.default_web_client_id = default_web_client_id;
     }
 

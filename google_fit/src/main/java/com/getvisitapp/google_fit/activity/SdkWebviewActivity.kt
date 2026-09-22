@@ -147,6 +147,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
 
     companion object {
+        private const val UPI_APP_REQUEST_CODE = 1000
+
         fun getIntent(
             context: Context,
             isDebug: Boolean,
@@ -235,7 +237,7 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         binding.webview.loadUrl(magicLink)
 
 
-        googleFitUtil = GoogleFitUtil(this, this, default_web_client_id)
+        googleFitUtil = GoogleFitUtil(this, this, default_web_client_id, UPI_APP_REQUEST_CODE)
         binding.webview.addJavascriptInterface(googleFitUtil.webAppInterface, "Android")
         googleFitUtil.init()
 
@@ -288,13 +290,8 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
         if (requestCode == 4097 || requestCode == 1900) {
 
             googleFitUtil.onActivityResult(requestCode, resultCode, intent)
-        } else if (requestCode == 1000 && resultCode == RESULT_OK) {
-            Log.d("mytag", "resultCode: $requestCode")
-
-            binding.webview.webChromeClient = webChromeClient
-            binding.webview.webViewClient = webViewClient
-
-
+        } else if (requestCode == UPI_APP_REQUEST_CODE) {
+            binding.webview.evaluateJavascript("window.showVerifyUI()", null)
         } else if (requestCode == REQUEST_CODE_FILE_PICKER) {
             if (resultCode == Activity.RESULT_OK) {
                 var dataUris: Array<Uri>? = null
@@ -948,7 +945,5 @@ class SdkWebviewActivity : AppCompatActivity(), VideoCallListener, GoogleFitStat
 
 
 }
-
-
 
 

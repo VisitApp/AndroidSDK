@@ -1,18 +1,42 @@
 package com.getvisitapp.google_fit.data;
 
+import android.app.Activity;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import androidx.annotation.Keep;
 
+import com.getvisitapp.google_fit.util.UpiPaymentHelper;
 import com.getvisitapp.google_fit.view.GoogleFitStatusListener;
 
 @Keep
 public class WebAppInterface {
-    GoogleFitStatusListener listener;
+    private final Activity activity;
+    private final GoogleFitStatusListener listener;
+    private final int upiRequestCode;
 
-    public WebAppInterface(GoogleFitStatusListener listener) {
+    public WebAppInterface(Activity activity, GoogleFitStatusListener listener, int upiRequestCode) {
+        this.activity = activity;
         this.listener = listener;
+        this.upiRequestCode = upiRequestCode;
+    }
+
+    @JavascriptInterface
+    public String getAppList(String requestUri) {
+        Log.d("mytag", "getAppList() called. requestUri: " + requestUri);
+        if (activity == null) {
+            return "[]";
+        }
+        return UpiPaymentHelper.getAppList(activity, requestUri);
+    }
+
+    @JavascriptInterface
+    public boolean openApp(String packageName, String upiUri) {
+        Log.d("mytag", "getAppList() called. packageName:" + packageName + " upiUri: " + upiUri);
+        if (activity == null) {
+            return true;
+        }
+        return UpiPaymentHelper.openApp(activity, packageName, upiUri, upiRequestCode);
     }
 
     @JavascriptInterface
