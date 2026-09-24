@@ -50,8 +50,9 @@ android {
 }
 
 dependencies {
-//    implementation project(':visit')
-    implementation files('visit-debug.aar')
+//    implementation 'com.github.VisitApp:AndroidSDK:navi-2.1'
+    implementation project(':visit')
+//    implementation files('visit-debug.aar')
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
