@@ -93,7 +93,7 @@ afterEvaluate {
                 from components.release
 
                 groupId = 'com.getvisitapp'
-                artifactId = 'google_fit'
+                artifactId = 'visit'
                 version = '2.1'
             }
         }
