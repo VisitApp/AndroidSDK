@@ -101,3 +101,6 @@
 # Please add these rules to your existing keep rules in order to suppress warnings.
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn java.lang.invoke.StringConcatFactory
+
+# Keep obfuscated implementation classes out of root-level packages that may collide with hosts.
+-repackageclasses 'com.visitapp'
