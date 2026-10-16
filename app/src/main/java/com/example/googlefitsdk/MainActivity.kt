@@ -12,6 +12,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -278,17 +279,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun init() {
-
-//        val magicLink =
-//            "https://web.getvisitapp.xyz/"
-
-        val magicLink =
-            "https://tata-aig.getvisitapp.net/sso?userParams=cxm0AUVfF4Fz3JCvSY0i1sBw7pt8pwxbbTnSXm1XJvHLSjwpcpWQYuHiqRqYByniY1sZuSQAZZrw_uRh-FoXz9xmFc0jIzfOYv7wjZd9NgNA2mB7QP5LQsuL2cHB5rgVf1daS6m0RlHfIN4A4_niDA7xMMJGEcNhdWgGNPpHT-JbkdM75kjUYbStqLUkEgJk97hAEO8pXjAfZ2xwsY6ASIfVrC6OY2L9BfvVVS34JZ0OizGVu9QCZKWrN2E0GU8XbW7AZn7xCVTwo2LotWynoJ8xoaSjaf3ySpm1NhSb_acrMEn1DAj8rUMOpiHGb-3r&clientId=tata-aig-a8b455"
-
-
-//        val magicLink =
-//            "https://star-health.getvisitapp.com/?mluib7c=QNkg98jB"
-
+        val ssoUrlInput = findViewById<EditText>(R.id.ssoUrlInput)
+        val magicLink = ssoUrlInput.text.toString().trim()
+        if (magicLink.isBlank()) {
+            ssoUrlInput.error = getString(R.string.sso_url_required)
+            ssoUrlInput.requestFocus()
+            return
+        }
+        ssoUrlInput.error = null
 
         IntiateSdk.s(
             this,

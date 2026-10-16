@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GoogleFitSdk</string>
+    <string name="sso_url">SSO URL</string>
+    <string name="sso_url_required">Enter an SSO URL</string>
 </resources>
