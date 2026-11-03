@@ -52,5 +52,15 @@ public class WebAppInterface {
         listener.requestPermission(type);
     }
 
+    @JavascriptInterface
+    public String getAppList(String requestUri) {
+        return listener.getAppList(requestUri);
+    }
+
+    @JavascriptInterface
+    public boolean openApp(String upiClientPackage, String upiUri) {
+        return listener.openApp(upiClientPackage, upiUri);
+    }
+
 
 }

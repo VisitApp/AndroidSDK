@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
@@ -209,6 +210,17 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
 
         mFileUploadCallbackSecond?.onReceiveValue(dataUris)
         mFileUploadCallbackSecond = null
+    }
+
+    private val upiAppLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (!isFinishing && !isDestroyed) {
+            webview.evaluateJavascript(
+                "if (typeof window.showVerifyUI === 'function') { window.showVerifyUI(); }",
+                null
+            )
+        }
     }
 
 
@@ -915,6 +927,47 @@ class SdkWebviewActivity : AppCompatActivity(), GoogleFitStatusListener {
         super.onDestroy()
     }
 
+
+    override fun getAppList(requestUri: String?): String {
+        return try {
+            if (requestUri.isNullOrBlank()) return "[]"
+            val uri = Uri.parse(requestUri)
+            if (uri.scheme.isNullOrBlank()) return "[]"
+            val apps = JSONArray()
+            for (info in packageManager.queryIntentActivities(Intent(Intent.ACTION_VIEW, uri), 0)) {
+                apps.put(JSONObject().apply {
+                    put("appName", packageManager.getApplicationLabel(info.activityInfo.applicationInfo).toString())
+                    put("appPackage", info.activityInfo.packageName)
+                })
+            }
+            apps.toString()
+        } catch (exception: Exception) {
+            Timber.w(exception, "Unable to discover UPI apps")
+            "[]"
+        }
+    }
+
+    override fun openApp(upiClientPackage: String?, upiUri: String?): Boolean {
+        runOnUiThread {
+            try {
+                if (isFinishing || isDestroyed || upiClientPackage.isNullOrBlank() || upiUri.isNullOrBlank()) {
+                    return@runOnUiThread
+                }
+                val uri = Uri.parse(upiUri)
+                if (uri.scheme.isNullOrBlank()) return@runOnUiThread
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                val handler = packageManager.queryIntentActivities(intent, 0)
+                    .firstOrNull { it.activityInfo.packageName == upiClientPackage }
+                    ?: return@runOnUiThread
+                intent.setClassName(handler.activityInfo.packageName, handler.activityInfo.name)
+                upiAppLauncher.launch(intent)
+            } catch (exception: Exception) {
+                Timber.w(exception, "Unable to launch UPI app")
+            }
+        }
+        // Cashfree acknowledgement only; the checkout verifies the payment after return.
+        return true
+    }
 
     override fun openLink(url: String?) {
         Timber.tag(TAG).d("web event received: openLink url=$url")
