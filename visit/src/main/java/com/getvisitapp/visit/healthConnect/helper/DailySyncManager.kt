@@ -1,12 +1,15 @@
 package com.getvisitapp.visit.healthConnect.helper
 
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.aggregate.AggregationResultGroupedByDuration
+import androidx.health.connect.client.records.DistanceRecord
+import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.StepsRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertLocalDateTimeToEpochMillis
 import com.getvisitapp.visit.healthConnect.TimeUtil.convertToLocalDateTime
+import com.getvisitapp.visit.healthConnect.data.SleepHelper
 import com.getvisitapp.visit.healthConnect.model.apiRequestModel.DailySyncHealthMetric
 import timber.log.Timber
 import java.time.Duration
@@ -19,6 +22,10 @@ import java.time.temporal.ChronoUnit
 
 
 class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
+
+    private val activityTimeHelper = ActivityTimeHelper()
+    private val sleepHelper = SleepHelper(healthConnectClient)
+
 
     suspend fun getDailySyncData(
         dailyLastSyncTimeStamp: Long,
@@ -110,47 +117,35 @@ class DailySyncManager(private val healthConnectClient: HealthConnectClient) {
         val response = healthConnectClient.aggregateGroupByDuration(
             AggregateGroupByDurationRequest(
                 metrics = setOf(
-                    StepsRecord.COUNT_TOTAL
+                    StepsRecord.COUNT_TOTAL,
+                    DistanceRecord.DISTANCE_TOTAL,
+                    ExerciseSessionRecord.EXERCISE_DURATION_TOTAL,
+                    TotalCaloriesBurnedRecord.ENERGY_TOTAL
                 ),
                 timeRangeFilter = TimeRangeFilter.between(startDateInstant, endDateInstant),
                 timeRangeSlicer = Duration.ofDays(1)
             )
         )
 
-        response.forEach { result: AggregationResultGroupedByDuration ->
-
-
-            val bucketStartDateTime: LocalDateTime =
-                LocalDateTime.ofInstant(result.startTime, ZoneId.systemDefault())
-
-            val bucketEndDateTime = LocalDateTime.ofInstant(result.endTime, ZoneId.systemDefault())
-
-
-            val isPresent =
-                finalHealthMetricDataList.contains(DailySyncHealthMetric(dateTime = bucketStartDateTime))
-
-            if (isPresent) {
-
-                val index = finalHealthMetricDataList.indexOf(
-                    DailySyncHealthMetric(
-                        dateTime = bucketStartDateTime
-                    )
-                )
-
-                finalHealthMetricDataList[index].steps = result.result[StepsRecord.COUNT_TOTAL] ?: 0
-            }
-
-            Timber.tag("mytag").d(
-                "bucketStartDateTime: %s, bucketEndDateTime: %s, steps total: %s, startTime: %s, endTime: %s",
-                bucketStartDateTime,
-                bucketEndDateTime,
-                result.result[StepsRecord.COUNT_TOTAL],
-                result.startTime,
-                result.endTime
-            )
-
+        val metricsByDate = finalHealthMetricDataList.associateBy { it.dateTime.toLocalDate() }
+        for (result in response) {
+            val date = result.startTime.atZone(ZoneId.systemDefault()).toLocalDate()
+            val metric = metricsByDate[date] ?: continue
+            metric.steps = result.result[StepsRecord.COUNT_TOTAL] ?: 0
+            metric.calorie =
+                result.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.toLong() ?: 0
+            metric.distance = result.result[DistanceRecord.DISTANCE_TOTAL]?.inMeters?.toLong() ?: 0
+            metric.activity = activityTimeHelper.getTotalActivityTimeForDay(
+                healthConnectClient, result.startTime, result.endTime
+            ).toSeconds()
         }
 
+        for (metric in finalHealthMetricDataList) {
+            val sleep = sleepHelper.getDailySleepData(metric.dateTime.toLocalDate())
+            if (!sleep.sleepDuration.isZero) {
+                metric.sleep = "${sleep.sleepStartTimeMillis}-${sleep.sleepEndTimeMillis}"
+            }
+        }
 
         return finalHealthMetricDataList
     }
